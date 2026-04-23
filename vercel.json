@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm --filter @workspace/cloth-sim build",
+  "outputDirectory": "artifacts/cloth-sim/dist/public",
+  "framework": "vite",
+  "installCommand": "pnpm install"
+}
