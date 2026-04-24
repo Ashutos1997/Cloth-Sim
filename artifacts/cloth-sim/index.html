@@ -1229,6 +1229,118 @@
         cursor: pointer !important;
       }
     }
+
+    /* ── Compact Desktop HUD Refinement (min-width: 768px) ── */
+    @media (min-width: 768px) {
+      #hud {
+        background: rgba(12,12,12,0.88) !important;
+        border-right: 1px solid rgba(255,255,255,0.06) !important;
+        padding: 16px !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+      }
+
+      #hud .hud-group-label, #hud .hud-section-title {
+        font-size: 9px !important;
+        letter-spacing: 0.14em !important;
+        opacity: 0.35 !important;
+        margin-top: 20px !important;
+        margin-bottom: 6px !important;
+      }
+
+      #hud .hud-act {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        padding: 6px 4px !important;
+        font-size: 12px !important;
+        opacity: 0.8 !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+      }
+
+      #hud .hud-act .row-icon, #hud .hud-act .hud-icon {
+        flex-shrink: 0 !important;
+        overflow: visible !important;
+        width: 16px !important;
+        min-width: 16px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      #hud .key, #hud .hud-key {
+        font-size: 10px !important;
+        padding: 1px 5px !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 3px !important;
+        background: transparent !important;
+        color: white !important;
+        min-width: 16px !important;
+        text-align: center !important;
+      }
+
+      #hud hr {
+        border: none !important;
+        border-top: 1px solid rgba(255,255,255,0.05) !important;
+        margin: 8px 0 !important;
+      }
+
+      #hud .tab-bar { display: none !important; }
+
+      #hud-texture {
+        margin-top: 8px !important;
+        padding-top: 12px !important;
+        border-top: 1px solid rgba(255,255,255,0.05) !important;
+        position: static !important;
+        bottom: unset !important;
+      }
+
+      #texUploadBtn {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin-bottom: 8px !important;
+        padding: 6px !important;
+        font-size: 11px !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        border-radius: 4px !important;
+        background: transparent !important;
+        color: white !important;
+      }
+
+      #hud-presets {
+        display: flex !important;
+        gap: 4px !important;
+        width: 100% !important;
+      }
+
+      .preset-btn, .preset-btn.material-btn {
+        flex: 1 !important;
+        font-size: 11px !important;
+        padding: 5px 0 !important;
+        text-align: center !important;
+        border-radius: 4px !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        background: transparent !important;
+        color: white !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 4px !important;
+      }
+
+      .preset-btn img, .preset-btn .preset-swatch, .preset-btn .swatch {
+        width: 10px !important;
+        height: 10px !important;
+        border-radius: 2px !important;
+      }
+
+      .preset-btn.active {
+        border-color: white !important;
+        background: rgba(255,255,255,0.08) !important;
+      }
+    }
   </style>
 </head>
 <body>
