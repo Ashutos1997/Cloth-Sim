@@ -1791,6 +1791,45 @@
     @media (max-width: 767px) {
       #canvas-meta { display: none !important; }
     }
+
+    /* REC Indicator */
+    #rec-indicator {
+      position: fixed !important;
+      top: 24px !important;
+      right: 24px !important;
+      display: none !important;
+      align-items: center !important;
+      gap: 8px !important;
+      z-index: 100 !important;
+      pointer-events: none !important;
+      background: rgba(0,0,0,0.4) !important;
+      padding: 6px 10px !important;
+      border-radius: 6px !important;
+      backdrop-filter: blur(8px) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    #rec-dot {
+      width: 8px !important;
+      height: 8px !important;
+      background: #ff4444 !important;
+      border-radius: 50% !important;
+      box-shadow: 0 0 8px rgba(255,68,68,0.6) !important;
+      animation: rec-pulse 1.2s infinite ease-in-out !important;
+    }
+    #rec-text {
+      color: #ff4444 !important;
+      font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.15em !important;
+      line-height: 1 !important;
+      margin-top: 1px !important;
+    }
+    @keyframes rec-pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(1.15); }
+      100% { opacity: 1; transform: scale(1); }
+    }
   </style>
 </head>
 <body>
@@ -1805,6 +1844,12 @@
 <canvas id="canvas"></canvas>
 <canvas id="overlay"></canvas>
 <div id="grain-overlay"></div>
+
+<!-- REC Indicator -->
+<div id="rec-indicator">
+  <div id="rec-dot"></div>
+  <div id="rec-text">REC</div>
+</div>
 
 <!-- Metadata Overlay (Desktop only) -->
 <div id="canvas-meta">
@@ -1840,6 +1885,7 @@
       <div class="hud-group-label" data-i18n="utility">Utility</div>
       <div class="hud-row hud-act" data-hud-key="R" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i></span><span class="key">R</span><span id="hudLabelReset" data-i18n="reset">reset cloth</span></div>
       <div class="hud-row hud-act" data-hud-key="S" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-floppy-disk" aria-hidden="true"></i></span><span class="key">S</span><span id="hudLabelSave" data-i18n="save">save image</span></div>
+      <div class="hud-row hud-act" data-hud-key="V" id="hudRowRecord" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-record" aria-hidden="true"></i></span><span class="key">V</span><span id="hudLabelRecord" data-i18n="recordLabel">record video</span></div>
       <div class="hud-row hud-act" data-hud-key="H" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-eye-slash" aria-hidden="true"></i></span><span class="key">H</span><span id="hudLabelHide" data-i18n="hide">hide HUD</span></div>
     </div>
   </div>
@@ -2012,6 +2058,10 @@
       <button class="fx-util-btn" id="fxMic" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:var(--radius-ui); background:transparent; border:1px solid var(--border-mid);">
         <i class="ph ph-microphone"></i>
         <span class="fx-util-label" data-i18n="mobMic">Mic</span>
+      </button>
+      <button class="fx-util-btn" id="fxRecord" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:var(--radius-ui); background:transparent; border:1px solid var(--border-mid);">
+        <i class="ph ph-record"></i>
+        <span class="fx-util-label" data-i18n="recordLabel">Record</span>
       </button>
     </div>
     
@@ -2340,6 +2390,7 @@ class Cloth {
   const fxSaveBtn     = document.getElementById('fxSave');
   const fxUploadBtn2  = document.getElementById('fxUpload');
   const fxMicBtn      = document.getElementById('fxMic');
+  const fxRecord      = document.getElementById('fxRecord');
 
   /* ── Language localisation — Korean if system lang starts with 'ko' ── */
   if (navigator.language && navigator.language.toLowerCase().startsWith('ko')) {
@@ -2567,6 +2618,67 @@ class Cloth {
       gl_FragColor = vec4(color, 1.0);
     }
   `;
+
+  /* ── Recording State ── */
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let isRecording = false;
+  let micStream = null;
+
+  function downloadRecording() {
+    if (recordedChunks.length === 0) return;
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `cloth-sim-${Date.now()}.webm`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 100);
+  }
+
+  function stopRecording() {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      isRecording = false;
+      const rec = document.getElementById('rec-indicator');
+      if (rec) rec.style.display = 'none';
+      updateHUD();
+    }
+  }
+
+  function startRecording() {
+    if (isRecording) return;
+    recordedChunks = [];
+    const canvasStream = canvas.captureStream(60);
+    const tracks = [...canvasStream.getTracks()];
+    if (micStream) {
+      const audioTracks = micStream.getAudioTracks();
+      if (audioTracks.length > 0) tracks.push(audioTracks[0]);
+    }
+    const combinedStream = new MediaStream(tracks);
+    try {
+      mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm; codecs=vp9' });
+    } catch(e) {
+      mediaRecorder = new MediaRecorder(combinedStream);
+    }
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = downloadRecording;
+    mediaRecorder.start();
+    isRecording = true;
+    const rec = document.getElementById('rec-indicator');
+    if (rec) rec.style.display = 'flex';
+    updateHUD();
+  }
+
+  function toggleRecording() {
+    if (isRecording) stopRecording();
+    else startRecording();
+  }
 
   function compileShader(type, src) {
     const sh = gl.createShader(type);
@@ -3311,6 +3423,7 @@ class Cloth {
         updateHUD();
         break;
       case 'S': saveImage(); break;
+      case 'V': toggleRecording(); break;
       case 'G':
         grainOn = !grainOn;
         document.getElementById('grain-overlay').classList.toggle('active', grainOn);
@@ -3387,14 +3500,16 @@ class Cloth {
       mobWater.setAttribute('aria-pressed', String(waterMode));
       mobWind .setAttribute('aria-pressed', String(windEnabled));
       /* More button dot — on when Grain, Collider or Mic is active */
-      mobMore .classList.toggle('mode-on', grainOn || colliderType !== COLLIDER_NONE || micAnalyser !== null || lightSourceEnabled);
+      mobMore .classList.toggle('mode-on', grainOn || colliderType !== COLLIDER_NONE || micAnalyser !== null || lightSourceEnabled || isRecording);
       /* More sheet toggles */
       fxGrain   .classList.toggle('active', grainOn);
       fxCollider.classList.toggle('active', colliderType !== COLLIDER_NONE);
       fxMicBtn  .classList.toggle('active', micAnalyser !== null);
       fxLight   .classList.toggle('active', lightSourceEnabled);
+      fxRecord  .classList.toggle('active', isRecording);
       fxGrain   .setAttribute('aria-pressed', String(grainOn));
       fxCollider.setAttribute('aria-pressed', String(colliderType !== COLLIDER_NONE));
+      fxRecord  .setAttribute('aria-pressed', String(isRecording));
     } else {
       /* Desktop HUD shortcut rows — inline active state + aria-pressed */
       const rowTear     = document.getElementById('hudRowTear');
@@ -3404,6 +3519,7 @@ class Cloth {
       const rowWind     = document.getElementById('hudRowWind');
       const rowGrain    = document.getElementById('hudRowGrain');
       const rowLight    = document.getElementById('hudRowLight');
+      const rowRecord   = document.getElementById('hudRowRecord');
       rowTear    .classList.toggle('row-on', tearMode);
       rowDirt    .classList.toggle('row-on', dirtMode);
       rowWater   .classList.toggle('row-on', waterMode);
@@ -3411,6 +3527,7 @@ class Cloth {
       rowWind    .classList.toggle('row-on', windEnabled);
       rowGrain   .classList.toggle('row-on', grainOn);
       rowLight   .classList.toggle('row-on', lightSourceEnabled);
+      rowRecord  .classList.toggle('row-on', isRecording);
       rowTear    .setAttribute('aria-pressed', String(tearMode));
       rowDirt    .setAttribute('aria-pressed', String(dirtMode));
       rowWater   .setAttribute('aria-pressed', String(waterMode));
@@ -3516,6 +3633,7 @@ class Cloth {
       if (micAnalyser) return;
       navigator.mediaDevices.getUserMedia({ audio: true, video: false })
         .then(stream => {
+          micStream = stream; // Store for video recording
           const audioCtx  = new AudioContext();
           const source    = audioCtx.createMediaStreamSource(stream);
           micAnalyser     = audioCtx.createAnalyser();
@@ -3527,6 +3645,8 @@ class Cloth {
         })
         .catch(() => { /* permission denied */ });
     });
+    const fxRecordBtn = document.getElementById('fxRecord');
+    if (fxRecordBtn) fxRecordBtn.addEventListener('click', () => { closeFxSheet(); toggleRecording(); });
   }
 
   /* ── Desktop HUD — clickable shortcut rows ── */
@@ -3672,6 +3792,7 @@ class Cloth {
       waterLabel: "water mode",
       reset: "reset cloth",
       save: "save image",
+      recordLabel: "record video",
       hide: "hide HUD",
       modeWind: "WIND ON",
       modeTear: "TEAR MODE",
@@ -3715,6 +3836,7 @@ class Cloth {
       waterLabel: "수분 모드",
       reset: "초기화",
       save: "이미지 저장",
+      recordLabel: "영상 녹화",
       hide: "HUD 숨기기",
       modeWind: "바람 켬",
       modeTear: "찢기 모드",
