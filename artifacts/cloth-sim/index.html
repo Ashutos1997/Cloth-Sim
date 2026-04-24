@@ -917,57 +917,32 @@
 
 
 <!-- Mobile top header (≤768px only) -->
-<header id="mob-header" style="display: flex; align-items: center; justify-content: space-between;">
-  <div style="display: flex; flex-direction: column;">
-    <span class="mob-title">Fabric</span>
-    <span class="mob-subtitle">Interactive Cloth Simulation</span>
-  </div>
-  <div class="fx-util-row" style="display: flex; gap: 4px; padding: 0; pointer-events: all;">
-    <button class="fx-util-btn" id="fxReset" style="border:none; padding: 8px; flex:none;">
-      <i class="ph ph-arrow-counter-clockwise"></i>
-      <span class="fx-util-label" style="display:none;">Reset</span>
-    </button>
-    <button class="fx-util-btn" id="fxSave" style="border:none; padding: 8px; flex:none;">
-      <i class="ph ph-download-simple"></i>
-      <span class="fx-util-label" style="display:none;">Save</span>
-    </button>
-    <button class="fx-util-btn" id="fxUpload" style="border:none; padding: 8px; flex:none;">
-      <i class="ph ph-upload-simple"></i>
-      <span class="fx-util-label" style="display:none;">Upload</span>
-    </button>
-    <button class="fx-util-btn" id="fxMic" style="border:none; padding: 8px; flex:none;">
-      <i class="ph ph-microphone"></i>
-      <span class="fx-util-label" style="display:none;">Mic</span>
-    </button>
-  </div>
+<header id="mob-header">
+  <span class="mob-title">Fabric</span>
+  <span class="mob-subtitle">Interactive Cloth Simulation</span>
 </header>
 
 <!-- Mobile bottom nav (≤768px only) -->
 <nav id="mob-nav">
-  <button class="mob-btn" id="mobTear" aria-pressed="false">
-    <span class="mob-dot"></span>
-    <i class="ph ph-scissors" aria-hidden="true"></i>
-    <span class="mob-label">Tear</span>
+  <!-- Touch Tab -->
+  <button class="mob-btn" onclick="['secTouch','secEffects','secStyle','secManage'].forEach(id=>document.getElementById(id).style.display=(id=='secTouch'?'block':'none')); document.getElementById('mobMore').click();">
+    <i class="ph ph-hand"></i>
+    <span class="mob-label">Touch</span>
   </button>
-  <button class="mob-btn" id="mobDirt" aria-pressed="false">
-    <span class="mob-dot"></span>
-    <i class="ph ph-hand-grabbing" aria-hidden="true"></i>
-    <span class="mob-label">Dirt</span>
+  <!-- Effects Tab -->
+  <button class="mob-btn" onclick="['secTouch','secEffects','secStyle','secManage'].forEach(id=>document.getElementById(id).style.display=(id=='secEffects'?'block':'none')); document.getElementById('mobMore').click();">
+    <i class="ph ph-sparkle"></i>
+    <span class="mob-label">Effects</span>
   </button>
-  <button class="mob-btn" id="mobWater" aria-pressed="false">
-    <span class="mob-dot"></span>
-    <i class="ph ph-drop" aria-hidden="true"></i>
-    <span class="mob-label">Water</span>
-  </button>
-  <button class="mob-btn" id="mobWind" aria-pressed="false">
-    <span class="mob-dot"></span>
-    <i class="ph ph-wind" aria-hidden="true"></i>
-    <span class="mob-label">Wind</span>
-  </button>
-  <button class="mob-btn" id="mobMore" aria-haspopup="dialog" aria-expanded="false">
-    <span class="mob-dot"></span>
-    <i class="ph ph-sliders-horizontal" aria-hidden="true"></i>
+  <!-- Style Tab -->
+  <button class="mob-btn" onclick="['secTouch','secEffects','secStyle','secManage'].forEach(id=>document.getElementById(id).style.display=(id=='secStyle'?'block':'none')); document.getElementById('mobMore').click();">
+    <i class="ph ph-palette"></i>
     <span class="mob-label">Style</span>
+  </button>
+  <!-- Manage Tab (Repurposing mobMore ID to trigger the sheet) -->
+  <button class="mob-btn" id="mobMore" onclick="['secTouch','secEffects','secStyle','secManage'].forEach(id=>document.getElementById(id).style.display=(id=='secManage'?'block':'none'));" aria-haspopup="dialog" aria-expanded="false">
+    <i class="ph ph-sliders-horizontal"></i>
+    <span class="mob-label">Manage</span>
   </button>
 </nav>
 
@@ -976,36 +951,95 @@
 <div id="fx-sheet" role="dialog" aria-modal="true" aria-label="Style">
   <div class="fx-handle"></div>
 
-  <div class="fx-title" id="fxTitleEffects">More Effects</div>
-  <button class="fx-row" id="fxGrain">
-    <i class="ph ph-dots-six"></i>
-    <span class="fx-label">Grain</span>
-    <span class="fx-indicator"></span>
-  </button>
-  <button class="fx-row" id="fxCollider">
-    <i class="ph ph-circle-dashed"></i>
-    <span class="fx-label">Collider</span>
-    <span class="fx-indicator"></span>
-  </button>
-
-  <div class="fx-title" id="fxTitleMaterial">Material</div>
-  <div class="fx-pill-row">
-    <button class="fx-pill-btn" id="fxSilk" data-fx-preset="SILK">
-      <span class="fx-swatch" style="background:#d8d4d0"></span>
-      <span class="fx-pill-label">Silk</span>
+  <!-- SECTION 1: TOUCH -->
+  <div id="secTouch" style="display:none;">
+    <div class="fx-title">Touch Controls</div>
+    <button class="fx-row" id="mobDrag" style="display:none;">
+      <i class="ph ph-hand-pointing"></i>
+      <span class="fx-label">Drag Mode</span>
+      <span class="fx-indicator"></span>
     </button>
-    <button class="fx-pill-btn" id="fxDenim" data-fx-preset="DENIM">
-      <span class="fx-swatch" style="background:#4a5f85"></span>
-      <span class="fx-pill-label">Denim</span>
-    </button>
-    <button class="fx-pill-btn" id="fxLinen" data-fx-preset="LINEN">
-      <span class="fx-swatch" style="background:#ccc8bc"></span>
-      <span class="fx-pill-label">Linen</span>
+    <button class="fx-row" id="mobTear">
+      <i class="ph ph-scissors"></i>
+      <span class="fx-label">Tear Mode</span>
+      <span class="fx-indicator"></span>
     </button>
   </div>
-  <button class="fx-row fx-reset-row" id="fxDefault">
-    <span class="fx-label">↩&nbsp;&nbsp;default texture</span>
-  </button>
+
+  <!-- SECTION 2: EFFECTS -->
+  <div id="secEffects" style="display:none;">
+    <div class="fx-title">Environment & FX</div>
+    <button class="fx-row" id="mobDirt">
+      <i class="ph ph-hand-grabbing"></i>
+      <span class="fx-label">Dirt Mode</span>
+      <span class="fx-indicator"></span>
+    </button>
+    <button class="fx-row" id="mobWater">
+      <i class="ph ph-drop"></i>
+      <span class="fx-label">Water Mode</span>
+      <span class="fx-indicator"></span>
+    </button>
+    <button class="fx-row" id="mobWind">
+      <i class="ph ph-wind"></i>
+      <span class="fx-label">Wind Toggle</span>
+      <span class="fx-indicator"></span>
+    </button>
+    <button class="fx-row" id="fxGrain">
+      <i class="ph ph-dots-six"></i>
+      <span class="fx-label">Grain Overlay</span>
+      <span class="fx-indicator"></span>
+    </button>
+    <button class="fx-row" id="fxCollider">
+      <i class="ph ph-circle-dashed"></i>
+      <span class="fx-label">Collider Ball</span>
+      <span class="fx-indicator"></span>
+    </button>
+  </div>
+
+  <!-- SECTION 3: STYLE -->
+  <div id="secStyle" style="display:none;">
+    <div class="fx-title">Material & Texture</div>
+    <div class="fx-pill-row">
+      <button class="fx-pill-btn" id="fxSilk" data-fx-preset="SILK">
+        <span class="fx-swatch" style="background:#d8d4d0"></span>
+        <span class="fx-pill-label">Silk</span>
+      </button>
+      <button class="fx-pill-btn" id="fxDenim" data-fx-preset="DENIM">
+        <span class="fx-swatch" style="background:#4a5f85"></span>
+        <span class="fx-pill-label">Denim</span>
+      </button>
+      <button class="fx-pill-btn" id="fxLinen" data-fx-preset="LINEN">
+        <span class="fx-swatch" style="background:#ccc8bc"></span>
+        <span class="fx-pill-label">Linen</span>
+      </button>
+    </div>
+    <button class="fx-row fx-reset-row" id="fxDefault">
+      <span class="fx-label">↩&nbsp;&nbsp;default texture</span>
+    </button>
+    <button class="fx-row" id="fxUpload">
+      <i class="ph ph-upload-simple"></i>
+      <span class="fx-label">Upload Texture</span>
+    </button>
+  </div>
+
+  <!-- SECTION 4: MANAGE -->
+  <div id="secManage" style="display:none;">
+    <div class="fx-title">Session Management</div>
+    <div class="fx-util-row" style="display: flex; gap: 8px; padding: 0 16px 12px;">
+      <button class="fx-util-btn" id="fxReset" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:10px; background:transparent; border:1px solid var(--border-mid);">
+        <i class="ph ph-arrow-counter-clockwise"></i>
+        <span class="fx-util-label">Reset</span>
+      </button>
+      <button class="fx-util-btn" id="fxSave" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:10px; background:transparent; border:1px solid var(--border-mid);">
+        <i class="ph ph-download-simple"></i>
+        <span class="fx-util-label">Save</span>
+      </button>
+      <button class="fx-util-btn" id="fxMic" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:10px; background:transparent; border:1px solid var(--border-mid);">
+        <i class="ph ph-microphone"></i>
+        <span class="fx-util-label">Mic</span>
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
