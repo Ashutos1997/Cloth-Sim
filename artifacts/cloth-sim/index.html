@@ -1791,45 +1791,6 @@
     @media (max-width: 767px) {
       #canvas-meta { display: none !important; }
     }
-
-    /* REC Indicator */
-    #rec-indicator {
-      position: fixed !important;
-      top: 24px !important;
-      right: 24px !important;
-      display: none !important;
-      align-items: center !important;
-      gap: 8px !important;
-      z-index: 100 !important;
-      pointer-events: none !important;
-      background: rgba(0,0,0,0.4) !important;
-      padding: 6px 10px !important;
-      border-radius: 6px !important;
-      backdrop-filter: blur(8px) !important;
-      border: 1px solid rgba(255,255,255,0.1) !important;
-    }
-    #rec-dot {
-      width: 8px !important;
-      height: 8px !important;
-      background: #ff4444 !important;
-      border-radius: 50% !important;
-      box-shadow: 0 0 8px rgba(255,68,68,0.6) !important;
-      animation: rec-pulse 1.2s infinite ease-in-out !important;
-    }
-    #rec-text {
-      color: #ff4444 !important;
-      font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace !important;
-      font-size: 10px !important;
-      font-weight: 700 !important;
-      letter-spacing: 0.15em !important;
-      line-height: 1 !important;
-      margin-top: 1px !important;
-    }
-    @keyframes rec-pulse {
-      0% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.3; transform: scale(1.15); }
-      100% { opacity: 1; transform: scale(1); }
-    }
   </style>
 </head>
 <body>
@@ -1845,10 +1806,10 @@
 <canvas id="overlay"></canvas>
 <div id="grain-overlay"></div>
 
-<!-- REC Indicator -->
-<div id="rec-indicator">
-  <div id="rec-dot"></div>
-  <div id="rec-text">REC</div>
+<div id="rec-indicator" style="display:none; position:fixed; top:20px; right:24px; z-index:200; align-items:center; gap:6px; pointer-events:none;">
+  <div id="rec-dot" style="width:8px; height:8px; border-radius:50%; background:#ff3b3b;"></div>
+  <span id="rec-label" style="font-size:10px; letter-spacing:0.12em; color:rgba(255,255,255,0.9); font-family:inherit;">REC</span>
+  <span id="rec-timer" style="font-size:10px; letter-spacing:0.08em; color:rgba(255,255,255,0.6); font-family:inherit;">0:00</span>
 </div>
 
 <!-- Metadata Overlay (Desktop only) -->
@@ -4538,6 +4499,77 @@ class Cloth {
   }
 
   requestAnimationFrame(updateMeta);
+})();
+</script>
+
+<script>
+(function() {
+  const indicator = document.getElementById('rec-indicator');
+  const dot = document.getElementById('rec-dot');
+  const timer = document.getElementById('rec-timer');
+  let recInterval = null;
+  let recSeconds = 0;
+
+  // Pulse animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes recPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    #rec-dot.pulsing {
+      animation: recPulse 1s ease-in-out infinite;
+    }
+  `;
+  document.head.appendChild(style);
+
+  function formatTime(s) {
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function startIndicator() {
+    recSeconds = 0;
+    indicator.style.display = 'flex';
+    dot.classList.add('pulsing');
+    timer.textContent = '0:00';
+    recInterval = setInterval(() => {
+      recSeconds++;
+      timer.textContent = formatTime(recSeconds);
+      if (recSeconds >= 10) stopIndicator();
+    }, 1000);
+  }
+
+  function stopIndicator() {
+    clearInterval(recInterval);
+    indicator.style.display = 'none';
+    dot.classList.remove('pulsing');
+    recSeconds = 0;
+  }
+
+  // Hook into V key to sync with existing record toggle
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'v' || e.key === 'V') {
+      if (indicator.style.display === 'none') {
+        startIndicator();
+      } else {
+        stopIndicator();
+      }
+    }
+  });
+
+  // Hook into mobile record button if it exists
+  const mobRecBtn = document.getElementById('fxRecord') || 
+                    document.getElementById('mob-record') || 
+                    document.querySelector('[data-action="record"]');
+  if (mobRecBtn) {
+    mobRecBtn.addEventListener('click', function() {
+      if (indicator.style.display === 'none') {
+        startIndicator();
+      } else {
+        stopIndicator();
+      }
+    });
+  }
 })();
 </script>
 </body>
