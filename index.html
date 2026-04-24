@@ -10,252 +10,144 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.css" />
   <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
   <style id="hud-redesign-final">
-    /* ── Design tokens ── */
-    :root {
-      --surface-bg:      #070707;
-      --surface-frosted: rgba(28, 28, 28, 0.97);
-      --border-subtle:   rgba(255, 255, 255, 0.07);
-      --border-mid:      rgba(255, 255, 255, 0.15);
-      --border-strong:   rgba(255, 255, 255, 0.20);
-      --text-primary:    rgba(255, 255, 255, 0.95);
-      --text-secondary:  rgba(255, 255, 255, 0.65);
-      --text-muted:      rgba(255, 255, 255, 0.50);
-      --focus-ring:      #0066cc;
-    }
-
-    /* ── Reset & layout ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
-      font-family: 'Pretendard', sans-serif;
-    }
-
-    /* ── Film grain overlay ── */
-    #grain-overlay {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      filter: url(#grain);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 1;
-      transition: opacity 0.3s ease;
-    }
-    #grain-overlay.active { opacity: 0.14; }
-
-    /* ── USER SPECIFIED RULES ── */
     body { background: #070707 !important; }
 
-    #canvas, #overlay { left: 0 !important; width: 100vw !important; }
+    #canvas, #overlay { 
+      left: 0 !important; 
+      width: 100vw !important; 
+      bottom: 56px !important;
+      height: calc(100vh - 56px) !important;
+    }
 
     #hud {
       position: fixed !important;
-      top: 20px !important;
-      left: 20px !important;
-      width: 190px !important;
-      box-sizing: border-box !important;
-      background: rgba(12,12,12,0.88) !important;
-      backdrop-filter: blur(12px) !important;
-      -webkit-backdrop-filter: blur(12px) !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
-      border-radius: 10px !important;
-      padding: 14px !important;
-      max-height: calc(100vh - 40px) !important;
-      overflow-y: auto !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100vw !important;
+      height: 56px !important;
+      background: rgba(10,10,10,0.92) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      border-top: 1px solid rgba(255,255,255,0.07) !important;
+      border-radius: 0 !important;
+      padding: 0 24px !important;
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 4px !important;
       z-index: 100 !important;
+      overflow: visible !important;
+      box-sizing: border-box !important;
     }
+
+    #hud .hud-section-title { display: none !important; }
+    #hud .tab-bar { display: none !important; }
+    #hud hr { display: none !important; }
 
     #hud .hud-act {
       display: flex !important;
+      flex-direction: column !important;
       align-items: center !important;
-      gap: 8px !important;
-      padding: 4px 0 !important;
-      font-size: 12px !important;
-      opacity: 0.8 !important;
+      justify-content: center !important;
+      gap: 3px !important;
+      padding: 6px 10px !important;
+      border-radius: 6px !important;
+      cursor: pointer !important;
       white-space: nowrap !important;
+      min-width: 48px !important;
     }
 
-    #hud .hud-key {
-      font-size: 10px !important;
-      padding: 1px 5px !important;
-      border: 1px solid rgba(255,255,255,0.2) !important;
-      border-radius: 3px !important;
-      background: transparent !important;
-      color: white !important;
-      min-width: 16px !important;
-      text-align: center !important;
+    #hud .hud-act:hover {
+      background: rgba(255,255,255,0.06) !important;
     }
 
-    #hud .hud-section-title {
-      font-size: 10px !important;
-      letter-spacing: 0.1em !important;
-      opacity: 0.4 !important;
-      margin-top: 14px !important;
-      margin-bottom: 4px !important;
+    #hud .hud-act .hud-icon {
+      font-size: 16px !important;
+      opacity: 0.6 !important;
+      line-height: 1 !important;
     }
 
-    #hud .tab-bar { display: none !important; }
-    #hud hr { border-color: rgba(255,255,255,0.06) !important; margin: 6px 0 !important; }
+    #hud .hud-act .hud-label {
+      font-size: 9px !important;
+      opacity: 0.45 !important;
+      letter-spacing: 0.05em !important;
+      text-transform: uppercase !important;
+    }
 
+    #hud .hud-act .hud-key { display: none !important; }
+
+    #hud .hud-act.active .hud-icon { opacity: 1 !important; }
+    #hud .hud-act.active .hud-label { opacity: 0.9 !important; }
+    #hud .hud-act.active {
+      background: rgba(255,255,255,0.08) !important;
+    }
+
+    /* Divider between groups */
+    #hud .hud-divider {
+      width: 1px !important;
+      height: 24px !important;
+      background: rgba(255,255,255,0.08) !important;
+      margin: 0 8px !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* Material section inline in bar */
     #hud-texture {
-      margin-top: 14px !important;
-      padding-top: 14px !important;
-      border-top: 1px solid rgba(255,255,255,0.06) !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      margin-left: 8px !important;
+      padding-left: 12px !important;
+      border-left: 1px solid rgba(255,255,255,0.08) !important;
       position: static !important;
+      border-top: none !important;
+      padding-top: 0 !important;
     }
 
     #texUploadBtn {
-      display: block !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
-      margin-bottom: 8px !important;
-      padding: 6px !important;
-      font-size: 11px !important;
+      font-size: 10px !important;
+      padding: 4px 8px !important;
       border: 1px solid rgba(255,255,255,0.15) !important;
       border-radius: 4px !important;
       background: transparent !important;
       color: white !important;
       cursor: pointer !important;
+      white-space: nowrap !important;
     }
 
     #hud-presets {
       display: flex !important;
-      gap: 4px !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
+      gap: 3px !important;
     }
 
     .preset-btn.material-btn {
-      flex: 1 !important;
-      font-size: 11px !important;
-      padding: 4px 0 !important;
-      text-align: center !important;
+      font-size: 10px !important;
+      padding: 4px 8px !important;
       border-radius: 4px !important;
       border: 1px solid rgba(255,255,255,0.15) !important;
       background: transparent !important;
       color: white !important;
       cursor: pointer !important;
       white-space: nowrap !important;
-      overflow: visible !important;
-      text-overflow: unset !important;
     }
 
     .preset-btn.material-btn.active {
       border-color: white !important;
+      opacity: 1 !important;
     }
 
-    /* ── Mobile layout ≤768px ── */
-    @media (max-width: 768px) {
-      #hud { display: none !important; }
-      #canvas, #overlay { left: 0 !important; width: 100vw !important; }
-
-      #mob-header {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: fixed;
-        top: 0; left: 0; right: 0;
-        height: calc(48px + env(safe-area-inset-top));
-        padding: 0 16px;
-        padding-top: env(safe-area-inset-top);
-        background: var(--surface-frosted);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid var(--border-subtle);
-        z-index: 10;
-        pointer-events: none;
-      }
-      #mob-header .mob-title {
-        font-size: 17px;
-        font-weight: 200;
-        letter-spacing: 6px;
-        color: var(--text-primary);
-        text-transform: uppercase;
-      }
-      #mob-header .mob-subtitle {
-        font-size: 12px;
-        font-weight: 300;
-        letter-spacing: 2px;
-        color: var(--text-muted);
-        text-transform: lowercase;
-        margin-top: 4px;
-      }
-
-      #mob-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        height: calc(64px + env(safe-area-inset-bottom));
-        padding-bottom: env(safe-area-inset-bottom);
-        background: var(--surface-frosted);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-top: 1px solid var(--border-subtle);
-        z-index: 10;
-      }
-
-      .mob-btn {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        background: transparent;
-        border: none;
-        color: var(--text-muted);
-      }
-      .mob-btn i { font-size: 20px; }
-      .mob-label { font-size: 10px; text-transform: uppercase; }
-      .mob-btn.mode-on { color: var(--text-primary); }
-      .mob-dot {
-        position: absolute;
-        top: 8px;
-        width: 6px; height: 6px;
-        border-radius: 50%;
-        background: var(--text-primary);
-        opacity: 0;
-      }
-      .mob-btn.mode-on .mob-dot { opacity: 1; }
-
-      #fx-backdrop, #fx-sheet { display: block; }
-      #fx-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.45);
-        z-index: 50;
-        opacity: 0;
-        pointer-events: none;
-      }
-      #fx-backdrop.open { opacity: 1; pointer-events: auto; }
-      #fx-sheet {
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        background: var(--surface-frosted);
-        border-top: 1px solid var(--border-mid);
-        border-radius: 16px 16px 0 0;
-        padding: 12px 0 calc(20px + env(safe-area-inset-bottom)) 0;
-        z-index: 51;
-        transform: translateY(100%);
-        transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
-      }
-      #fx-sheet.open { transform: translateY(0); }
+    /* FABRIC title top-left */
+    #hud-title, .hud-title, #hud > .title {
+      position: fixed !important;
+      top: 16px !important;
+      left: 20px !important;
+      z-index: 101 !important;
+      font-size: 13px !important;
+      letter-spacing: 0.15em !important;
+      opacity: 0.6 !important;
+      color: white !important;
     }
-
-    /* Scenarios and other shared components */
-    #hud-scenarios { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
-    .scenario-btn {
-      display: flex; align-items: center; gap: 7px; padding: 5px 9px;
-      background: transparent; border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 6px; font-size: 9px; text-transform: uppercase;
-      color: rgba(255,255,255,0.7); cursor: pointer;
-    }
-    .scenario-btn.active { background: rgba(255,255,255,0.1); border-color: white; }
   </style>
 </head>
 <body>
@@ -271,61 +163,38 @@
 <div id="grain-overlay"></div>
 
 <!-- HUD panel -->
+<div id="hud-title">FABRIC</div>
 <div id="hud">
-  <div style="font-size: 26px; font-weight: 200; letter-spacing: 8px; text-transform: uppercase; margin-bottom: 4px;">Fabric</div>
-  <div class="hud-subtitle" style="white-space: nowrap; font-size: 11px; margin-bottom: 20px; opacity: 0.45; letter-spacing: 0.1em; text-transform: lowercase;">interactive cloth simulation</div>
+  <!-- Cloth group -->
+  <div class="hud-act"><span class="hud-icon"><i class="ph ph-hand"></i></span><span class="hud-label">Drag</span><span class="hud-key">Drag</span></div>
+  <div class="hud-act" data-hud-key="T" id="hudRowTear"><span class="hud-icon"><i class="ph ph-scissors"></i></span><span class="hud-label">Tear</span><span class="hud-key">T</span></div>
+  <div class="hud-act" data-hud-key="O" id="hudRowCollider"><span class="hud-icon"><i class="ph ph-sphere"></i></span><span class="hud-label">Ball</span><span class="hud-key">O</span></div>
+  
+  <div class="hud-divider"></div>
 
-  <div class="hud-tabs tab-bar">
-    <div class="hud-tab tab active">Controls</div>
-    <div class="hud-tab tab">Style</div>
-  </div>
+  <!-- Effects group -->
+  <div class="hud-act" data-hud-key="D" id="hudRowDirt"><span class="hud-icon"><i class="ph ph-circle"></i></span><span class="hud-label">Dirt</span><span class="hud-key">D</span></div>
+  <div class="hud-act" data-hud-key="C" id="hudRowWater"><span class="hud-icon"><i class="ph ph-drop"></i></span><span class="hud-label">Water</span><span class="hud-key">C</span></div>
+  <div class="hud-act" data-hud-key="W" id="hudRowWind"><span class="hud-icon"><i class="ph ph-wind"></i></span><span class="hud-label">Wind</span><span class="hud-key">W</span></div>
+  <div class="hud-act" data-hud-key="G" id="hudRowGrain"><span class="hud-icon"><i class="ph ph-dots-six"></i></span><span class="hud-label">Grain</span><span class="hud-key">G</span></div>
 
-  <div class="hud-controls">
-    <!-- Cloth group -->
-    <div class="hud-group">
-      <div class="hud-group-label hud-section-title">Cloth</div>
-      <div class="hud-act"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-hand"></i></span><span class="hud-key">Drag</span><span>pull the cloth</span></div>
-      <div class="hud-act" data-hud-key="T" id="hudRowTear"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-scissors"></i></span><span class="key hud-key">T</span><span>tear mode</span></div>
-      <div class="hud-act" data-hud-key="O" id="hudRowCollider"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-sphere"></i></span><span class="key hud-key">O</span><span>add collider</span></div>
-    </div>
-    <!-- Effects group -->
-    <div class="hud-group">
-      <div class="hud-group-label hud-section-title">Effects</div>
-      <div class="hud-act" data-hud-key="D" id="hudRowDirt"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-circle"></i></span><span class="key hud-key">D</span><span>throw dirt</span></div>
-      <div class="hud-act" data-hud-key="C" id="hudRowWater"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-drop"></i></span><span class="key hud-key">C</span><span>splash water</span></div>
-      <div class="hud-act" data-hud-key="W" id="hudRowWind"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-wind"></i></span><span class="key hud-key">W</span><span>toggle wind</span></div>
-      <div class="hud-act" data-hud-key="G" id="hudRowGrain"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-dots-six"></i></span><span class="key hud-key">G</span><span>grain overlay</span></div>
-    </div>
-    <!-- Utility group -->
-    <div class="hud-group">
-      <div class="hud-group-label hud-section-title">Utility</div>
-      <div class="hud-act" data-hud-key="R"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-arrow-counter-clockwise"></i></span><span class="key hud-key">R</span><span>reset cloth</span></div>
-      <div class="hud-act" data-hud-key="S"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-floppy-disk"></i></span><span class="key hud-key">S</span><span>save image</span></div>
-      <div class="hud-act" data-hud-key="H"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-eye-slash"></i></span><span class="key hud-key">H</span><span>hide HUD</span></div>
-    </div>
-  </div>
+  <div class="hud-divider"></div>
+
+  <!-- Utility group -->
+  <div class="hud-act" data-hud-key="R"><span class="hud-icon"><i class="ph ph-arrow-counter-clockwise"></i></span><span class="hud-label">Reset</span><span class="hud-key">R</span></div>
+  <div class="hud-act" data-hud-key="S"><span class="hud-icon"><i class="ph ph-floppy-disk"></i></span><span class="hud-label">Save</span><span class="hud-key">S</span></div>
+  <div class="hud-act" data-hud-key="H"><span class="hud-icon"><i class="ph ph-eye-slash"></i></span><span class="hud-label">Hide</span><span class="hud-key">H</span></div>
+
 
   <div id="hud-texture">
     <input type="file" id="texFile" accept="image/*" style="display: none;" />
     <button id="texUploadBtn" class="upload-btn"><i class="ph ph-upload-simple"></i> Upload texture</button>
     <div id="texClear" style="font-size: 10px; opacity: 0.5; cursor: pointer; margin-bottom: 8px;">✕&nbsp;&nbsp;clear texture</div>
     <div id="hud-presets" class="material-buttons">
-      <button class="preset-btn material-btn" data-preset="SILK"><span class="preset-swatch" style="background:#ccc8c3; width: 10px; height: 10px; border-radius: 2px;"></span>SILK</button>
-      <button class="preset-btn material-btn" data-preset="DENIM"><span class="preset-swatch" style="background:#6b84a0; width: 10px; height: 10px; border-radius: 2px;"></span>DENIM</button>
-      <button class="preset-btn material-btn" data-preset="LINEN"><span class="preset-swatch" style="background:#c8b99a; width: 10px; height: 10px; border-radius: 2px;"></span>LINEN</button>
+      <button class="preset-btn material-btn" data-preset="SILK">SILK</button>
+      <button class="preset-btn material-btn" data-preset="DENIM">DENIM</button>
+      <button class="preset-btn material-btn" data-preset="LINEN">LINEN</button>
     </div>
-    <div id="presetReset" style="font-size: 10px; opacity: 0.5; cursor: pointer; margin-top: 8px;">↩&nbsp;&nbsp;default</div>
-  </div>
-</div>
-
-  <div class="hud-modes" style="display:none">
-    <span id="modeWind"  class="mode-badge">WIND ON</span>
-    <span id="modeTear"  class="mode-badge">TEAR MODE</span>
-    <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
-    <span id="modeGrain" class="mode-badge">GRAIN</span>
-    <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
-    <span id="modeWater" class="mode-badge">WATER MODE</span>
-    <span id="modeCollider" class="mode-badge">BALL</span>
   </div>
 </div>
 
