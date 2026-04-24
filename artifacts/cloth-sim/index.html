@@ -1804,8 +1804,14 @@
 
 <!-- Mobile top header (≤768px only) -->
 <header id="mob-header">
-  <span class="mob-title" id="mobTitle">Fabric</span>
-  <span class="mob-subtitle" id="mobSubtitle" data-i18n="subtitle">Interactive Cloth Simulation</span>
+  <div class="header-title">
+    <span class="mob-title" id="mobTitle">Fabric</span>
+    <span class="mob-subtitle" id="mobSubtitle" data-i18n="subtitle">Interactive Cloth Simulation</span>
+  </div>
+  <div class="language-toggle" id="lang-toggle">
+    <button class="lang-pill active" id="mobLangEng">ENG</button>
+    <button class="lang-pill" id="mobLangKor">한글</button>
+  </div>
 </header>
 
 <!-- Mobile bottom nav (≤768px only) -->
@@ -1931,15 +1937,6 @@
       </button>
     </div>
     
-    <!-- Mobile Language -->
-    <div class="fx-row" style="border-top: 1px solid rgba(255,255,255,0.06); margin-top: 0; padding: 20px 20px;">
-      <i class="ph ph-globe" style="font-size:16px; opacity:0.55;"></i>
-      <span class="fx-label" style="flex:1; font-size:14px; opacity:0.8;" data-i18n="language">Language</span>
-      <div style="display:flex; gap:6px;">
-        <button class="lang-pill active" id="mobLangEng">ENG</button>
-        <button class="lang-pill" id="mobLangKor">한글</button>
-      </div>
-    </div>
   </div>
 </div>
 
