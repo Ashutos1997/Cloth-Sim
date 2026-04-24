@@ -718,7 +718,7 @@
         padding: 14px 8px;
         border-radius: 10px;
         background: transparent;
-        border: 1px solid var(--color-border);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         cursor: pointer;
         color: var(--color-text-secondary);
         font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
@@ -731,7 +731,7 @@
       .fx-pill-btn .fx-swatch {
         width: 10px; height: 10px;
         border-radius: 50%;
-        border: 1px solid var(--color-border);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         flex-shrink: 0;
       }
       .fx-pill-btn.active {
@@ -755,7 +755,7 @@
         padding: 14px 8px;
         border-radius: 10px;
         background: transparent;
-        border: 1px solid var(--color-border);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         cursor: pointer;
         transition: background 150ms ease-out, border-color 150ms ease-out;
         -webkit-tap-highlight-color: transparent;
@@ -763,7 +763,7 @@
       .fx-scene-card .fx-swatch {
         width: 22px; height: 22px;
         border-radius: 50%;
-        border: 1px solid var(--color-border);
+        border: 1px solid rgba(255, 255, 255, 0.15);
       }
       .fx-scene-name {
         font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
@@ -794,11 +794,11 @@
         padding: 10px 6px;
         border-radius: 10px;
         background: transparent;
-        border: 1px solid var(--color-border);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         cursor: pointer;
         color: var(--color-text-secondary);
         font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
-        transition: background 150ms ease-out, color 150ms ease-out;
+        transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
         -webkit-tap-highlight-color: transparent;
       }
       .fx-util-btn i { font-size: 18px; }
@@ -1422,38 +1422,11 @@
         border-radius: 2px !important;
       }
 
-      .preset-btn.active {
-        border-color: white !important;
-        background: rgba(255,255,255,0.08) !important;
-      }
-
-      /* Consistent section header spacing */
-      #hud .hud-group-label, #hud .hud-section-title {
-        margin-top: 16px !important;
-        margin-bottom: 4px !important;
-      }
-
-      /* First section header — no top margin */
-      #hud .hud-group-label:first-of-type, #hud .hud-section-title:first-of-type {
-        margin-top: 8px !important;
-      }
-
-      /* Row spacing — tighter and even */
-      #hud .hud-act {
-        padding: 5px 4px !important;
-      }
-
-      /* Dividers between rows */
-      #hud .hud-act + #hud .hud-act,
-      .hud-row + .hud-row {
-        border-top: 1px solid var(--color-border-subtle) !important;
-      }
-
-      /* Standardize Section Headers */
+      /* ── Final Section Header Alignment ── */
       #hud .hud-group-label, 
       #hud .hud-section-title,
       #hud .material-title {
-        margin-top: var(--space-xl) !important;
+        margin-top: var(--space-2xl) !important;
         padding-top: var(--space-lg) !important;
         margin-bottom: var(--space-sm) !important;
         border-top: 1px solid var(--color-border) !important;
@@ -1462,182 +1435,40 @@
         opacity: 0.35 !important;
         font-size: 9px !important;
         letter-spacing: 0.14em !important;
+        text-transform: uppercase !important;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif !important;
       }
 
-      /* First section header always sits at the very top */
+      /* No top spacing for the very first section */
       #hud .hud-controls .hud-group:first-child .hud-group-label,
-      #hud .hud-section-title:first-child {
+      #hud .hud-section-title:first-child,
+      #hud .hud-group-label:first-of-type {
         margin-top: 0 !important;
         padding-top: 0 !important;
         border-top: none !important;
       }
 
-      /* Consistent Material layout */
+      /* Consistent Material and Row Layout */
       #hud-texture {
         margin-top: 0 !important;
         padding-top: 0 !important;
         border-top: none !important;
       }
 
-      /* Material buttons even height */
-      .preset-btn, .preset-btn.material-btn {
-        padding: 5px 0 !important;
-      }
-
-      /* Even spacing above every section header */
-      #hud .hud-group-label, #hud .hud-section-title {
-        margin-top: var(--space-xl) !important;
-        margin-bottom: var(--space-sm) !important;
-        padding-top: var(--space-md) !important;
-        border-top: 1px solid var(--color-border) !important;
-        display: block !important;
-        width: 100% !important;
-      }
-
-      /* First section header — no top border or margin */
-      #hud .hud-group-label:first-child,
-      #hud .hud-group-label:first-of-type,
-      #hud .hud-section-title:first-child {
-        margin-top: 4px !important;
-        padding-top: 0 !important;
-        border-top: none !important;
-      }
-
-      /* Remove existing hr dividers to avoid double spacing */
       #hud hr {
         display: none !important;
       }
 
-      /* Material section — same spacing as other sections */
-      #hud-texture {
-        margin-top: 0 !important;
-        padding-top: 0 !important;
+      #hud .hud-act, #hud .hud-row {
+        padding: 6px 0 !important;
+        border-bottom: 1px solid var(--color-border-subtle) !important;
+        background: transparent !important;
+        margin: 0 !important;
         border-top: none !important;
       }
 
-      /* Detailed HUD Row Refinement */
-      #hud .hud-group-label, #hud .hud-section-title {
-        font-size: 10px !important;
-        letter-spacing: 0.12em !important;
-        opacity: 0.4 !important;
-        text-transform: uppercase !important;
-        margin-top: 20px !important;
-        margin-bottom: 4px !important;
-        padding-top: 16px !important;
-        border-top: 1px solid rgba(255,255,255,0.06) !important;
-        display: block !important;
-        width: 100% !important;
-      }
-
-      #hud .hud-group-label:first-child,
-      #hud .hud-group-label:first-of-type,
-      #hud .hud-section-title:first-child {
-        border-top: none !important;
-        padding-top: 4px !important;
-        margin-top: 8px !important;
-      }
-
-      #hud .hud-act {
-        display: flex !important;
-        align-items: center !important;
-        gap: 10px !important;
-        padding: 7px 0 !important;
-        font-size: 13px !important;
-        opacity: 0.75 !important;
-        white-space: nowrap !important;
-        overflow: visible !important;
-        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
-        border-top: none !important;
-      }
-
-      #hud .hud-act:last-child {
+      #hud .hud-act:last-child, #hud .hud-row:last-child {
         border-bottom: none !important;
-      }
-
-      #hud .hud-act .row-icon, #hud .hud-act .hud-icon {
-        width: 16px !important;
-        min-width: 16px !important;
-        opacity: 0.55 !important;
-        font-size: 14px !important;
-        flex-shrink: 0 !important;
-        overflow: visible !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-      }
-
-      #hud .key, #hud .hud-key {
-        font-size: 10px !important;
-        padding: 2px 6px !important;
-        border: 1px solid rgba(255,255,255,0.18) !important;
-        border-radius: 4px !important;
-        background: transparent !important;
-        color: white !important;
-        opacity: 0.6 !important;
-        min-width: 16px !important;
-        text-align: center !important;
-        letter-spacing: 0.02em !important;
-      }
-
-      #texUploadBtn {
-        display: block !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        margin-bottom: 8px !important;
-        padding: 8px !important;
-        font-size: 12px !important;
-        border: 1px solid rgba(255,255,255,0.15) !important;
-        border-radius: 6px !important;
-        background: transparent !important;
-        color: white !important;
-        opacity: 0.75 !important;
-        letter-spacing: 0.04em !important;
-        cursor: pointer !important;
-      }
-
-      .preset-btn, .preset-btn.material-btn {
-        flex: 1 !important;
-        font-size: 12px !important;
-        padding: 7px 0 !important;
-        text-align: center !important;
-        border-radius: 6px !important;
-        border: 1px solid rgba(255,255,255,0.15) !important;
-        background: transparent !important;
-        color: white !important;
-        letter-spacing: 0.04em !important;
-      }
-
-      .preset-btn.active {
-        border-color: rgba(255,255,255,0.7) !important;
-        background: rgba(255,255,255,0.06) !important;
-      }
-
-      /* Fix icon clipping */
-      #hud,
-      #hud * {
-        overflow: visible !important;
-      }
-
-      /* Even spacing — section header acts as divider */
-      #hud .hud-group-label, #hud .hud-section-title {
-        margin-top: 16px !important;
-        margin-bottom: 6px !important;
-        padding-top: 14px !important;
-        border-top: 1px solid rgba(255,255,255,0.07) !important;
-      }
-
-      #hud .hud-group-label:first-child,
-      #hud .hud-group-label:first-of-type,
-      #hud .hud-section-title:first-child {
-        margin-top: 0 !important;
-        padding-top: 0 !important;
-        border-top: none !important;
-      }
-
-      /* Row layout — shared between active and info-only rows (like Drag) */
-      #hud .hud-row {
-        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
-        padding: 7px 7px !important;
       }
 
       /* Last row in each group — no border */
