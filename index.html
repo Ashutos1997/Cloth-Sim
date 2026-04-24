@@ -85,7 +85,7 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
-      padding: 20px;
+      padding: 16px;
       box-sizing: border-box;
       background: #0f0f0f;
       border-right: 1px solid rgba(255,255,255,0.08);
@@ -95,6 +95,8 @@
       user-select: none;
       transition: opacity 0.4s ease;
       z-index: 5;
+      overflow-y: auto;
+      max-height: 100vh;
     }
     .hud-hidden {
       opacity: 0 !important;
@@ -108,28 +110,24 @@
     /* Tab bar */
     .hud-tabs {
       display: flex;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      margin-bottom: 20px;
+      width: 100%;
+      margin-bottom: 16px;
     }
     .hud-tab {
+      flex: 1;
+      text-align: center;
       opacity: 0.35;
       cursor: pointer;
-      padding: 8px 12px;
+      padding-bottom: 8px;
       position: relative;
       font-size: 11px;
-      letter-spacing: 1px;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
+      border-bottom: 2px solid transparent;
     }
     .hud-tab.active {
       opacity: 1;
-    }
-    .hud-tab.active::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 0; right: 0;
-      height: 2px;
-      background: white;
+      border-bottom: 2px solid white;
     }
 
     /* Brand title */
@@ -144,22 +142,23 @@
 
     /* Subtitle */
     #hud .hud-subtitle {
-      font-size: 9px;
+      font-size: 11px;
       font-weight: 300;
-      letter-spacing: 4.5px; /* Increased for airy premium feel */
+      letter-spacing: 4.5px;
       color: var(--text-muted);
       text-transform: lowercase;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
+      white-space: nowrap;
     }
 
     /* Group wrapper */
     #hud .hud-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;        /* 8pt grid adjustment */
-      padding-top: 16px; /* 8pt grid adjustment */
-      padding-bottom: 12px;
-      border-top: 1px solid rgba(0,0,0,0.06);
+      gap: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      border-top: none;
     }
     #hud .hud-group:first-child {
       padding-top: 0;
@@ -170,13 +169,13 @@
     #hud .hud-group-label {
       font-size: 10px;
       font-weight: 600;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--text-muted);
-      opacity: 0.5;
+      opacity: 0.45;
       padding: 0;
-      margin-top: 24px;
-      margin-bottom: 10px;
+      margin-top: 16px;
+      margin-bottom: 6px;
     }
 
     /* Middle controls container — fills available space */
@@ -192,9 +191,9 @@
     #hud .hud-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       line-height: 1;
-      padding: 7px 0;
+      padding: 5px 0;
       border-radius: 6px;
       transition: background 0.12s;
     }
@@ -205,7 +204,7 @@
       align-items: center;
       justify-content: center;
       width: 14px;
-      font-size: 12px;
+      font-size: 14px;
       color: var(--text-muted);
       opacity: 1;
       flex-shrink: 0;
@@ -224,7 +223,7 @@
 
     /* Control label text */
     #hud .hud-row > span:not(.key) {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 400;
       color: var(--text-secondary);
       opacity: 0.8;
@@ -238,12 +237,12 @@
       align-items: center;
       justify-content: center;
       min-width: 26px;
-      padding: 3px 7px;
+      padding: 1px 6px;
       background: transparent;
-      border: 1px solid var(--border-mid);
-      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 4px;
       font-family: 'Pretendard', sans-serif;
-      font-size: 8px;
+      font-size: 11px;
       font-weight: 400;
       text-transform: uppercase;
       color: var(--text-secondary);
@@ -339,24 +338,26 @@
     /* ── Bottom tools section — pinned to bottom ── */
     #hud-texture {
       margin-top: 28px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 0;
+      border-top: none;
     }
     #texFile { display: none; }
     #texUploadBtn {
       width: 100%;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      font-size: 11px;
+      padding: 7px;
     }
     #hud .tex-btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
+      gap: 6px;
+      padding: 4px 10px;
       background: transparent;
       border: 1px solid rgba(255,255,255,0.2);
       border-radius: 4px;
       font-family: 'Pretendard', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 400;
       text-transform: uppercase;
       color: #eeeeee;
