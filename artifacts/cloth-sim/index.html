@@ -925,22 +925,22 @@
 <!-- Mobile bottom nav (≤768px only) -->
 <nav id="mob-nav">
   <!-- Touch Tab -->
-  <button class="mob-btn" onclick="['secTouch','secEffects','secStyle','secManage'].forEach(id=>document.getElementById(id).style.display=(id=='secTouch'?'block':'none')); document.getElementById('mobMore').click();">
+  <button class="mob-btn" id="mobTouchTab">
     <i class="ph ph-hand"></i>
     <span class="mob-label">Touch</span>
   </button>
   <!-- Effects Tab -->
-  <button class="mob-btn" onclick="['secTouch','secEffects','secStyle','secManage'].forEach(id=>document.getElementById(id).style.display=(id=='secEffects'?'block':'none')); document.getElementById('mobMore').click();">
+  <button class="mob-btn" id="mobEffectsTab">
     <i class="ph ph-sparkle"></i>
     <span class="mob-label">Effects</span>
   </button>
   <!-- Style Tab -->
-  <button class="mob-btn" onclick="['secTouch','secEffects','secStyle','secManage'].forEach(id=>document.getElementById(id).style.display=(id=='secStyle'?'block':'none')); document.getElementById('mobMore').click();">
+  <button class="mob-btn" id="mobStyleTab">
     <i class="ph ph-palette"></i>
     <span class="mob-label">Style</span>
   </button>
   <!-- Manage Tab (Repurposing mobMore ID to trigger the sheet) -->
-  <button class="mob-btn" id="mobMore" onclick="['secTouch','secEffects','secStyle','secManage'].forEach(id=>document.getElementById(id).style.display=(id=='secManage'?'block':'none'));" aria-haspopup="dialog" aria-expanded="false">
+  <button class="mob-btn" id="mobMore" aria-haspopup="dialog" aria-expanded="false">
     <i class="ph ph-sliders-horizontal"></i>
     <span class="mob-label">Manage</span>
   </button>
@@ -2304,12 +2304,38 @@ class Cloth {
       if (e.key === 'Escape' && fxSheet.classList.contains('open')) closeFxSheet();
     });
 
-    /* Nav direct toggles */
+    /* Tab switching logic */
+    const mobTabs = {
+      'mobTouchTab':   'secTouch',
+      'mobEffectsTab': 'secEffects',
+      'mobStyleTab':   'secStyle',
+      'mobMore':       'secManage'
+    };
+
+    function showMobileSection(sectionId, activeTab) {
+      ['secTouch', 'secEffects', 'secStyle', 'secManage'].forEach(id => {
+        const sec = document.getElementById(id);
+        if (sec) sec.style.display = (id === sectionId ? 'block' : 'none');
+      });
+      // Handle active tab highlighting
+      Object.keys(mobTabs).forEach(tabId => {
+        const btn = document.getElementById(tabId);
+        if (btn) btn.classList.toggle('active', tabId === activeTab.id);
+      });
+      if (!fxSheet.classList.contains('open')) openFxSheet();
+    }
+
+    /* Nav direct toggles and tab switching */
+    document.getElementById('mobTouchTab').addEventListener('click', function() { showMobileSection('secTouch', this); });
+    document.getElementById('mobEffectsTab').addEventListener('click', function() { showMobileSection('secEffects', this); });
+    document.getElementById('mobStyleTab').addEventListener('click', function() { showMobileSection('secStyle', this); });
+    mobMore.addEventListener('click', function() { showMobileSection('secManage', this); });
+
     mobTear .addEventListener('click', () => { tearMode  = !tearMode;  if (tearMode)  { dirtMode = false; waterMode = false; } updateHUD(); });
     mobDirt .addEventListener('click', () => { dirtMode  = !dirtMode;  if (dirtMode)  { tearMode = false; waterMode = false; } updateHUD(); });
     mobWater.addEventListener('click', () => { waterMode = !waterMode; if (waterMode) { tearMode = false; dirtMode  = false; } updateHUD(); });
     mobWind .addEventListener('click', () => { windEnabled = !windEnabled; updateHUD(); });
-    mobMore .addEventListener('click', openFxSheet);
+    
     fxBackdrop.addEventListener('click', closeFxSheet);
 
     /* Sheet: more effect toggles */
