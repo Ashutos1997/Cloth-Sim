@@ -2501,25 +2501,23 @@ class Cloth {
     uniform float uBGTime;
     uniform float uBGWind;
     void main() {
-      /* Elliptical distance from center (0.47, 0.45) */
-      vec2 center = vec2(0.47, 0.45);
-      vec2 distVec = (vBGUV - center) * vec2(1.1, 1.3);
+      /* Wide, near-uniform elliptical distance */
+      vec2 center = vec2(0.5, 0.45);
+      vec2 distVec = (vBGUV - center) * vec2(0.9, 1.1);
       float dist = length(distVec);
 
-      /* Atmospheric "breathing" effect */
-      float pulse = sin(uBGTime * 0.6) * 0.03;
-      float fog = smoothstep(0.85 + pulse, 0.0, dist);
+      /* Extremely soft spread for near-uniformity */
+      float fog = smoothstep(1.8, 0.0, dist);
 
-      /* Mist colors: rgba(38,40,52,1) at center -> #080808 at edges */
-      vec3 innerColor = vec3(38.0/255.0, 40.0/255.0, 52.0/255.0);
-      vec3 outerColor = vec3(8.0/255.0, 8.0/255.0, 8.0/255.0);
+      /* Neutral mist colors: rgba(22,22,24,1) center -> rgba(10,10,11,1) edge */
+      vec3 innerColor = vec3(22.0/255.0, 22.0/255.0, 24.0/255.0);
+      vec3 outerColor = vec3(10.0/255.0, 10.0/255.0, 11.0/255.0);
       
-      /* Blend colors and add subtle grain based on wind */
       vec3 color = mix(outerColor, innerColor, fog);
       
-      /* Subtle noise for texture */
+      /* Micro-noise for texture only, no breathing/pulse */
       float noise = fract(sin(dot(vBGUV, vec2(12.9898, 78.233))) * 43758.5453);
-      color += (noise - 0.5) * 0.008 * (1.0 + uBGWind * 0.5);
+      color += (noise - 0.5) * 0.003;
 
       gl_FragColor = vec4(color, 1.0);
     }
