@@ -237,7 +237,7 @@
     }
 
     /* Mode badge row */
-    #hud .hud-modes {
+    .hud-modes {
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
@@ -245,18 +245,31 @@
       margin-top: 10px;
     }
 
-    /* DESKTOP ONLY: Move modes to bottom-right fixed position */
+    /* DESKTOP ONLY: Move modes to absolute bottom-right of the screen */
     @media (min-width: 769px) {
-      #hud .hud-modes {
+      .hud-modes {
         position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 100;
+        bottom: 28px;
+        right: 28px;
+        z-index: 1000;
         margin-top: 0;
         flex-direction: column;
         align-items: flex-end;
         pointer-events: none;
       }
+      .mode-badge {
+        background: rgba(10, 10, 10, 0.45) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        animation: badgeAppear 0.3s ease-out;
+      }
+      @keyframes badgeAppear {
+        from { transform: translateX(20px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    }
       .mode-badge {
         background: rgba(10, 10, 10, 0.4) !important;
         backdrop-filter: blur(8px);
@@ -1647,17 +1660,6 @@
     </div>
   </div>
 
-  <div class="hud-modes">
-    <span id="modeWind"  class="mode-badge" data-i18n="modeWind">WIND ON</span>
-    <span id="modeTear"  class="mode-badge" data-i18n="modeTear">TEAR MODE</span>
-    <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
-    <span id="modeGrain" class="mode-badge">GRAIN</span>
-    <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
-    <span id="modeWater" class="mode-badge">WATER MODE</span>
-    <span id="modeLight" class="mode-badge" data-i18n="modeLight">LIGHT</span>
-    <span id="modeCollider" class="mode-badge">BALL</span>
-  </div>
-
   <div id="hud-texture">
     <div class="hud-group-label" id="hudLabelMaterial" style="margin-bottom:10px;opacity:1" data-i18n="material">Material</div>
     <input type="file" id="texFile" accept="image/*" />
@@ -1680,6 +1682,17 @@
     </div>
 
   </div>
+</div>
+
+<div class="hud-modes">
+  <span id="modeWind"  class="mode-badge" data-i18n="modeWind">WIND ON</span>
+  <span id="modeTear"  class="mode-badge" data-i18n="modeTear">TEAR MODE</span>
+  <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
+  <span id="modeGrain" class="mode-badge">GRAIN</span>
+  <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
+  <span id="modeWater" class="mode-badge">WATER MODE</span>
+  <span id="modeLight" class="mode-badge" data-i18n="modeLight">LIGHT</span>
+  <span id="modeCollider" class="mode-badge">BALL</span>
 </div>
 
 
