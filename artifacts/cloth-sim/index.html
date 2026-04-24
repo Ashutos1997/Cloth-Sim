@@ -1340,6 +1340,58 @@
         border-color: white !important;
         background: rgba(255,255,255,0.08) !important;
       }
+
+      /* Consistent section header spacing */
+      #hud .hud-group-label, #hud .hud-section-title {
+        margin-top: 16px !important;
+        margin-bottom: 4px !important;
+      }
+
+      /* First section header — no top margin */
+      #hud .hud-group-label:first-of-type, #hud .hud-section-title:first-of-type {
+        margin-top: 8px !important;
+      }
+
+      /* Row spacing — tighter and even */
+      #hud .hud-act {
+        padding: 5px 4px !important;
+      }
+
+      /* Dividers between rows */
+      #hud .hud-act + #hud .hud-act,
+      .hud-row + .hud-row {
+        border-top: 1px solid rgba(255,255,255,0.04) !important;
+      }
+
+      /* Remove extra gaps between groups */
+      #hud hr {
+        margin: 4px 0 !important;
+      }
+
+      /* Kill dead space before material */
+      #hud-texture {
+        margin-top: 4px !important;
+        padding-top: 12px !important;
+      }
+
+      /* Material section header */
+      #hud-texture .hud-group-label,
+      #hud-texture .hud-section-title,
+      #hud .material-title {
+        margin-top: 0 !important;
+        margin-bottom: 8px !important;
+      }
+
+      /* Tighten upload button */
+      #texUploadBtn {
+        margin-bottom: 6px !important;
+        padding: 5px 8px !important;
+      }
+
+      /* Material buttons even height */
+      .preset-btn, .preset-btn.material-btn {
+        padding: 5px 0 !important;
+      }
     }
   </style>
 </head>
