@@ -1753,6 +1753,45 @@
     canvas {
       background: transparent !important;
     }
+
+    /* DESKTOP-ONLY: Canvas Metadata Overlay */
+    @media (min-width: 768px) {
+      #canvas-meta {
+        position: fixed !important;
+        bottom: 24px !important;
+        right: 24px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        gap: 4px !important;
+        z-index: 50 !important;
+        pointer-events: none !important;
+      }
+
+      #canvas-meta .meta-row {
+        font-size: 10px !important;
+        letter-spacing: 0.1em !important;
+        text-transform: uppercase !important;
+        color: rgba(255,255,255,0.3) !important;
+        font-family: inherit !important;
+        display: block !important;
+      }
+
+      #canvas-meta .meta-row.meta-active {
+        color: rgba(255,255,255,0.6) !important;
+      }
+
+      #canvas-meta .meta-fps {
+        font-size: 11px !important;
+        color: rgba(255,255,255,0.2) !important;
+        letter-spacing: 0.08em !important;
+      }
+    }
+
+    /* Mobile: Hide Overlay */
+    @media (max-width: 767px) {
+      #canvas-meta { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -1767,6 +1806,13 @@
 <canvas id="canvas"></canvas>
 <canvas id="overlay"></canvas>
 <div id="grain-overlay"></div>
+
+<!-- Metadata Overlay (Desktop only) -->
+<div id="canvas-meta">
+  <div class="meta-row meta-active" id="meta-material">SILK</div>
+  <div id="meta-effects"></div>
+  <div class="meta-fps" id="meta-fps"></div>
+</div>
 
 <!-- HUD panel -->
 <div id="hud">
@@ -4332,6 +4378,65 @@ class Cloth {
   }
 
   loop();
+})();
+</script>
+
+<!-- Metadata Overlay Update Logic -->
+<script>
+(function initMetaOverlay() {
+  const elMetaMaterial = document.getElementById('meta-material');
+  const elMetaEffects  = document.getElementById('meta-effects');
+  const elMetaFps      = document.getElementById('meta-fps');
+  
+  let frameCount = 0;
+  let lastTime   = performance.now();
+  let showFps    = true;
+
+  window.addEventListener('keydown', e => {
+    if (e.key.toUpperCase() === 'F') showFps = !showFps;
+  });
+
+  function updateMeta() {
+    requestAnimationFrame(updateMeta);
+    
+    // FPS Calculation
+    frameCount++;
+    const now = performance.now();
+    if (now - lastTime >= 1000) {
+      if (showFps) {
+        elMetaFps.textContent = `${Math.round((frameCount * 1000) / (now - lastTime))} FPS`;
+      } else {
+        elMetaFps.textContent = '';
+      }
+      frameCount = 0;
+      lastTime = now;
+    }
+
+    // Material Update
+    if (typeof activePreset !== 'undefined') {
+      elMetaMaterial.textContent = activePreset.toUpperCase();
+    }
+
+    // Effects Update
+    let effectsHtml = '';
+    const activeStates = [
+      { id: 'wind',   active: typeof windEnabled !== 'undefined' && windEnabled, label: 'WIND' },
+      { id: 'grain',  active: typeof grainOn !== 'undefined' && grainOn,         label: 'GRAIN' },
+      { id: 'dirt',   active: typeof dirtMode !== 'undefined' && dirtMode,       label: 'DIRT' },
+      { id: 'water',  active: typeof waterMode !== 'undefined' && waterMode,     label: 'WATER' },
+      { id: 'light',  active: typeof lightSourceEnabled !== 'undefined' && lightSourceEnabled, label: 'LIGHT' },
+      { id: 'collider', active: typeof colliderType !== 'undefined' && colliderType !== 0, label: 'COLLIDER' }
+    ];
+
+    activeStates.forEach(s => {
+      if (s.active) {
+        effectsHtml += `<div class="meta-row">${s.label}</div>`;
+      }
+    });
+    elMetaEffects.innerHTML = effectsHtml;
+  }
+
+  requestAnimationFrame(updateMeta);
 })();
 </script>
 </body>
