@@ -1479,7 +1479,7 @@
       }
 
       /* Consistent Row and Preset Layout */
-      #hud .hud-act, #hud .hud-row, #hud-presets-row {
+      #hud .hud-act, #hud .hud-row {
         padding: 6px 0 !important;
         border-bottom: 1px solid var(--color-border-subtle) !important;
         background: transparent !important;
@@ -1490,33 +1490,8 @@
         gap: 10px !important;
       }
 
-      #hud .hud-act:last-child, #hud .hud-row:last-child, #hud-presets-row:last-child {
+      #hud .hud-act:last-child, #hud .hud-row:last-child {
         border-bottom: none !important;
-      }
-
-      /* Horizontal Material Presets */
-      #hud-presets-row {
-        justify-content: space-between !important;
-        gap: 4px !important;
-      }
-      .preset-pill {
-        flex: 1 !important;
-        display: flex !important;
-        align-items: center !important;
-        gap: 6px !important;
-        padding: 4px 2px !important;
-        cursor: pointer !important;
-        opacity: 0.7 !important;
-        font-size: 10px !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.05em !important;
-        transition: opacity 150ms ease-out !important;
-      }
-      .preset-pill:hover, .preset-pill.active {
-        opacity: 1 !important;
-      }
-      .preset-pill.active .swatch-square {
-        box-shadow: 0 0 0 1.5px white !important;
       }
 
       /* No top spacing for the very first section */
@@ -1944,20 +1919,21 @@
         <span data-i18n="upload">upload texture</span>
       </div>
 
-      <div id="hud-presets-row">
-        <div class="preset-pill preset-btn" data-preset="SILK">
-          <span class="swatch-square" style="background:#ccc8c3"></span>
-          <span>silk</span>
-        </div>
-        <div class="preset-pill preset-btn" data-preset="DENIM">
-          <span class="swatch-square" style="background:#6b84a0"></span>
-          <span>denim</span>
-        </div>
-        <div class="preset-pill preset-btn" data-preset="LINEN">
-          <span class="swatch-square" style="background:#c8b99a"></span>
-          <span>linen</span>
-        </div>
-      </div>
+      <button class="hud-row hud-act preset-btn" data-preset="SILK">
+        <span class="row-icon"><span class="swatch-square" style="background:#ccc8c3"></span></span>
+        <span class="key">1</span>
+        <span>silk</span>
+      </button>
+      <button class="hud-row hud-act preset-btn" data-preset="DENIM">
+        <span class="row-icon"><span class="swatch-square" style="background:#6b84a0"></span></span>
+        <span class="key">2</span>
+        <span>denim</span>
+      </button>
+      <button class="hud-row hud-act preset-btn" data-preset="LINEN">
+        <span class="row-icon"><span class="swatch-square" style="background:#c8b99a"></span></span>
+        <span class="key">3</span>
+        <span>linen</span>
+      </button>
 
       <div class="hud-row hud-act" id="presetReset">
         <span class="row-icon">↩</span>
