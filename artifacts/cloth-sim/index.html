@@ -3750,9 +3750,40 @@ class Cloth {
   // Initialize Settings
   SettingsManager.load();
 
+  /* Welcome Animation (One-time ripple) */
+  let welcomeAnimationActive = !localStorage.getItem('fabric-visited');
+  let welcomeAnimationStartTime = null;
+
   /* ── Main loop ── */
-  function loop() {
+  function loop(now) {
     requestAnimationFrame(loop);
+
+    if (welcomeAnimationActive) {
+      if (welcomeAnimationStartTime === null) welcomeAnimationStartTime = now;
+      const elapsed = now - welcomeAnimationStartTime;
+      const duration = 2000;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      const waveFrontY = cloth.originY + (ROWS * SPACING) * progress;
+      const waveWidth = 80;
+      const pts = cloth.points;
+      
+      for (let i = 0; i < pts.length; i++) {
+        const pt = pts[i];
+        if (pt.pinned) continue;
+        const dist = Math.abs(pt.y - waveFrontY);
+        if (dist < waveWidth) {
+          const falloff = 1.0 - (dist / waveWidth);
+          // Apply a small force in Z
+          pt.z += Math.sin(progress * Math.PI * 4) * falloff * 0.45;
+        }
+      }
+
+      if (progress >= 1) {
+        welcomeAnimationActive = false;
+        localStorage.setItem('fabric-visited', 'true');
+      }
+    }
 
     /* Wind */
     let windX = 0, windZ = 0;
