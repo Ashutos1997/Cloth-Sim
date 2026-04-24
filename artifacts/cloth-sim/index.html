@@ -2606,8 +2606,7 @@ class Cloth {
     if (mediaRecorder && isRecording) {
       mediaRecorder.stop();
       isRecording = false;
-      const rec = document.getElementById('rec-indicator');
-      if (rec) rec.style.display = 'none';
+      if (window.stopIndicator) window.stopIndicator();
       updateHUD();
     }
   }
@@ -2631,9 +2630,11 @@ class Cloth {
     mediaRecorder.onstop = downloadRecording;
     mediaRecorder.start();
     isRecording = true;
-    const rec = document.getElementById('rec-indicator');
-    if (rec) rec.style.display = 'flex';
+    if (window.startIndicator) window.startIndicator();
     updateHUD();
+    
+    // Auto stop after 10s
+    setTimeout(() => { if (isRecording) stopRecording(); }, 10000);
   }
 
   function toggleRecording() {
@@ -4570,6 +4571,9 @@ class Cloth {
       }
     });
   }
+
+  window.startIndicator = startIndicator;
+  window.stopIndicator  = stopIndicator;
 })();
 </script>
 </body>
