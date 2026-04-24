@@ -2828,6 +2828,12 @@ class Cloth {
     gl.viewport(0, 0, cw, ch);
     gl.useProgram(prog);
     gl.uniformMatrix4fv(uMVPLoc, false, buildMVP(cw, ch));
+
+    // Keep light source on screen after resize
+    if (typeof lightPos !== 'undefined') {
+      lightPos.x = Math.min(lightPos.x, cw - 20);
+      lightPos.y = Math.min(lightPos.y, ch - 20);
+    }
   }
   window.addEventListener('resize', resize);
   resize();
@@ -2861,7 +2867,7 @@ class Cloth {
   const waterParticles = [];  // { x,y,vx,vy,r,opacity } — splash, fade, vanish
   const pointWetness   = new Map(); // Point → wetness 0–1 (cleared on reset)
   let lightSourceEnabled = false;
-  let lightPos = { x: 500, y: 300, z: 250 };
+  let lightPos = { x: canvas.width * 0.8, y: canvas.height * 0.2, z: 250 };
   let draggedLight = false;
   let windPhase     = 0;
   let windMult      = 1.0;   // wind strength multiplier (1.0 = default, set by scenario)
@@ -2995,7 +3001,7 @@ class Cloth {
     mouse.y = pos.y;
     if (dirtMode)        emitDirt(mouse.x, mouse.y);
     else if (waterMode)  emitWater(mouse.x, mouse.y);
-    else if (lightSourceEnabled && Math.hypot(mouse.x - lightPos.x, mouse.y - lightPos.y) < 20) {
+    else if (lightSourceEnabled && Math.hypot(mouse.x - lightPos.x, mouse.y - lightPos.y) < (isMobile() ? 40 : 22)) {
       draggedLight = true;
     }
     else if (colliderType !== COLLIDER_NONE && tryGrabCollider(mouse.x, mouse.y)) { /* collider drag */ }
