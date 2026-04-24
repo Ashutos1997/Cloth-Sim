@@ -1838,7 +1838,7 @@
 
 <!-- Metadata Overlay (Desktop only) -->
 <div id="canvas-meta">
-  <div class="meta-row meta-active" id="meta-material">SILK</div>
+  <div class="meta-row meta-active" id="meta-material">Silk</div>
   <div id="meta-effects"></div>
   <div class="meta-fps" id="meta-fps"></div>
 </div>
@@ -1920,14 +1920,14 @@
 </div>
 
 <div class="hud-modes">
-  <span id="modeWind"  class="mode-badge" data-i18n="modeWind">WIND ON</span>
-  <span id="modeTear"  class="mode-badge" data-i18n="modeTear">TEAR MODE</span>
-  <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
-  <span id="modeGrain" class="mode-badge">GRAIN</span>
-  <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
-  <span id="modeWater" class="mode-badge">WATER MODE</span>
-  <span id="modeLight" class="mode-badge" data-i18n="modeLight">LIGHT</span>
-  <span id="modeCollider" class="mode-badge">BALL</span>
+  <span id="modeWind"  class="mode-badge" data-i18n="modeWind">Wind on</span>
+  <span id="modeTear"  class="mode-badge" data-i18n="modeTear">Tear mode</span>
+  <span id="modeMic"   class="mode-badge">Mic <span class="mic-meter" id="micMeter"></span></span>
+  <span id="modeGrain" class="mode-badge" data-i18n="modeGrain">Grain</span>
+  <span id="modeDirt"  class="mode-badge" data-i18n="modeDirt">Dirt mode</span>
+  <span id="modeWater" class="mode-badge" data-i18n="modeWater">Water mode</span>
+  <span id="modeLight" class="mode-badge" data-i18n="modeLight">Light</span>
+  <span id="modeCollider" class="mode-badge" data-i18n="modeCollider">Ball</span>
 </div>
 
 
@@ -3808,8 +3808,8 @@ class Cloth {
       save: "Save image",
       recordLabel: "Record video",
       hide: "Hide HUD",
-      modeWind: "WIND ON",
-      modeTear: "TEAR MODE",
+      modeWind: "Wind on",
+      modeTear: "Tear mode",
       material: "Material",
       upload: "Upload texture",
       clear: "Clear texture",
@@ -3877,8 +3877,7 @@ class Cloth {
       mobMic: "마이크",
       language: "언어 설정",
       lightLabel: "동적 조명",
-      lightToggle: "조명 소스",
-      modeLight: "조명"
+      lightToggle: "조명 소스"
     }
   };
 
@@ -4529,18 +4528,18 @@ class Cloth {
 
     // Material Update
     if (typeof activePreset !== 'undefined') {
-      elMetaMaterial.textContent = activePreset.toUpperCase();
+      elMetaMaterial.textContent = activePreset.charAt(0).toUpperCase() + activePreset.slice(1).toLowerCase();
     }
 
     // Effects Update
     let effectsHtml = '';
     const activeStates = [
-      { id: 'wind',   active: typeof windEnabled !== 'undefined' && windEnabled, label: 'WIND' },
-      { id: 'grain',  active: typeof grainOn !== 'undefined' && grainOn,         label: 'GRAIN' },
-      { id: 'dirt',   active: typeof dirtMode !== 'undefined' && dirtMode,       label: 'DIRT' },
-      { id: 'water',  active: typeof waterMode !== 'undefined' && waterMode,     label: 'WATER' },
-      { id: 'light',  active: typeof lightSourceEnabled !== 'undefined' && lightSourceEnabled, label: 'LIGHT' },
-      { id: 'collider', active: typeof colliderType !== 'undefined' && colliderType !== 0, label: 'COLLIDER' }
+      { id: 'wind',   active: typeof windEnabled !== 'undefined' && windEnabled, label: 'Wind' },
+      { id: 'grain',  active: typeof grainOn !== 'undefined' && grainOn,         label: 'Grain' },
+      { id: 'dirt',   active: typeof dirtMode !== 'undefined' && dirtMode,       label: 'Dirt' },
+      { id: 'water',  active: typeof waterMode !== 'undefined' && waterMode,     label: 'Water' },
+      { id: 'light',  active: typeof lightSourceEnabled !== 'undefined' && lightSourceEnabled, label: 'Light' },
+      { id: 'collider', active: typeof colliderType !== 'undefined' && colliderType !== 0, label: 'Collider' }
     ];
 
     activeStates.forEach(s => {
