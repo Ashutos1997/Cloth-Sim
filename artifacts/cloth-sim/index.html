@@ -965,8 +965,76 @@
     }
 
     /* Sheet top area — tighter after handle */
+    /* Sheet overall padding */
     #fx-sheet {
       padding: 12px 20px 24px 20px !important;
+    }
+
+    /* Remove or shorten the top divider line inside the sheet */
+    #fx-sheet hr, #fx-sheet .sheet-divider, #fx-sheet .fx-title {
+      border-top: none !important;
+    }
+
+    /* Make sheet content fill full width */
+    #fx-sheet {
+      padding-left: 20px !important;
+      padding-right: 20px !important;
+      box-sizing: border-box !important;
+      width: 100% !important;
+    }
+
+    /* All rows stretch full width */
+    .fx-row {
+      width: 100% !important;
+      box-sizing: border-box !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    /* Left align icon and label */
+    .fx-row i, .fx-row .fx-icon {
+      margin-right: 12px !important;
+      flex-shrink: 0 !important;
+    }
+
+    .fx-row .fx-label {
+      flex: 1 !important;
+      text-align: left !important;
+    }
+
+    /* Indicator dot stays right */
+    .fx-indicator {
+      margin-left: auto !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* Material buttons fill width */
+    #hud-presets, .fx-pill-row, .material-buttons {
+      width: 100% !important;
+      display: flex !important;
+      gap: 8px !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    .preset-btn.material-btn, .fx-pill-btn {
+      flex: 1 !important;
+    }
+
+    /* Session buttons fill width */
+    .fx-util-row, .session-buttons, #mob-actions {
+      width: 100% !important;
+      display: flex !important;
+      gap: 8px !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    .fx-util-btn, .session-btn, #mob-reset, #mob-save, #mob-mic {
+      flex: 1 !important;
     }
   </style>
 </head>
