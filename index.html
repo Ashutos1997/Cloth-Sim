@@ -278,6 +278,42 @@
       margin-right: 2px;
     }
 
+    /* Language Switcher */
+    .lang-btn {
+      font-size: 8px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.4);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+      letter-spacing: 0.05em;
+    }
+    .lang-btn:hover { color: rgba(255,255,255,0.8); }
+    .lang-btn.active { 
+      color: rgba(255,255,255,0.98); 
+      border-color: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05);
+    }
+    
+    .lang-pill {
+      background: transparent;
+      border: 1px solid var(--border-mid);
+      color: var(--text-secondary);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .lang-pill.active {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.4);
+      color: var(--text-primary);
+    }
+
     /* ── Bottom canvas label — centered in the canvas area (right of panel) ── */
     #canvas-label {
       position: fixed;
@@ -1558,36 +1594,45 @@
 
 <!-- HUD panel -->
 <div id="hud">
-  <div class="hud-title">Fabric</div>
-  <div class="hud-subtitle">interactive cloth simulation</div>
+  <div class="hud-title" id="hudTitle">Fabric</div>
+  <div class="hud-subtitle" id="hudSubtitle" data-i18n="subtitle">interactive cloth simulation</div>
 
   <div class="hud-controls">
     <!-- Cloth group -->
     <div class="hud-group">
-      <div class="hud-group-label">Cloth</div>
-      <div class="hud-row"><span class="row-icon"><i class="ph ph-hand"></i></span><span class="key">Drag</span><span id="hudLabelDrag">pull the cloth</span></div>
-      <div class="hud-row hud-act" data-hud-key="T" id="hudRowTear" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-scissors" aria-hidden="true"></i></span><span class="key">T</span><span id="hudLabelTear">tear mode</span></div>
-      <div class="hud-row hud-act" data-hud-key="O" id="hudRowCollider" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-sphere" aria-hidden="true"></i></span><span class="key">O</span><span id="hudLabelCollider">add collider</span></div>
+      <div class="hud-group-label" data-i18n="cloth">Cloth</div>
+      <div class="hud-row"><span class="row-icon"><i class="ph ph-hand"></i></span><span class="key">Drag</span><span id="hudLabelDrag" data-i18n="dragLabel">pull the cloth</span></div>
+      <div class="hud-row hud-act" data-hud-key="T" id="hudRowTear" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-scissors" aria-hidden="true"></i></span><span class="key">T</span><span id="hudLabelTear" data-i18n="tearLabel">tear mode</span></div>
+      <div class="hud-row hud-act" data-hud-key="O" id="hudRowCollider" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-sphere" aria-hidden="true"></i></span><span class="key">O</span><span id="hudLabelCollider" data-i18n="colliderLabel">add collider</span></div>
     </div>
     <!-- Effects group -->
     <div class="hud-group">
-      <div class="hud-group-label">Effects</div>
-      <div class="hud-row hud-act" data-hud-key="D" id="hudRowDirt" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-circle" aria-hidden="true"></i></span><span class="key">D</span><span id="hudLabelDirt">throw dirt</span></div>
-      <div class="hud-row hud-act" data-hud-key="C" id="hudRowWater" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-drop" aria-hidden="true"></i></span><span class="key">C</span><span id="hudLabelWater">splash water</span></div>
-      <div class="hud-row hud-act" data-hud-key="W" id="hudRowWind" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-wind" aria-hidden="true"></i></span><span class="key">W</span><span id="hudLabelWind">toggle wind</span></div>
-      <div class="hud-row hud-act" data-hud-key="G" id="hudRowGrain" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-dots-six" aria-hidden="true"></i></span><span class="key">G</span><span id="hudLabelGrain">grain overlay</span></div>
+      <div class="hud-group-label" data-i18n="effects">Effects</div>
+      <div class="hud-row hud-act" data-hud-key="W" id="hudRowWind" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-wind" aria-hidden="true"></i></span><span class="key">W</span><span id="hudLabelWind" data-i18n="windLabel">wind simulation</span></div>
+      <div class="hud-row hud-act" data-hud-key="G" id="hudRowGrain" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-dots-six" aria-hidden="true"></i></span><span class="key">G</span><span id="hudLabelGrain" data-i18n="grainLabel">film grain</span></div>
+      <div class="hud-row hud-act" data-hud-key="D" id="hudRowDirt" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-hand-grabbing" aria-hidden="true"></i></span><span class="key">D</span><span id="hudLabelDirt" data-i18n="dirtLabel">dirt mode</span></div>
+      <div class="hud-row hud-act" data-hud-key="B" id="hudRowWater" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-drop" aria-hidden="true"></i></span><span class="key">B</span><span id="hudLabelWater" data-i18n="waterLabel">water mode</span></div>
     </div>
     <!-- Utility group -->
     <div class="hud-group">
-      <div class="hud-group-label">Utility</div>
-      <div class="hud-row hud-act" data-hud-key="R" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i></span><span class="key">R</span><span id="hudLabelReset">reset cloth</span></div>
-      <div class="hud-row hud-act" data-hud-key="S" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-floppy-disk" aria-hidden="true"></i></span><span class="key">S</span><span id="hudLabelSave">save image</span></div>
-      <div class="hud-row hud-act" data-hud-key="H" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-eye-slash" aria-hidden="true"></i></span><span class="key">H</span><span id="hudLabelHide">hide HUD</span></div>
+      <div class="hud-group-label" data-i18n="utility">Utility</div>
+      <div class="hud-row hud-act" data-hud-key="R" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i></span><span class="key">R</span><span id="hudLabelReset" data-i18n="reset">reset cloth</span></div>
+      <div class="hud-row hud-act" data-hud-key="S" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-floppy-disk" aria-hidden="true"></i></span><span class="key">S</span><span id="hudLabelSave" data-i18n="save">save image</span></div>
+      <div class="hud-row hud-act" data-hud-key="H" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-eye-slash" aria-hidden="true"></i></span><span class="key">H</span><span id="hudLabelHide" data-i18n="hide">hide HUD</span></div>
+      
+      <!-- Language Switch -->
+      <div class="hud-row" style="padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 4px; pointer-events: all; display: flex; align-items: center; gap: 10px;">
+        <span class="row-icon"><i class="ph ph-globe"></i></span>
+        <div style="display: flex; gap: 4px;">
+          <span class="lang-btn active" id="btnLangEng">ENG</span>
+          <span class="lang-btn" id="btnLangKor">한글</span>
+        </div>
+      </div>
     </div>
 
     <div class="hud-modes">
-      <span id="modeWind"  class="mode-badge">WIND ON</span>
-      <span id="modeTear"  class="mode-badge">TEAR MODE</span>
+      <span id="modeWind"  class="mode-badge" data-i18n="modeWind">WIND ON</span>
+      <span id="modeTear"  class="mode-badge" data-i18n="modeTear">TEAR MODE</span>
       <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
       <span id="modeGrain" class="mode-badge">GRAIN</span>
       <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
@@ -1597,16 +1642,16 @@
   </div>
 
   <div id="hud-texture">
-    <div class="hud-group-label" id="hudLabelMaterial" style="margin-bottom:6px;opacity:1">Material</div>
+    <div class="hud-group-label" id="hudLabelMaterial" style="margin-bottom:6px;opacity:1" data-i18n="material">Material</div>
     <input type="file" id="texFile" accept="image/*" />
-    <button class="tex-btn" id="texUploadBtn"><i class="ph ph-upload-simple"></i> Upload texture</button>
-    <div id="texClear">✕&nbsp;&nbsp;clear texture</div>
+    <button class="tex-btn" id="texUploadBtn"><i class="ph ph-upload-simple"></i> <span data-i18n="upload">Upload texture</span></button>
+    <div id="texClear"><span data-i18n="clear">✕&nbsp;&nbsp;clear texture</span></div>
     <div id="hud-presets">
       <button class="tex-btn preset-btn" data-preset="SILK"><span class="preset-swatch" style="background:#ccc8c3"></span>SILK</button>
       <button class="tex-btn preset-btn" data-preset="DENIM"><span class="preset-swatch" style="background:#6b84a0"></span>DENIM</button>
       <button class="tex-btn preset-btn" data-preset="LINEN"><span class="preset-swatch" style="background:#c8b99a"></span>LINEN</button>
     </div>
-    <div id="presetReset">↩&nbsp;&nbsp;default</div>
+    <div id="presetReset"><span data-i18n="default">↩&nbsp;&nbsp;default</span></div>
 
   </div>
 </div>
@@ -1614,8 +1659,8 @@
 
 <!-- Mobile top header (≤768px only) -->
 <header id="mob-header">
-  <span class="mob-title">Fabric</span>
-  <span class="mob-subtitle">Interactive Cloth Simulation</span>
+  <span class="mob-title" id="mobTitle">Fabric</span>
+  <span class="mob-subtitle" id="mobSubtitle" data-i18n="subtitle">Interactive Cloth Simulation</span>
 </header>
 
 <!-- Mobile bottom nav (≤768px only) -->
@@ -1623,22 +1668,22 @@
   <!-- Touch Tab -->
   <button class="mob-btn" id="mobTouchTab">
     <i class="ph ph-hand"></i>
-    <span class="mob-label">Touch</span>
+    <span class="mob-label" data-i18n="touchTab">Touch</span>
   </button>
   <!-- Effects Tab -->
   <button class="mob-btn" id="mobEffectsTab">
     <i class="ph ph-sparkle"></i>
-    <span class="mob-label">Effects</span>
+    <span class="mob-label" data-i18n="effectsTab">Effects</span>
   </button>
   <!-- Style Tab -->
   <button class="mob-btn" id="mobStyleTab">
     <i class="ph ph-palette"></i>
-    <span class="mob-label">Style</span>
+    <span class="mob-label" data-i18n="styleTab">Style</span>
   </button>
   <!-- Manage Tab (Repurposing mobMore ID to trigger the sheet) -->
   <button class="mob-btn" id="mobMore" aria-haspopup="dialog" aria-expanded="false">
     <i class="ph ph-sliders-horizontal"></i>
-    <span class="mob-label">Manage</span>
+    <span class="mob-label" data-i18n="manageTab">Manage</span>
   </button>
 </nav>
 
@@ -1649,52 +1694,52 @@
 
   <!-- SECTION 1: TOUCH -->
   <div id="secTouch" style="display:none;">
-    <div class="fx-title">Touch Controls</div>
+    <div class="fx-title" data-i18n="touchTitle">Touch Controls</div>
     <button class="fx-row" id="mobDrag" style="display:none;">
       <i class="ph ph-hand-pointing"></i>
-      <span class="fx-label">Drag Mode</span>
+      <span class="fx-label" data-i18n="dragMode">Drag Mode</span>
       <span class="fx-indicator"></span>
     </button>
     <button class="fx-row" id="mobTear">
       <i class="ph ph-scissors"></i>
-      <span class="fx-label">Tear Mode</span>
+      <span class="fx-label" data-i18n="tearMode">Tear Mode</span>
       <span class="fx-indicator"></span>
     </button>
   </div>
 
   <!-- SECTION 2: EFFECTS -->
   <div id="secEffects" style="display:none;">
-    <div class="fx-title">Environment & FX</div>
+    <div class="fx-title" data-i18n="envTitle">Environment & FX</div>
     <button class="fx-row" id="mobDirt">
       <i class="ph ph-hand-grabbing"></i>
-      <span class="fx-label">Dirt Mode</span>
+      <span class="fx-label" data-i18n="dirtLabel">Dirt Mode</span>
       <span class="fx-indicator"></span>
     </button>
     <button class="fx-row" id="mobWater">
       <i class="ph ph-drop"></i>
-      <span class="fx-label">Water Mode</span>
+      <span class="fx-label" data-i18n="waterLabel">Water Mode</span>
       <span class="fx-indicator"></span>
     </button>
     <button class="fx-row" id="mobWind">
       <i class="ph ph-wind"></i>
-      <span class="fx-label">Wind Toggle</span>
+      <span class="fx-label" data-i18n="windToggle">Wind Toggle</span>
       <span class="fx-indicator"></span>
     </button>
     <button class="fx-row" id="fxGrain">
       <i class="ph ph-dots-six"></i>
-      <span class="fx-label">Grain Overlay</span>
+      <span class="fx-label" data-i18n="grainLabel">Grain Overlay</span>
       <span class="fx-indicator"></span>
     </button>
     <button class="fx-row" id="fxCollider">
       <i class="ph ph-circle-dashed"></i>
-      <span class="fx-label">Collider Ball</span>
+      <span class="fx-label" data-i18n="colliderBall">Collider Ball</span>
       <span class="fx-indicator"></span>
     </button>
   </div>
 
   <!-- SECTION 3: STYLE -->
   <div id="secStyle" style="display:none;">
-    <div class="fx-title">Material & Texture</div>
+    <div class="fx-title" data-i18n="matTitle">Material & Texture</div>
     <div class="fx-pill-row">
       <button class="fx-pill-btn" id="fxSilk" data-fx-preset="SILK">
         <span class="fx-swatch" style="background:#d8d4d0"></span>
@@ -1710,30 +1755,40 @@
       </button>
     </div>
     <button class="fx-row fx-reset-row" id="fxDefault">
-      <span class="fx-label">↩&nbsp;&nbsp;default texture</span>
+      <span class="fx-label" data-i18n="defaultText">↩&nbsp;&nbsp;default texture</span>
     </button>
     <button class="fx-row" id="fxUpload">
       <i class="ph ph-upload-simple"></i>
-      <span class="fx-label">Upload Texture</span>
+      <span class="fx-label" data-i18n="upload">Upload Texture</span>
     </button>
   </div>
 
   <!-- SECTION 4: MANAGE -->
   <div id="secManage" style="display:none;">
-    <div class="fx-title">Session Management</div>
+    <div class="fx-title" data-i18n="sessTitle">Session Management</div>
     <div class="fx-util-row" style="display: flex; gap: 8px; padding: 0 16px 12px;">
       <button class="fx-util-btn" id="fxReset" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:10px; background:transparent; border:1px solid var(--border-mid);">
         <i class="ph ph-arrow-counter-clockwise"></i>
-        <span class="fx-util-label">Reset</span>
+        <span class="fx-util-label" data-i18n="mobReset">Reset</span>
       </button>
       <button class="fx-util-btn" id="fxSave" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:10px; background:transparent; border:1px solid var(--border-mid);">
         <i class="ph ph-download-simple"></i>
-        <span class="fx-util-label">Save</span>
+        <span class="fx-util-label" data-i18n="mobSave">Save</span>
       </button>
       <button class="fx-util-btn" id="fxMic" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:10px; background:transparent; border:1px solid var(--border-mid);">
         <i class="ph ph-microphone"></i>
-        <span class="fx-util-label">Mic</span>
+        <span class="fx-util-label" data-i18n="mobMic">Mic</span>
       </button>
+    </div>
+    
+    <!-- Mobile Language -->
+    <div class="fx-row" style="border-top: 1px solid rgba(255,255,255,0.05); margin-top: 12px; padding: 16px 20px;">
+      <i class="ph ph-globe" style="font-size:16px; opacity:0.55;"></i>
+      <span class="fx-label" style="flex:1; font-size:14px; opacity:0.8;" data-i18n="language">Language</span>
+      <div style="display:flex; gap:6px;">
+        <button class="lang-pill active" id="mobLangEng">ENG</button>
+        <button class="lang-pill" id="mobLangKor">한글</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2948,8 +3003,8 @@ class Cloth {
     elCollider.classList.toggle('visible', colliderType !== COLLIDER_NONE);
     if (colliderType !== COLLIDER_NONE) {
       elCollider.textContent = colliderType === COLLIDER_BALL
-        ? (isKorean ? '공' : 'BALL')
-        : (isKorean ? '막대' : 'ROD');
+        ? (currentLang === 'KOR' ? '볼' : 'BALL')
+        : (currentLang === 'KOR' ? '로드' : 'ROD');
     }
     if (isMobile()) {
       /* Nav direct-mode buttons */
@@ -3219,6 +3274,136 @@ class Cloth {
      inverted: the visible cloth face tests as back-facing, making it darker via Task #27. */
   gl.frontFace(gl.CW);
   setBgPalette('DEFAULT');          // prime gradient before first frame
+
+  /* ── Localization Dictionary ── */
+  const TRANSLATIONS = {
+    ENG: {
+      title: "Fabric",
+      subtitle: "interactive cloth simulation",
+      cloth: "Cloth",
+      effects: "Effects",
+      utility: "Utility",
+      dragLabel: "pull the cloth",
+      tearLabel: "tear mode",
+      colliderLabel: "add collider",
+      windLabel: "wind simulation",
+      grainLabel: "film grain",
+      dirtLabel: "dirt mode",
+      waterLabel: "water mode",
+      reset: "reset cloth",
+      save: "save image",
+      hide: "hide HUD",
+      modeWind: "WIND ON",
+      modeTear: "TEAR MODE",
+      material: "Material",
+      upload: "Upload texture",
+      clear: "✕&nbsp;&nbsp;clear texture",
+      default: "↩&nbsp;&nbsp;default",
+      touchTab: "Touch",
+      effectsTab: "Effects",
+      styleTab: "Style",
+      manageTab: "Manage",
+      touchTitle: "Touch Controls",
+      dragMode: "Drag Mode",
+      tearMode: "Tear Mode",
+      envTitle: "Environment & FX",
+      windToggle: "Wind Toggle",
+      grainLabel: "Grain Overlay",
+      colliderBall: "Collider Ball",
+      matTitle: "Material & Texture",
+      defaultText: "↩&nbsp;&nbsp;default texture",
+      sessTitle: "Session Management",
+      mobReset: "Reset",
+      mobSave: "Save",
+      mobMic: "Mic",
+      language: "Language"
+    },
+    KOR: {
+      title: "패브릭",
+      subtitle: "인터랙티브 천 시뮬레이션",
+      cloth: "천",
+      effects: "효과",
+      utility: "유틸리티",
+      dragLabel: "천을 당기세요",
+      tearLabel: "찢기 모드",
+      colliderLabel: "충돌체 추가",
+      windLabel: "바람 시뮬레이션",
+      grainLabel: "그레인 효과",
+      dirtLabel: "진흙 모드",
+      waterLabel: "수분 모드",
+      reset: "초기화",
+      save: "이미지 저장",
+      hide: "HUD 숨기기",
+      modeWind: "바람 켬",
+      modeTear: "찢기 모드",
+      material: "소재",
+      upload: "텍스처 업로드",
+      clear: "✕&nbsp;&nbsp;텍스처 삭제",
+      default: "↩&nbsp;&nbsp;기본설정",
+      touchTab: "터치",
+      effectsTab: "효과",
+      styleTab: "스타일",
+      manageTab: "관리",
+      touchTitle: "터치 컨트롤",
+      dragMode: "드래그 모드",
+      tearMode: "찢기 모드",
+      envTitle: "환경 및 효과",
+      windToggle: "바람 토글",
+      grainLabel: "그레인 오버레이",
+      colliderBall: "볼 콜라이더",
+      matTitle: "소재 및 텍스처",
+      defaultText: "↩&nbsp;&nbsp;기본 텍스처",
+      sessTitle: "세션 관리",
+      mobReset: "초기화",
+      mobSave: "저장",
+      mobMic: "마이크",
+      language: "언어 설정"
+    }
+  };
+
+  let currentLang = 'ENG';
+
+  function updateLanguage(lang) {
+    currentLang = lang;
+    const t = TRANSLATIONS[lang];
+    
+    // Title/Subtitle (ID based)
+    const title = document.getElementById('hudTitle');
+    const subtitle = document.getElementById('hudSubtitle');
+    const mTitle = document.getElementById('mobTitle');
+    const mSubtitle = document.getElementById('mobSubtitle');
+    
+    if (title) title.innerText = t.title;
+    if (mTitle) mTitle.innerText = t.title;
+    
+    // All data-i18n elements
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if (t[key]) {
+        if (el.tagName === 'SPAN' || el.tagName === 'DIV' || el.tagName === 'BUTTON') {
+          if (t[key].includes('&nbsp;')) el.innerHTML = t[key];
+          else el.innerText = t[key];
+        }
+      }
+    });
+
+    // Update button active states
+    document.querySelectorAll('.lang-btn, .lang-pill').forEach(btn => {
+      btn.classList.toggle('active', btn.id.toLowerCase().includes(lang.toLowerCase()));
+    });
+  }
+
+  /* Language Switcher Listeners */
+  const langBtns = ['btnLangEng', 'btnLangKor', 'mobLangEng', 'mobLangKor'];
+  langBtns.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', () => {
+        const lang = id.toLowerCase().includes('kor') ? 'KOR' : 'ENG';
+        updateLanguage(lang);
+      });
+    }
+  });
 
   /* ── Main loop ── */
   function loop() {
