@@ -1036,6 +1036,61 @@
     .fx-util-btn, .session-btn, #mob-reset, #mob-save, #mob-mic {
       flex: 1 !important;
     }
+
+    /* Align section title with row icons */
+    .fx-sheet-section-title, .sheet-title, .fx-title {
+      padding-left: 0 !important;
+      margin-left: 0 !important;
+      text-indent: 0 !important;
+      width: 100% !important;
+      display: block !important;
+    }
+
+    /* Ensure sheet has consistent left edge */
+    #fx-sheet > * {
+      padding-left: 0 !important;
+      margin-left: 0 !important;
+    }
+
+    /* Active material button — clear selected state */
+    .fx-pill-btn.active, .preset-btn.material-btn.active {
+      border-color: white !important;
+      background: rgba(255,255,255,0.08) !important;
+      color: white !important;
+    }
+
+    /* Separate material buttons from texture actions */
+    .fx-pill-row, #hud-presets, .material-buttons {
+      margin-bottom: 16px !important;
+      padding-bottom: 16px !important;
+      border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    /* Default texture — style as a secondary text button not a row */
+    #fxDefault, .default-texture-btn, #texDefaultBtn {
+      font-size: 11px !important;
+      opacity: 0.4 !important;
+      padding: 0 !important;
+      border: none !important;
+      background: transparent !important;
+      text-align: left !important;
+      margin-bottom: 8px !important;
+      display: block !important;
+      width: fit-content !important;
+      height: auto !important;
+      min-height: unset !important;
+    }
+    #fxDefault .fx-label {
+      font-size: 11px !important;
+    }
+
+    /* Upload texture — style as a clear action row */
+    #fxUpload, #texUploadBtn, .upload-btn {
+      opacity: 0.75 !important;
+      font-size: 13px !important;
+    }
   </style>
 </head>
 <body>
