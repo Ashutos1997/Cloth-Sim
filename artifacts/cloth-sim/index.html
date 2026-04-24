@@ -1785,11 +1785,47 @@
         color: rgba(255,255,255,0.2) !important;
         letter-spacing: 0.08em !important;
       }
+
+      /* Typography Wordmark */
+      #hud .hud-title,
+      #hud > h1,
+      #hud > .title {
+        font-weight: 200 !important;
+        letter-spacing: 0.3em !important;
+        font-size: 20px !important;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif !important;
+      }
+
+      #hud .hud-subtitle,
+      #hud > p,
+      #hud > .subtitle {
+        font-weight: 300 !important;
+        letter-spacing: 0.18em !important;
+        font-size: 10px !important;
+        opacity: 0.4 !important;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif !important;
+      }
     }
 
     /* Mobile: Hide Overlay */
     @media (max-width: 767px) {
       #canvas-meta { display: none !important; }
+
+      /* Typography Wordmark */
+      #mob-header .mob-title {
+        font-weight: 200 !important;
+        letter-spacing: 0.3em !important;
+        font-size: 18px !important;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif !important;
+      }
+
+      #mob-header .mob-subtitle {
+        font-weight: 300 !important;
+        letter-spacing: 0.18em !important;
+        font-size: 10px !important;
+        opacity: 0.4 !important;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif !important;
+      }
     }
   </style>
 </head>
