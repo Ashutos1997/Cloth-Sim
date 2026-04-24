@@ -1296,8 +1296,8 @@
         font-size: 9px !important;
         letter-spacing: 0.14em !important;
         opacity: 0.35 !important;
-        margin-top: 20px !important;
-        margin-bottom: 6px !important;
+        margin-top: 12px !important; /* Tightened from 20px */
+        margin-bottom: 4px !important; /* Tightened from 6px */
       }
 
       #hud .hud-act {
@@ -1406,14 +1406,14 @@
 
       /* Consistent Row and Preset Layout */
       #hud .hud-act, #hud .hud-row {
-        padding: 6px 0 !important;
+        padding: 4px 0 !important; /* Tightened from 6px */
         border-bottom: 1px solid var(--color-border-subtle) !important;
         background: transparent !important;
         margin: 0 !important;
         border-top: none !important;
         display: flex !important;
         align-items: center !important;
-        gap: 10px !important;
+        gap: 8px !important; /* Tightened from 10px */
       }
 
       #hud .hud-act:last-child, #hud .hud-row:last-child {
@@ -1433,7 +1433,7 @@
 
       /* Fix cutting at the bottom */
       #hud .hud-controls {
-        padding-bottom: 48px !important;
+        padding-bottom: 32px !important; /* Slightly reduced as spacing is tighter */
       }
       .hud-row-split > .hud-act, 
       .hud-row-split > .hud-row {
