@@ -634,7 +634,7 @@
         font-weight: 500;
         letter-spacing: 2.5px;
         text-transform: uppercase;
-        color: var(--color-text-secondary);
+        color: rgba(255, 255, 255, 0.65); /* More white than secondary */
         padding: 14px 20px 8px;
         border-top: 1px solid var(--color-border-subtle);
         margin-top: 6px;
@@ -655,7 +655,7 @@
         border: none;
         border-top: 1px solid var(--color-border-subtle);
         cursor: pointer;
-        color: var(--color-text-secondary);
+        color: rgba(255, 255, 255, 0.95); /* Forced more white */
         font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 14px;
         font-weight: 300;
@@ -1839,17 +1839,8 @@
 
 <!-- HUD panel -->
 <div id="hud">
-  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-    <div>
-      <div class="hud-title" id="hudTitle">Fabric</div>
-      <div class="hud-subtitle" id="hudSubtitle" data-i18n="subtitle">interactive cloth simulation</div>
-    </div>
-    <!-- Language Switch (Desktop Header) -->
-    <div style="display: flex; gap: var(--space-xs); margin-top: 4px; pointer-events: all;">
-      <span class="lang-btn active" id="btnLangEng">ENG</span>
-      <span class="lang-btn" id="btnLangKor">한글</span>
-    </div>
-  </div>
+  <div class="hud-title" id="hudTitle">Fabric</div>
+  <div class="hud-subtitle" id="hudSubtitle" data-i18n="subtitle">interactive cloth simulation</div>
 
   <div class="hud-controls">
     <!-- Cloth group -->
@@ -1908,6 +1899,15 @@
       <div class="hud-row hud-act" id="presetReset">
         <span class="row-icon">↩</span>
         <span data-i18n="default">default texture</span>
+      </div>
+
+      <!-- Language Switch -->
+      <div style="margin-top: 14px; padding-top: 0; border-top: none; pointer-events: all; display: flex; align-items: center; gap: var(--space-md);">
+        <span style="opacity:0.4; font-size:12px; display:flex;"><i class="ph ph-globe"></i></span>
+        <div style="display: flex; gap: var(--space-xs);">
+          <span class="lang-btn active" id="btnLangEng">ENG</span>
+          <span class="lang-btn" id="btnLangKor">한글</span>
+        </div>
       </div>
     </div>
   </div>
