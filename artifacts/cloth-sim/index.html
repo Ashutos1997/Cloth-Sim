@@ -2918,21 +2918,8 @@ class Cloth {
       ctx2d.restore();
     }
 
-    /* ── Wet cloth tint (blue overlay fading with wetness) ── */
-    if (pointWetness.size > 0) {
-      ctx2d.save();
-      for (const [pt, w] of pointWetness) {
-        if (w < 0.05) continue;
-        const rx = SPACING * 0.5 * w + 2;        
-        const ry = rx * 0.8;
-        ctx2d.globalAlpha = w * 0.16;               
-        ctx2d.fillStyle   = PREFERS_DARK ? 'rgba(140,200,255,1)' : 'rgba(60,150,240,1)';
-        ctx2d.beginPath();
-        ctx2d.ellipse(pt.x, pt.y, rx, ry, 0, 0, Math.PI * 2);
-        ctx2d.fill();
-      }
-      ctx2d.restore();
-    }
+    /* ── Wet cloth tint (blue overlay) ── — REMOVED: Handled by WebGL shader */
+
 
     /* ── Water particles (airborne droplets + fading absorbed ones) ── */
     if (waterParticles.length > 0) {
