@@ -1611,6 +1611,107 @@
         justify-content: center !important;
       }
     }
+
+    @media (max-width: 767px) {
+
+      /* Header layout — title left, lang switcher right */
+      #mob-header {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 12px 16px !important;
+      }
+
+      /* Title block left aligned */
+      #mob-header .mob-title,
+      #mob-header .header-title {
+        text-align: left !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+      }
+
+      #mob-header .mob-title .title-main,
+      #mob-header h1 {
+        font-size: 18px !important;
+        letter-spacing: 0.15em !important;
+        text-align: left !important;
+      }
+
+      #mob-header .mob-title .title-sub,
+      #mob-header p {
+        font-size: 10px !important;
+        letter-spacing: 0.08em !important;
+        opacity: 0.4 !important;
+        text-align: left !important;
+      }
+
+      /* Lang switcher right side */
+      .lang-switcher,
+      .language-toggle,
+      #lang-toggle {
+        position: static !important;
+        display: flex !important;
+        gap: 4px !important;
+        flex-shrink: 0 !important;
+        margin-left: auto !important;
+      }
+
+      .lang-btn,
+      .language-toggle button,
+      #lang-toggle button {
+        font-size: 10px !important;
+        letter-spacing: 0.08em !important;
+        padding: 3px 8px !important;
+        border-radius: 4px !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        background: rgba(12,12,12,0.7) !important;
+        color: white !important;
+        opacity: 0.5 !important;
+        cursor: pointer !important;
+      }
+
+      .lang-btn.active,
+      #lang-toggle button.active {
+        opacity: 1 !important;
+        border-color: rgba(255,255,255,0.5) !important;
+      }
+    }
+
+    /* DESKTOP — Language switcher */
+    @media (min-width: 768px) {
+
+      #hud .lang-switcher,
+      #hud .language-toggle,
+      #hud #lang-toggle {
+        margin-top: 16px !important;
+        padding-top: 14px !important;
+        border-top: 1px solid rgba(255,255,255,0.06) !important;
+        display: flex !important;
+        gap: 4px !important;
+      }
+
+      #hud .lang-btn,
+      #hud .language-toggle button,
+      #hud #lang-toggle button {
+        font-size: 10px !important;
+        letter-spacing: 0.08em !important;
+        padding: 3px 8px !important;
+        border-radius: 4px !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        background: transparent !important;
+        color: white !important;
+        opacity: 0.5 !important;
+        cursor: pointer !important;
+      }
+
+      #hud .lang-btn.active,
+      #hud #lang-toggle button.active {
+        opacity: 1 !important;
+        border-color: rgba(255,255,255,0.5) !important;
+      }
+    }
   </style>
 </head>
 <body>
