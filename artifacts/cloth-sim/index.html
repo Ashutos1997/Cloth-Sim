@@ -917,6 +917,57 @@
       margin: 0 auto 16px auto !important;
       display: block !important;
     }
+
+    /* Section title — smaller, tighter */
+    .fx-sheet-section-title, .fx-title {
+      font-size: 9px !important;
+      letter-spacing: 0.14em !important;
+      opacity: 0.35 !important;
+      margin-bottom: 8px !important;
+      margin-top: 0 !important;
+    }
+
+    /* Less gap between title and first row */
+    .fx-sheet-section-title + .fx-row,
+    .fx-title + .fx-row {
+      margin-top: 0 !important;
+    }
+
+    /* Row padding — tighter */
+    .fx-row {
+      padding: 10px 4px !important;
+    }
+
+    /* Dividers — subtler */
+    .fx-row + .fx-row {
+      border-top: 1px solid rgba(255,255,255,0.04) !important;
+    }
+
+    /* Material buttons — less tall */
+    .preset-btn.material-btn, .fx-pill-btn {
+      padding: 8px 0 !important;
+      border-radius: 6px !important;
+      font-size: 13px !important;
+    }
+
+    /* Upload texture row — tighter */
+    #fxUpload, #texUploadBtn, .upload-btn {
+      padding: 10px 4px !important;
+      font-size: 13px !important;
+      margin-top: 4px !important;
+    }
+
+    /* Session buttons — less tall */
+    .fx-util-btn, .session-btn, #mob-reset, #mob-save, #mob-mic {
+      padding: 12px 0 !important;
+      font-size: 10px !important;
+      border-radius: 6px !important;
+    }
+
+    /* Sheet top area — tighter after handle */
+    #fx-sheet {
+      padding: 12px 20px 24px 20px !important;
+    }
   </style>
 </head>
 <body>
