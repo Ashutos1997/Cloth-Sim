@@ -887,38 +887,21 @@
     }
 
   </style>
-  <style id="floating-cards-polish">
+  <style id="hud-redesign-final">
     #hud {
       position: fixed !important;
       top: 20px !important;
       left: 20px !important;
-      width: auto !important;
-      min-width: 180px !important;
-      background: rgba(12,12,12,0.85) !important;
+      width: 200px !important;
+      background: rgba(12,12,12,0.88) !important;
       backdrop-filter: blur(12px) !important;
       -webkit-backdrop-filter: blur(12px) !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
       border-radius: 10px !important;
-      padding: 12px !important;
+      padding: 14px !important;
       height: auto !important;
-      max-height: fit-content !important;
-      overflow: visible !important;
-      z-index: 100 !important;
-    }
-
-    #hud-texture {
-      position: fixed !important;
-      top: 20px !important;
-      left: 210px !important;
-      width: auto !important;
-      min-width: 160px !important;
-      background: rgba(12,12,12,0.85) !important;
-      backdrop-filter: blur(12px) !important;
-      -webkit-backdrop-filter: blur(12px) !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
-      border-radius: 10px !important;
-      padding: 12px !important;
-      bottom: unset !important;
+      overflow-y: auto !important;
+      max-height: calc(100vh - 40px) !important;
       z-index: 100 !important;
     }
 
@@ -939,22 +922,67 @@
       border-radius: 3px !important;
       background: transparent !important;
       color: white !important;
+      min-width: 16px !important;
+      text-align: center !important;
     }
 
     #hud .hud-section-title {
       font-size: 10px !important;
       letter-spacing: 0.1em !important;
       opacity: 0.4 !important;
-      margin-top: 12px !important;
+      margin-top: 14px !important;
       margin-bottom: 4px !important;
     }
 
     #hud hr, #hud .divider {
-      display: none !important;
+      border-color: rgba(255,255,255,0.06) !important;
+      margin: 6px 0 !important;
     }
 
     #hud .tab-bar {
       display: none !important;
+    }
+
+    #hud-texture {
+      margin-top: 14px !important;
+      padding-top: 14px !important;
+      border-top: 1px solid rgba(255,255,255,0.06) !important;
+      position: static !important;
+      bottom: unset !important;
+      left: unset !important;
+    }
+
+    #texUploadBtn {
+      width: 100% !important;
+      margin-bottom: 8px !important;
+      padding: 5px !important;
+      font-size: 11px !important;
+      border: 1px solid rgba(255,255,255,0.15) !important;
+      border-radius: 4px !important;
+      background: transparent !important;
+      color: white !important;
+      cursor: pointer !important;
+    }
+
+    #hud-presets {
+      display: flex !important;
+      gap: 4px !important;
+      flex-wrap: nowrap !important;
+    }
+
+    .preset-btn.material-btn {
+      font-size: 11px !important;
+      padding: 3px 8px !important;
+      border-radius: 4px !important;
+      border: 1px solid rgba(255,255,255,0.15) !important;
+      background: transparent !important;
+      color: white !important;
+      cursor: pointer !important;
+    }
+
+    .preset-btn.material-btn.active {
+      border-color: white !important;
+      opacity: 1 !important;
     }
   </style>
 </head>
