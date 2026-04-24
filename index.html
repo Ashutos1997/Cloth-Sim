@@ -21,6 +21,7 @@
       --text-secondary:  rgba(255, 255, 255, 0.65);
       --text-muted:      rgba(255, 255, 255, 0.58);
       --focus-ring:      #0066cc;
+      --radius-ui:       8px;
     }
 
     /* ── Reset & layout ── */
@@ -209,7 +210,7 @@
       padding: 4px 8px;
       background: transparent;
       border: 1px solid var(--border-mid);
-      border-radius: 6px;
+      border-radius: var(--radius-ui);
       font-family: 'Pretendard', sans-serif;
       font-size: 12px;
       font-weight: 400;
@@ -249,7 +250,7 @@
       align-items: center;
       gap: 6px;
       padding: 4px 10px;
-      border-radius: 999px;
+      border-radius: var(--radius-ui);
       background: transparent;
       border: 1px solid var(--border-strong);
       color: rgba(255, 255, 255, 0.90);
@@ -303,7 +304,7 @@
       color: var(--text-secondary);
       font-size: 12px;
       padding: 6px 12px;
-      border-radius: 6px;
+      border-radius: var(--radius-ui);
       cursor: pointer;
       transition: all 0.2s;
       font-family: 'Pretendard', sans-serif;
@@ -353,7 +354,7 @@
       padding: 6px 12px;
       background: transparent;
       border: 1px solid var(--border-strong);
-      border-radius: 6px;
+      border-radius: var(--radius-ui);
       font-family: 'Pretendard', sans-serif;
       font-size: 12px;
       font-weight: 300;
@@ -491,6 +492,7 @@
         transition: color 0.15s;
         -webkit-tap-highlight-color: transparent;
         position: relative;
+        border-radius: var(--radius-ui);
       }
       .mob-btn i { font-size: 20px; line-height: 1; }
       .mob-label {
@@ -1767,15 +1769,15 @@
   <div id="secManage" style="display:none;">
     <div class="fx-title" data-i18n="sessTitle">Session Management</div>
     <div class="fx-util-row" style="display: flex; gap: 8px; padding: 0 16px 20px;">
-      <button class="fx-util-btn" id="fxReset" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:10px; background:transparent; border:1px solid var(--border-mid);">
+      <button class="fx-util-btn" id="fxReset" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:var(--radius-ui); background:transparent; border:1px solid var(--border-mid);">
         <i class="ph ph-arrow-counter-clockwise"></i>
         <span class="fx-util-label" data-i18n="mobReset">Reset</span>
       </button>
-      <button class="fx-util-btn" id="fxSave" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:10px; background:transparent; border:1px solid var(--border-mid);">
+      <button class="fx-util-btn" id="fxSave" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:var(--radius-ui); background:transparent; border:1px solid var(--border-mid);">
         <i class="ph ph-download-simple"></i>
         <span class="fx-util-label" data-i18n="mobSave">Save</span>
       </button>
-      <button class="fx-util-btn" id="fxMic" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:10px; background:transparent; border:1px solid var(--border-mid);">
+      <button class="fx-util-btn" id="fxMic" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:var(--radius-ui); background:transparent; border:1px solid var(--border-mid);">
         <i class="ph ph-microphone"></i>
         <span class="fx-util-label" data-i18n="mobMic">Mic</span>
       </button>
