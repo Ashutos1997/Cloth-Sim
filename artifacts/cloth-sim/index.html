@@ -81,13 +81,14 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 280px;
+      width: 260px;
       height: 100vh;
       display: flex;
       flex-direction: column;
-      padding: 32px 28px;
+      padding: 20px;
       box-sizing: border-box;
-      border-right: 1px solid var(--border-subtle);
+      background: #0f0f0f;
+      border-right: 1px solid rgba(255,255,255,0.08);
       font-family: 'Pretendard', sans-serif;
       color: var(--text-muted);
       pointer-events: none;
@@ -102,6 +103,33 @@
     .hud-hidden * { pointer-events: none !important; }
     @media (prefers-reduced-motion: reduce) {
       #hud { transition: none; }
+    }
+
+    /* Tab bar */
+    .hud-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 20px;
+    }
+    .hud-tab {
+      opacity: 0.35;
+      cursor: pointer;
+      padding: 8px 12px;
+      position: relative;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .hud-tab.active {
+      opacity: 1;
+    }
+    .hud-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0; right: 0;
+      height: 2px;
+      background: white;
     }
 
     /* Brand title */
@@ -140,15 +168,15 @@
 
     /* Micro section header */
     #hud .hud-group-label {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--text-muted);
-      opacity: 1;
-      padding: 0 2px;
-      margin-bottom: 1px;
-      margin-top: 0;
+      opacity: 0.5;
+      padding: 0;
+      margin-top: 24px;
+      margin-bottom: 10px;
     }
 
     /* Middle controls container — fills available space */
@@ -164,10 +192,9 @@
     #hud .hud-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       line-height: 1;
-      margin: 0 -7px;
-      padding: 3px 7px;
+      padding: 7px 0;
       border-radius: 6px;
       transition: background 0.12s;
     }
@@ -200,8 +227,9 @@
       font-size: 13px;
       font-weight: 400;
       color: var(--text-secondary);
+      opacity: 0.8;
       letter-spacing: 0.3px;
-      transition: color 0.12s;
+      transition: color 0.12s, opacity 0.12s;
     }
 
     /* Key badge — outline only, no fill */
@@ -226,12 +254,13 @@
 
     /* Active row — key badge fills, label brightens */
     #hud .hud-act.row-on .key {
-      background: rgba(0, 0, 0, 0.08);
-      border-color: rgba(0, 0, 0, 0.30);
-      color: #1a1a1a;
+      background: white;
+      border-color: white;
+      color: black;
     }
     #hud .hud-act.row-on > span:not(.key) {
-      color: var(--text-primary);
+      color: white;
+      opacity: 1;
     }
 
     /* Separator — hidden; separation is handled by border-top on #hud-texture */
@@ -309,28 +338,32 @@
 
     /* ── Bottom tools section — pinned to bottom ── */
     #hud-texture {
-      margin-top: auto;
+      margin-top: 28px;
       padding-top: 20px;
-      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
     #texFile { display: none; }
+    #texUploadBtn {
+      width: 100%;
+      margin-bottom: 10px;
+    }
     #hud .tex-btn {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 4px 9px;
+      gap: 8px;
+      padding: 6px 14px;
       background: transparent;
-      border: 1px solid var(--border-strong);
-      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
       font-family: 'Pretendard', sans-serif;
-      font-size: 9px;
-      font-weight: 300;
+      font-size: 12px;
+      font-weight: 400;
       text-transform: uppercase;
-      color: #444444;
-      letter-spacing: 2px;
+      color: #eeeeee;
+      letter-spacing: 1px;
       cursor: pointer;
       pointer-events: all;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      transition: all 0.15s;
     }
     #hud .tex-btn:hover {
       background: rgba(0, 0, 0, 0.04);
@@ -358,8 +391,9 @@
       margin-top: 8px;
     }
     .preset-btn.active {
-      background: rgba(0, 0, 0, 0.06);
-      border-color: rgba(0, 0, 0, 0.25);
+      border-color: white;
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.1);
     }
     #presetReset {
       display: none;
