@@ -1848,8 +1848,8 @@ let   tearDist      = 60;      // auto-tear threshold (× rest length, per-prese
 let   windResponse  = 1.0;     // wind sensitivity multiplier (per-preset)
 let   stickiness    = 0.22;   // dirt particle adhesion 0–1 (per-preset)
 let   dryRate       = 0.012;  // wetness decay per frame (per-preset)
-let   shearStiff    = 0.5;    // diagonal link strength (per-preset)
-let   bendStiff     = 0.5;    // skip link strength (per-preset)
+let   shearStiff    = 0.15;   // reduced for better fluidity
+let   bendStiff     = 0.12;   // reduced for better fluidity
 const MOUSE_RADIUS  = 36;
 const WIND_STRENGTH = 1.2;
 const WIND_SPEED    = 0.03;
@@ -2425,7 +2425,7 @@ class Cloth {
     SILK: {
       iterations: 4,  gravity: 0.25,
       tearDist: 3,    damping: 0.998,  windResponse: 2.8,  stickiness: 0.08,  dryRate: 0.025,
-      shearStiff: 0.3, bendStiff: 0.2,
+      shearStiff: 0.08, bendStiff: 0.05,
       color:     [0.85, 0.82, 0.80], lineAlpha:     0.25,
       colorDark: [0.45, 0.42, 0.40], lineAlphaDark: 0.18,
     },
@@ -2433,7 +2433,7 @@ class Cloth {
     DENIM: {
       iterations: 18, gravity: 0.65,
       tearDist: 100,  damping: 0.983,  windResponse: 0.25,  stickiness: 0.90,  dryRate: 0.005,
-      shearStiff: 0.8, bendStiff: 0.8,
+      shearStiff: 0.45, bendStiff: 0.40,
       color:     [0.25, 0.35, 0.52], lineAlpha:     0.60,
       colorDark: [0.14, 0.20, 0.38], lineAlphaDark: 0.52,
     },
@@ -2441,7 +2441,7 @@ class Cloth {
     LINEN: {
       iterations: 10, gravity: 0.5,
       tearDist: 15,   damping: 0.992,  windResponse: 1.0,   stickiness: 0.45,  dryRate: 0.008,
-      shearStiff: 0.5, bendStiff: 0.4,
+      shearStiff: 0.25, bendStiff: 0.20,
       color:     [0.80, 0.78, 0.72], lineAlpha:     0.45,
       colorDark: [0.28, 0.26, 0.22], lineAlphaDark: 0.36,
     },
