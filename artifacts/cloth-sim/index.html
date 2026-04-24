@@ -3841,48 +3841,39 @@
         }
 
         /* ── Hanger ── only for top-row pin config (not curtain/sail) */
-        if (pinConfig === 'top-row') (function drawHanger() {
-          const ptL = cloth.points[0];          // top-left  pinned point
-          const ptR = cloth.points[COLS - 1];   // top-right pinned point
-          const bL = ptL.x, bR = ptR.x, bY = ptL.y;
-          const mx = (bL + bR) / 2;
-          const archH = Math.min(40, bY * 0.72); // how tall the shoulder arch rises
-          const peakY = bY - archH;
-          const hookR = 7;
-          const hookCY = peakY - hookR - 1;
-          const col = PREFERS_DARK ? 'rgba(200,200,200,0.50)' : 'rgba(55,55,55,0.50)';
-
-          ctx2d.save();
-          ctx2d.strokeStyle = col;
-          ctx2d.lineWidth = 1.5;
-          ctx2d.lineCap = 'round';
-          ctx2d.lineJoin = 'round';
-
-          /* Crossbar + both shoulders in one path */
-          ctx2d.beginPath();
-          /* Left shoulder: from bar-left up to peak */
-          ctx2d.moveTo(bL, bY);
-          ctx2d.bezierCurveTo(bL, bY - archH * 0.38, mx - archH * 0.55, peakY, mx, peakY);
-          /* Right shoulder: from bar-right up to peak */
-          ctx2d.moveTo(bR, bY);
-          ctx2d.bezierCurveTo(bR, bY - archH * 0.38, mx + archH * 0.55, peakY, mx, peakY);
-          /* Hook stem */
-          ctx2d.moveTo(mx, peakY);
-          ctx2d.lineTo(mx, hookCY + hookR);
-          /* Crossbar end caps */
-          ctx2d.moveTo(bL, bY - 4);
-          ctx2d.lineTo(bL, bY + 4);
-          ctx2d.moveTo(bR, bY - 4);
-          ctx2d.lineTo(bR, bY + 4);
-          ctx2d.stroke();
-
-          /* Hook arc: from 6-o'clock counterclockwise ~270° to ~1:30-o'clock */
-          ctx2d.beginPath();
-          ctx2d.arc(mx, hookCY, hookR, Math.PI * 0.5, -Math.PI * 0.25, true);
-          ctx2d.stroke();
-
-          ctx2d.restore();
-        })();
+    if (pinConfig === 'top-row') (function drawHanger() {
+      const ptL  = cloth.points[0];
+      const ptR  = cloth.points[COLS - 1];
+      const bL   = ptL.x, bR = ptR.x, bY = ptL.y;
+      const mx   = (bL + bR) / 2;
+      
+      ctx2d.save();
+      ctx2d.shadowBlur  = 0;
+      ctx2d.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx2d.lineWidth   = 1;
+      
+      /* Minimal horizontal rod */
+      ctx2d.beginPath();
+      ctx2d.moveTo(bL, bY);
+      ctx2d.lineTo(bR, bY);
+      ctx2d.stroke();
+      
+      /* Vertical pin marks at each end (6px tall) */
+      [bL, bR].forEach(x => {
+        ctx2d.beginPath();
+        ctx2d.moveTo(x, bY - 3);
+        ctx2d.lineTo(x, bY + 3);
+        ctx2d.stroke();
+      });
+      
+      /* Center point dot (3px diameter) */
+      ctx2d.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx2d.beginPath();
+      ctx2d.arc(mx, bY, 1.5, 0, Math.PI * 2);
+      ctx2d.fill();
+      
+      ctx2d.restore();
+    })();
 
         /* ── Collider rendering ── */
         if (colliderType !== COLLIDER_NONE) {
