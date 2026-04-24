@@ -1782,22 +1782,22 @@
         border-top: none !important;
       }
 
-      /* Row bottom border as divider */
-      #hud .hud-act {
+      /* Row layout — shared between active and info-only rows (like Drag) */
+      #hud .hud-row {
         border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
-        padding: 7px 0 !important;
+        padding: 7px 7px !important;
       }
 
       /* Last row in each group — no border */
-      #hud .hud-act:last-of-type {
+      #hud .hud-row:last-of-type {
         border-bottom: none !important;
       }
 
       /* Icon — force visible and fixed width */
-      #hud .hud-act i,
-      #hud .hud-act svg,
-      #hud .hud-act .row-icon,
-      #hud .hud-act .hud-icon {
+      #hud .hud-row i,
+      #hud .hud-row svg,
+      #hud .hud-row .row-icon,
+      #hud .hud-row .hud-icon {
         min-width: 18px !important;
         width: 18px !important;
         flex-shrink: 0 !important;
