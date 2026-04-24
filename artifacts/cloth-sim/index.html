@@ -1649,7 +1649,7 @@
       <div class="hud-row hud-act" data-hud-key="G" id="hudRowGrain" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-dots-six" aria-hidden="true"></i></span><span class="key">G</span><span id="hudLabelGrain" data-i18n="grainLabel">film grain</span></div>
       <div class="hud-row hud-act" data-hud-key="D" id="hudRowDirt" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-hand-grabbing" aria-hidden="true"></i></span><span class="key">D</span><span id="hudLabelDirt" data-i18n="dirtLabel">dirt mode</span></div>
       <div class="hud-row hud-act" data-hud-key="B" id="hudRowWater" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-drop" aria-hidden="true"></i></span><span class="key">B</span><span id="hudLabelWater" data-i18n="waterLabel">water mode</span></div>
-      <div class="hud-row hud-act" data-hud-key="L" id="hudRowLight" role="button" tabindex="0" aria-pressed="true"><span class="row-icon"><i class="ph ph-sun" aria-hidden="true"></i></span><span class="key">L</span><span id="hudLabelLight" data-i18n="lightLabel">light source</span></div>
+      <div class="hud-row hud-act" data-hud-key="L" id="hudRowLight" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-sun" aria-hidden="true"></i></span><span class="key">L</span><span id="hudLabelLight" data-i18n="lightLabel">light source</span></div>
     </div>
     <!-- Utility group -->
     <div class="hud-group">
@@ -2790,7 +2790,7 @@ class Cloth {
   const dirtParticles  = [];  // { x,y,vx,vy,r,hue,lightness,attached:Point|null,opacity }
   const waterParticles = [];  // { x,y,vx,vy,r,opacity } — splash, fade, vanish
   const pointWetness   = new Map(); // Point → wetness 0–1 (cleared on reset)
-  let lightSourceEnabled = true;
+  let lightSourceEnabled = false;
   let lightPos = { x: 500, y: 300, z: 250 };
   let draggedLight = false;
   let windPhase     = 0;
@@ -3000,7 +3000,7 @@ class Cloth {
         if (dirtMode) { tearMode = false; waterMode = false; }
         updateHUD();
         break;
-      case 'C':
+      case 'B':
         waterMode = !waterMode;
         if (waterMode) { tearMode = false; dirtMode = false; }
         updateHUD();
