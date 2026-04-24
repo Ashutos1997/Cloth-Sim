@@ -1614,6 +1614,7 @@
       <div class="hud-row hud-act" data-hud-key="G" id="hudRowGrain" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-dots-six" aria-hidden="true"></i></span><span class="key">G</span><span id="hudLabelGrain" data-i18n="grainLabel">film grain</span></div>
       <div class="hud-row hud-act" data-hud-key="D" id="hudRowDirt" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-hand-grabbing" aria-hidden="true"></i></span><span class="key">D</span><span id="hudLabelDirt" data-i18n="dirtLabel">dirt mode</span></div>
       <div class="hud-row hud-act" data-hud-key="B" id="hudRowWater" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-drop" aria-hidden="true"></i></span><span class="key">B</span><span id="hudLabelWater" data-i18n="waterLabel">water mode</span></div>
+      <div class="hud-row hud-act" data-hud-key="L" id="hudRowLight" role="button" tabindex="0" aria-pressed="true"><span class="row-icon"><i class="ph ph-sun" aria-hidden="true"></i></span><span class="key">L</span><span id="hudLabelLight" data-i18n="lightLabel">light source</span></div>
     </div>
     <!-- Utility group -->
     <div class="hud-group">
@@ -1630,6 +1631,7 @@
       <span id="modeGrain" class="mode-badge">GRAIN</span>
       <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
       <span id="modeWater" class="mode-badge">WATER MODE</span>
+      <span id="modeLight" class="mode-badge" data-i18n="modeLight">LIGHT</span>
       <span id="modeCollider" class="mode-badge">BALL</span>
     </div>
   </div>
@@ -1735,6 +1737,11 @@
     <button class="fx-row" id="fxCollider">
       <i class="ph ph-circle-dashed"></i>
       <span class="fx-label" data-i18n="colliderBall">Collider Ball</span>
+      <span class="fx-indicator"></span>
+    </button>
+    <button class="fx-row" id="fxLight">
+      <i class="ph ph-sun"></i>
+      <span class="fx-label" data-i18n="lightToggle">Light Source</span>
       <span class="fx-indicator"></span>
     </button>
   </div>
@@ -2123,17 +2130,19 @@ class Cloth {
     uniform mat4    uMVP;
     varying vec2    vUV;
     varying float   vShade;
-    varying vec3    vNormal;
-    varying float   vDirt;
-    varying float   vWetness;
-    void main() {
-      gl_Position = uMVP * vec4(aPosition, 1.0);
-      vUV      = aUV;
-      vShade   = aShade;
-      vNormal  = aNormal;
-      vDirt    = aDirt;
-      vWetness = aWetness;
-    }
+      varying vec3    vNormal;
+      varying vec3    vWorldPos;
+      varying float   vDirt;
+      varying float   vWetness;
+      void main() {
+        gl_Position = uMVP * vec4(aPosition, 1.0);
+        vUV      = aUV;
+        vShade   = aShade;
+        vNormal  = aNormal;
+        vWorldPos = aPosition;
+        vDirt    = aDirt;
+        vWetness = aWetness;
+      }
   `;
 
   const FS_SRC = `
@@ -2141,6 +2150,7 @@ class Cloth {
     varying vec2  vUV;
     varying float vShade;
     varying vec3  vNormal;
+    varying vec3  vWorldPos;
     varying float vDirt;
     varying float vWetness;
     uniform int   uHasTexture;
@@ -2148,6 +2158,8 @@ class Cloth {
     uniform sampler2D uTexture;
     uniform vec3  uClothColor;
     uniform float uLineAlpha;
+    uniform vec3  uLightPos;
+    uniform int   uLightEnabled;
 
     /* Simple hash for pseudo-random noise */
     float hash(vec2 p) {
@@ -2155,8 +2167,17 @@ class Cloth {
     }
 
     void main() {
-      vec3 lightDir = vec3(0.196, -0.784, 0.588);
-      vec3 halfVec  = vec3(0.110, -0.440, 0.891);
+      vec3 lightDir;
+      vec3 halfVec;
+      
+      if (uLightEnabled == 1) {
+        lightDir = normalize(uLightPos - vWorldPos);
+        halfVec  = normalize(lightDir + vec3(0.0, 0.0, 0.8)); // slightly forward
+      } else {
+        lightDir = vec3(0.196, -0.784, 0.588);
+        halfVec  = vec3(0.110, -0.440, 0.891);
+      }
+
       vec3 N = normalize(gl_FrontFacing ? vNormal : -vNormal);
       float diffuse  = max(0.0, dot(N, lightDir));
       float specPow  = gl_FrontFacing ? 48.0 : 12.0;
@@ -2176,7 +2197,7 @@ class Cloth {
       }
 
       float specular = pow(max(0.0, dot(N, halfVec)), max(1.0, specPow)) * specAmt + glisten;
-      float light    = 0.35 + diffuse * 0.6 + specular;
+      float light    = (uLightEnabled == 1 ? 0.2 : 0.35) + diffuse * 0.6 + specular;
       float finalShade = light * clamp(vShade, 0.5, 1.1);
       float backFactor = gl_FrontFacing ? 1.0 : 0.85;
 
@@ -2294,6 +2315,8 @@ class Cloth {
   const uTextureLoc     = gl.getUniformLocation(prog, 'uTexture');
   const uClothColorLoc  = gl.getUniformLocation(prog, 'uClothColor');
   const uLineAlphaLoc   = gl.getUniformLocation(prog, 'uLineAlpha');
+  const uLightPosLoc    = gl.getUniformLocation(prog, 'uLightPos');
+  const uLightEnabledLoc= gl.getUniformLocation(prog, 'uLightEnabled');
 
   console.info('WebGL Initialized:', { aPositionLoc, aDirtLoc, aWetnessLoc, uMVPLoc });
 
@@ -2732,6 +2755,9 @@ class Cloth {
   const dirtParticles  = [];  // { x,y,vx,vy,r,hue,lightness,attached:Point|null,opacity }
   const waterParticles = [];  // { x,y,vx,vy,r,opacity } — splash, fade, vanish
   const pointWetness   = new Map(); // Point → wetness 0–1 (cleared on reset)
+  let lightSourceEnabled = true;
+  let lightPos = { x: 500, y: 300, z: 250 };
+  let draggedLight = false;
   let windPhase     = 0;
   let windMult      = 1.0;   // wind strength multiplier (1.0 = default, set by scenario)
   let mouse         = { x: 0, y: 0, down: false };
@@ -2834,6 +2860,29 @@ class Cloth {
     return false;
   }
 
+  function drawLightSource() {
+    if (!lightSourceEnabled) return;
+    ctx2d.save();
+    ctx2d.beginPath();
+    ctx2d.arc(lightPos.x, lightPos.y, 8, 0, Math.PI * 2);
+    ctx2d.fillStyle = "#fff7ac";
+    ctx2d.shadowBlur = 20;
+    ctx2d.shadowColor = "rgba(255, 230, 100, 0.8)";
+    ctx2d.fill();
+    
+    // Draw sun rays
+    ctx2d.strokeStyle = "rgba(255, 230, 100, 0.4)";
+    ctx2d.lineWidth = 2;
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2 + (performance.now() / 2000);
+      ctx2d.beginPath();
+      ctx2d.moveTo(lightPos.x + Math.cos(angle) * 12, lightPos.y + Math.sin(angle) * 12);
+      ctx2d.lineTo(lightPos.x + Math.cos(angle) * 18, lightPos.y + Math.sin(angle) * 18);
+      ctx2d.stroke();
+    }
+    ctx2d.restore();
+  }
+
   canvas.addEventListener('mousedown', e => {
     mouse.down = true;
     const pos  = canvasPos(e.clientX, e.clientY);
@@ -2841,6 +2890,9 @@ class Cloth {
     mouse.y = pos.y;
     if (dirtMode)        emitDirt(mouse.x, mouse.y);
     else if (waterMode)  emitWater(mouse.x, mouse.y);
+    else if (lightSourceEnabled && Math.hypot(mouse.x - lightPos.x, mouse.y - lightPos.y) < 20) {
+      draggedLight = true;
+    }
     else if (colliderType !== COLLIDER_NONE && tryGrabCollider(mouse.x, mouse.y)) { /* collider drag */ }
     else if (!tearMode)  draggedPoint = cloth.nearestPoint(mouse.x, mouse.y);
   });
@@ -2853,6 +2905,10 @@ class Cloth {
     if (tearMode) cloth.tearNear(mouse.x, mouse.y);
     if (mouse.down && waterMode) emitWater(mouse.x, mouse.y);
     if (mouse.down && dirtMode)  emitDirt(mouse.x, mouse.y);
+    if (mouse.down && draggedLight) {
+      lightPos.x = mouse.x;
+      lightPos.y = mouse.y;
+    }
     if (mouse.down && draggedPoint && !tearMode) {
       draggedPoint.x     = mouse.x;
       draggedPoint.y     = mouse.y;
@@ -2879,11 +2935,11 @@ class Cloth {
 
   canvas.addEventListener('mouseup', () => {
     if (draggedPoint) { glowPos = { x: draggedPoint.x, y: draggedPoint.y }; glowAt = performance.now(); }
-    mouse.down = false; draggedPoint = null; draggedCollider = null;
+    mouse.down = false; draggedPoint = null; draggedCollider = null; draggedLight = false;
   });
   canvas.addEventListener('mouseleave', () => {
     if (draggedPoint) { glowPos = { x: draggedPoint.x, y: draggedPoint.y }; glowAt = performance.now(); }
-    mouse.down = false; draggedPoint = null; draggedCollider = null;
+    mouse.down = false; draggedPoint = null; draggedCollider = null; draggedLight = false;
   });
 
   /* ── Touch ── */
@@ -2953,6 +3009,10 @@ class Cloth {
         document.getElementById('grain-overlay').classList.toggle('active', grainOn);
         updateHUD();
         break;
+      case 'L':
+        lightSourceEnabled = !lightSourceEnabled;
+        updateHUD();
+        break;
       case 'H':
         if (!isMobile()) {
           hudHidden = !hudHidden;
@@ -3002,6 +3062,7 @@ class Cloth {
     elGrain   .classList.toggle('visible', grainOn);
     elDirt    .classList.toggle('visible', dirtMode);
     elWater   .classList.toggle('visible', waterMode);
+    document.getElementById('modeLight').classList.toggle('visible', lightSourceEnabled);
     elCollider.classList.toggle('visible', colliderType !== COLLIDER_NONE);
     if (colliderType !== COLLIDER_NONE) {
       elCollider.textContent = colliderType === COLLIDER_BALL
@@ -3019,11 +3080,12 @@ class Cloth {
       mobWater.setAttribute('aria-pressed', String(waterMode));
       mobWind .setAttribute('aria-pressed', String(windEnabled));
       /* More button dot — on when Grain, Collider or Mic is active */
-      mobMore .classList.toggle('mode-on', grainOn || colliderType !== COLLIDER_NONE || micAnalyser !== null);
+      mobMore .classList.toggle('mode-on', grainOn || colliderType !== COLLIDER_NONE || micAnalyser !== null || lightSourceEnabled);
       /* More sheet toggles */
       fxGrain   .classList.toggle('active', grainOn);
       fxCollider.classList.toggle('active', colliderType !== COLLIDER_NONE);
       fxMicBtn  .classList.toggle('active', micAnalyser !== null);
+      fxLight   .classList.toggle('active', lightSourceEnabled);
       fxGrain   .setAttribute('aria-pressed', String(grainOn));
       fxCollider.setAttribute('aria-pressed', String(colliderType !== COLLIDER_NONE));
     } else {
@@ -3034,18 +3096,21 @@ class Cloth {
       const rowCollider = document.getElementById('hudRowCollider');
       const rowWind     = document.getElementById('hudRowWind');
       const rowGrain    = document.getElementById('hudRowGrain');
+      const rowLight    = document.getElementById('hudRowLight');
       rowTear    .classList.toggle('row-on', tearMode);
       rowDirt    .classList.toggle('row-on', dirtMode);
       rowWater   .classList.toggle('row-on', waterMode);
       rowCollider.classList.toggle('row-on', colliderType !== COLLIDER_NONE);
       rowWind    .classList.toggle('row-on', windEnabled);
       rowGrain   .classList.toggle('row-on', grainOn);
+      rowLight   .classList.toggle('row-on', lightSourceEnabled);
       rowTear    .setAttribute('aria-pressed', String(tearMode));
       rowDirt    .setAttribute('aria-pressed', String(dirtMode));
       rowWater   .setAttribute('aria-pressed', String(waterMode));
       rowCollider.setAttribute('aria-pressed', String(colliderType !== COLLIDER_NONE));
       rowWind    .setAttribute('aria-pressed', String(windEnabled));
       rowGrain   .setAttribute('aria-pressed', String(grainOn));
+      rowLight   .setAttribute('aria-pressed', String(lightSourceEnabled));
     }
   }
 
@@ -3111,6 +3176,11 @@ class Cloth {
     fxGrain.addEventListener('click', () => {
       grainOn = !grainOn;
       document.getElementById('grain-overlay').classList.toggle('active', grainOn);
+      updateHUD();
+    });
+    
+    fxLight.addEventListener('click', () => {
+      lightSourceEnabled = !lightSourceEnabled;
       updateHUD();
     });
 
@@ -3318,7 +3388,9 @@ class Cloth {
       mobReset: "Reset",
       mobSave: "Save",
       mobMic: "Mic",
-      language: "Language"
+      language: "Language",
+      lightLabel: "dynamic lighting",
+      lightToggle: "Light Source"
     },
     KOR: {
       title: "패브릭",
@@ -3651,6 +3723,8 @@ class Cloth {
     gl.uniform1i(uHasTextureLoc, hasTexture ? 1 : 0);
     gl.uniform3f(uClothColorLoc, ...clothColor);
     gl.uniform1f(uLineAlphaLoc,   lineAlpha);
+    gl.uniform3f(uLightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+    gl.uniform1i(uLightEnabledLoc, lightSourceEnabled ? 1 : 0);
 
     if (hasTexture && glTexture) {
       gl.activeTexture(gl.TEXTURE0);
