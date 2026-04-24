@@ -1428,24 +1428,24 @@ class Cloth {
       float specPow  = gl_FrontFacing ? 32.0 : 8.0;
       float specAmt  = gl_FrontFacing ? 0.30 : 0.08;
       
-      /* Wetness increases specularity */
-      specAmt += vWetness * 0.35;
-      specPow -= vWetness * 12.0;
+      /* Apply wetness logic */
+      if (vWetness > 0.01) {
+        float h1 = hash(vUV * 900.0);
+        float h2 = hash(vUV * 400.0);
+        // Darkening mask with noise for "saturating" look
+        float wetMask = smoothstep(0.1, 0.5, vWetness * (0.75 + h2 * 0.5));
+        baseColor *= (1.0 - wetMask * 0.45);
+        // Glisten effect
+        float glisten = pow(h1, 15.0) * vWetness * 1.8;
+        specAmt += vWetness * 0.48 * (0.8 + h2 * 0.4);
+        specPow -= vWetness * 18.0;
+        specular += glisten;
+      }
 
-      float specular = pow(max(0.0, dot(N, halfVec)), max(1.0, specPow)) * specAmt;
       float light    = 0.38 + diffuse * 0.58 + specular;
       float finalShade = light * clamp(vShade, 0.55, 1.08);
       float backFactor = gl_FrontFacing ? 1.0 : 0.82;
 
-      vec3 baseColor = uClothColor;
-      if (uHasTexture == 1) {
-        baseColor = texture2D(uTexture, vUV).rgb;
-      }
-
-      /* Apply wetness darkening */
-      baseColor *= (1.0 - vWetness * 0.40);
-
-      /* Apply rich dirt logic */
       if (vDirt > 0.01) {
         float grain = hash(vUV * 1200.0);
         float shape = hash(vUV * 600.0) * 0.7 + hash(vUV * 250.0) * 0.3;
@@ -2038,11 +2038,13 @@ class Cloth {
       const angle = Math.random() * Math.PI * 2;
       const speed = 2.0 + Math.random() * 4.5;  // faster than dirt — water is lighter
       waterParticles.push({
-        x:      px + (Math.random() - 0.5) * 8,
-        y:      py + (Math.random() - 0.5) * 8,
+        x:      px + (Math.random() - 0.5) * 10,
+        y:      py + (Math.random() - 0.5) * 10,
         vx:     Math.cos(angle) * speed,
-        vy:     Math.sin(angle) * speed - 2.0,   // stronger upward bias
-        r:      1.0 + Math.random() * 2.0,
+        vy:     Math.sin(angle) * speed - 2.5,
+        r:      1.5 + Math.random() * 2.5,
+        rot:    angle + Math.PI * 0.5,
+        ecc:    0.5 + Math.random() * 0.3,
         opacity: 0.85 + Math.random() * 0.15,
         absorbed: false,
       });
@@ -2911,11 +2913,12 @@ class Cloth {
       ctx2d.save();
       for (const [pt, w] of pointWetness) {
         if (w < 0.05) continue;
-        const tintR = SPACING * 0.5 * w + 2;        // size grows with wetness (max ~11px)
-        ctx2d.globalAlpha = w * 0.18;               // max 18 % opacity
+        const rx = SPACING * 0.5 * w + 2;        
+        const ry = rx * 0.8;
+        ctx2d.globalAlpha = w * 0.16;               
         ctx2d.fillStyle   = PREFERS_DARK ? 'rgba(140,200,255,1)' : 'rgba(60,150,240,1)';
         ctx2d.beginPath();
-        ctx2d.arc(pt.x, pt.y, tintR, 0, Math.PI * 2);
+        ctx2d.ellipse(pt.x, pt.y, rx, ry, 0, 0, Math.PI * 2);
         ctx2d.fill();
       }
       ctx2d.restore();
