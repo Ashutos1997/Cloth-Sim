@@ -1808,22 +1808,68 @@
 
       /* HUD Refinements */
       #hud { 
-        padding-top: 12px !important; 
-        padding-left: 16px !important;
-        padding-right: 16px !important;
+        padding: 20px 16px 20px 16px !important; 
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
       }
-      #hud .hud-group-label { 
-        margin-top: 14px !important; 
-        padding-top: 12px !important; 
-        padding-left: 4px !important;
+      
+      #hudSubtitle { margin-bottom: 20px !important; }
+
+      .hud-group-label { 
+        font-size: 9px !important;
+        letter-spacing: 0.14em !important;
+        opacity: 0.35 !important;
+        margin-top: 20px !important;
+        margin-bottom: 6px !important;
+        padding-top: 16px !important;
+        border-top: 1px solid rgba(255,255,255,0.06) !important;
+        padding-left: 0 !important;
       }
-      #hud .hud-row { 
-        padding: 5px 4px !important; 
+
+      .hud-group:first-of-type .hud-group-label {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        border-top: none !important;
       }
-      #texUploadBtn { padding: 5px 8px !important; border-radius: 4px !important; font-size: 11px !important; }
+
+      .hud-row.hud-act {
+        padding: 6px 0 !important;
+        gap: 10px !important;
+        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+      }
+
+      .hud-row.hud-act:last-of-type {
+        border-bottom: none !important;
+      }
+
       #hud-texture {
-        padding-left: 4px !important;
-        padding-right: 4px !important;
+        margin-top: 20px !important;
+        padding-top: 16px !important;
+        border-top: 1px solid rgba(255,255,255,0.06) !important;
+        position: static !important;
+        bottom: unset !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+
+      #hud-texture .hud-group-label {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        border-top: none !important;
+        margin-bottom: 8px !important;
+      }
+
+      #texUploadBtn {
+        margin-bottom: 8px !important;
+        padding: 6px 8px !important;
+        font-size: 11px !important;
+        border-radius: 4px !important;
+      }
+
+      #hud-presets {
+        display: flex !important;
+        gap: 4px !important;
       }
 
       /* Material Button Refinements */
