@@ -9,17 +9,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@200;300;400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.css" />
   <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
-  <style id="hud-redesign-final">
+  <style>
     /* ── Design tokens ── */
     :root {
-      --surface-bg:      #070707;
-      --surface-frosted: rgba(28, 28, 28, 0.97);
-      --border-subtle:   rgba(255, 255, 255, 0.07);
-      --border-mid:      rgba(255, 255, 255, 0.15);
-      --border-strong:   rgba(255, 255, 255, 0.20);
-      --text-primary:    rgba(255, 255, 255, 0.95);
-      --text-secondary:  rgba(255, 255, 255, 0.65);
-      --text-muted:      rgba(255, 255, 255, 0.50);
+      --surface-bg:      #f5f5f5;
+      --surface-frosted: rgba(248, 248, 248, 0.97);
+      --border-subtle:   rgba(0, 0, 0, 0.07);
+      --border-mid:      rgba(0, 0, 0, 0.15);
+      --border-strong:   rgba(0, 0, 0, 0.20);
+      --text-primary:    #111111;
+      --text-secondary:  #666666;
+      --text-muted:      #767676;
       --focus-ring:      #0066cc;
     }
 
@@ -28,16 +28,36 @@
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
+      background: var(--surface-bg);
       font-family: 'Pretendard', sans-serif;
     }
+    #canvas {
+      display: block;
+      position: fixed;
+      left: 280px;
+      top: 0;
+      width: calc(100vw - 280px);
+      height: 100vh;
+    }
 
-    /* ── Film grain overlay ── */
+    /* ── Overlay canvas — 2D decorations (pinned dots, drag, tear cursor) ── */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 280px;
+      width: calc(100vw - 280px);
+      height: 100%;
+      pointer-events: none;
+      display: block;
+    }
+
+    /* ── Film grain overlay — canvas area only ── */
     #grain-overlay {
       content: '';
       position: fixed;
       top: 0;
-      left: 0;
-      width: 100vw;
+      left: 280px;
+      width: calc(100vw - 280px);
       height: 100vh;
       filter: url(#grain);
       opacity: 0;
@@ -45,114 +65,329 @@
       z-index: 1;
       transition: opacity 0.3s ease;
     }
-    #grain-overlay.active { opacity: 0.14; }
+    #grain-overlay.active { opacity: 0.10; }
+    @media (prefers-color-scheme: dark) {
+      #grain-overlay.active { opacity: 0.14; }
+    }
+    @media (max-width: 768px) {
+      #grain-overlay { left: 0; width: 100vw; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #grain-overlay { transition: none; }
+    }
 
-    /* ── USER SPECIFIED RULES ── */
-    body { background: #070707 !important; }
-
-    #canvas, #overlay { left: 0 !important; width: 100vw !important; }
-
+    /* ── HUD panel — full-height left panel ── */
     #hud {
-      position: fixed !important;
-      top: 20px !important;
-      left: 20px !important;
-      width: 190px !important;
-      box-sizing: border-box !important;
-      background: rgba(12,12,12,0.88) !important;
-      backdrop-filter: blur(12px) !important;
-      -webkit-backdrop-filter: blur(12px) !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
-      border-radius: 10px !important;
-      padding: 14px !important;
-      max-height: calc(100vh - 40px) !important;
-      overflow-y: auto !important;
-      z-index: 100 !important;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 28px;
+      box-sizing: border-box;
+      border-right: 1px solid var(--border-subtle);
+      font-family: 'Pretendard', sans-serif;
+      color: var(--text-muted);
+      pointer-events: none;
+      user-select: none;
+      transition: opacity 0.4s ease;
+      z-index: 5;
+    }
+    .hud-hidden {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    .hud-hidden * { pointer-events: none !important; }
+    @media (prefers-reduced-motion: reduce) {
+      #hud { transition: none; }
     }
 
+    /* Brand title */
+    #hud .hud-title {
+      font-size: 26px;
+      font-weight: 200;
+      letter-spacing: 8px;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    /* Subtitle */
+    #hud .hud-subtitle {
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 3.5px;
+      color: var(--text-muted);
+      text-transform: lowercase;
+      margin-bottom: 18px;
+    }
+
+    /* Group wrapper */
+    #hud .hud-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 14px;
+      padding-bottom: 10px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+    #hud .hud-group:first-child {
+      padding-top: 0;
+      border-top: none;
+    }
+
+    /* Micro section header */
+    #hud .hud-group-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      opacity: 1;
+      padding: 0 2px;
+      margin-bottom: 1px;
+      margin-top: 0;
+    }
+
+    /* Middle controls container — fills available space */
+    #hud .hud-controls {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    /* Each control row */
+    #hud .hud-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1;
+      margin: 0 -7px;
+      padding: 3px 7px;
+      border-radius: 6px;
+      transition: background 0.12s;
+    }
+
+    /* Icon slot */
+    #hud .row-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+      opacity: 1;
+      flex-shrink: 0;
+    }
+
+    /* Interactive rows — clickable on desktop */
     #hud .hud-act {
-      display: flex !important;
-      align-items: center !important;
-      gap: 8px !important;
-      padding: 4px 0 !important;
-      font-size: 12px !important;
-      opacity: 0.8 !important;
-      white-space: nowrap !important;
+      pointer-events: all;
+      cursor: pointer;
+    }
+    #hud .hud-act:hover { background: rgba(0, 0, 0, 0.04); }
+
+    /* Control label text */
+    #hud .hud-row > span:not(.key) {
+      font-size: 10.5px;
+      font-weight: 300;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+      transition: color 0.12s;
     }
 
-    #hud .hud-key {
-      font-size: 10px !important;
-      padding: 1px 5px !important;
-      border: 1px solid rgba(255,255,255,0.2) !important;
-      border-radius: 3px !important;
-      background: transparent !important;
-      color: white !important;
-      min-width: 16px !important;
-      text-align: center !important;
+    /* Key badge — outline only, no fill */
+    #hud .key {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      padding: 3px 7px;
+      background: transparent;
+      border: 1px solid var(--border-mid);
+      border-radius: 6px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 8px;
+      font-weight: 400;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      letter-spacing: 1.5px;
+      flex-shrink: 0;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
     }
 
-    #hud .hud-section-title {
-      font-size: 10px !important;
-      letter-spacing: 0.1em !important;
-      opacity: 0.4 !important;
-      margin-top: 14px !important;
-      margin-bottom: 4px !important;
-      color: rgba(255,255,255,0.4) !important;
+    /* Active row — key badge fills, label brightens */
+    #hud .hud-act.row-on .key {
+      background: rgba(0, 0, 0, 0.08);
+      border-color: rgba(0, 0, 0, 0.30);
+      color: #1a1a1a;
+    }
+    #hud .hud-act.row-on > span:not(.key) {
+      color: var(--text-primary);
     }
 
-    #hud .tab-bar { display: none !important; }
-    #hud hr { border-color: rgba(255,255,255,0.06) !important; margin: 6px 0 !important; }
+    /* Separator — hidden; separation is handled by border-top on #hud-texture */
+    #hud .hud-sep {
+      display: none;
+    }
 
+    /* Mode badge row */
+    #hud .hud-modes {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-height: 0;
+    }
+
+    /* Individual mode badge */
+    .mode-badge {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      font-family: 'Pretendard', sans-serif;
+      font-size: 8px;
+      font-weight: 400;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .mode-badge.visible { display: inline-flex; }
+    .mode-badge::before {
+      content: '';
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* Preset colour swatch dot */
+    .preset-swatch {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      margin-right: 2px;
+    }
+
+    /* ── Bottom canvas label — centered in the canvas area (right of panel) ── */
+    #canvas-label {
+      position: fixed;
+      bottom: 28px;
+      left: calc(280px + (100vw - 280px) / 2);
+      transform: translateX(-50%);
+      font-family: 'Pretendard', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 7px;
+      color: var(--text-muted);
+      text-transform: lowercase;
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+      opacity: 0.7;
+    }
+
+    /* ── Mobile header + nav bar — hidden on desktop ── */
+    #mob-header { display: none; }
+    #mob-nav    { display: none; }
+
+    /* ── Effects sheet + backdrop — hidden outside mobile media query ── */
+    #fx-backdrop, #fx-sheet { display: none; }
+
+    /* ── Bottom tools section — pinned to bottom ── */
     #hud-texture {
-      margin-top: 14px !important;
-      padding-top: 14px !important;
-      border-top: 1px solid rgba(255,255,255,0.06) !important;
-      position: static !important;
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
     }
-
-    #texUploadBtn {
-      display: block !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
-      margin-bottom: 8px !important;
-      padding: 6px !important;
-      font-size: 11px !important;
-      border: 1px solid rgba(255,255,255,0.15) !important;
-      border-radius: 4px !important;
-      background: transparent !important;
-      color: white !important;
-      cursor: pointer !important;
+    #texFile { display: none; }
+    #hud .tex-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      text-transform: uppercase;
+      color: #444444;
+      letter-spacing: 2px;
+      cursor: pointer;
+      pointer-events: all;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
+    #hud .tex-btn:hover {
+      background: rgba(0, 0, 0, 0.04);
+      border-color: rgba(0, 0, 0, 0.40);
+      color: #222222;
+    }
+    #texClear {
+      display: none;
+      margin-top: 8px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 1px;
+      color: #aaaaaa;
+      cursor: pointer;
+      pointer-events: all;
+      transition: color 0.15s;
+    }
+    #texClear:hover { color: #555555; }
+    #texClear.visible { display: block; }
 
     #hud-presets {
-      display: flex !important;
-      gap: 4px !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
     }
-
-    .preset-btn.material-btn {
-      flex: 1 !important;
-      font-size: 11px !important;
-      padding: 4px 0 !important;
-      text-align: center !important;
-      border-radius: 4px !important;
-      border: 1px solid rgba(255,255,255,0.15) !important;
-      background: transparent !important;
-      color: white !important;
-      cursor: pointer !important;
-      white-space: nowrap !important;
-      overflow: visible !important;
-      text-overflow: unset !important;
+    .preset-btn.active {
+      background: rgba(0, 0, 0, 0.06);
+      border-color: rgba(0, 0, 0, 0.25);
     }
+    #presetReset {
+      display: none;
+      margin-top: 6px;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 1px;
+      color: #aaaaaa;
+      cursor: pointer;
+      pointer-events: all;
+      transition: color 0.15s;
+    }
+    #presetReset:hover { color: #555555; }
+    #presetReset.visible { display: block; }
 
-    .preset-btn.material-btn.active {
-      border-color: white !important;
+    /* Volume meter bar inside mic badge */
+    .mic-meter {
+      display: inline-block;
+      height: 6px;
+      width: 0px;
+      max-width: 40px;
+      background: #888888;
+      border-radius: 3px;
+      transition: width 0.05s ease;
     }
 
     /* ── Mobile layout ≤768px ── */
     @media (max-width: 768px) {
-      #hud { display: none !important; }
-      #canvas, #overlay { left: 0 !important; width: 100vw !important; }
+      #hud, #canvas-label { display: none !important; }
+      /* Restore full-width canvas on mobile — no panel offset */
+      #canvas  { left: 0; width: 100vw; }
+      #overlay { left: 0; width: 100%; }
 
       #mob-header {
         display: flex;
@@ -162,14 +397,16 @@
         position: fixed;
         top: 0; left: 0; right: 0;
         height: calc(48px + env(safe-area-inset-top));
-        padding: 0 16px;
-        padding-top: env(safe-area-inset-top);
+        padding-top:   env(safe-area-inset-top);
+        padding-left:  max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
         background: var(--surface-frosted);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border-bottom: 1px solid var(--border-subtle);
         z-index: 10;
         pointer-events: none;
+        user-select: none;
       }
       #mob-header .mob-title {
         font-size: 17px;
@@ -177,6 +414,7 @@
         letter-spacing: 6px;
         color: var(--text-primary);
         text-transform: uppercase;
+        line-height: 1;
       }
       #mob-header .mob-subtitle {
         font-size: 12px;
@@ -193,11 +431,14 @@
         bottom: 0; left: 0; right: 0;
         height: calc(64px + env(safe-area-inset-bottom));
         padding-bottom: env(safe-area-inset-bottom);
+        padding-left:  max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
         background: var(--surface-frosted);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border-top: 1px solid var(--border-subtle);
         z-index: 10;
+        align-items: stretch;
       }
 
       .mob-btn {
@@ -206,25 +447,40 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 3px;
         background: transparent;
         border: none;
+        cursor: pointer;
         color: var(--text-muted);
+        transition: color 0.15s;
+        -webkit-tap-highlight-color: transparent;
+        position: relative;
       }
-      .mob-btn i { font-size: 20px; }
-      .mob-label { font-size: 10px; text-transform: uppercase; }
+      .mob-btn i { font-size: 20px; line-height: 1; }
+      .mob-label {
+        font-family: 'Pretendard', sans-serif;
+        font-size: 10px;
+        font-weight: 300;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+      }
       .mob-btn.mode-on { color: var(--text-primary); }
+      .mob-btn:active  { color: var(--text-secondary); }
+      /* Active indicator dot above icon */
       .mob-dot {
         position: absolute;
         top: 8px;
-        width: 6px; height: 6px;
+        width: 4px; height: 4px;
         border-radius: 50%;
         background: var(--text-primary);
         opacity: 0;
+        transition: opacity 0.15s;
       }
       .mob-btn.mode-on .mob-dot { opacity: 1; }
 
+      /* ── Effects bottom sheet — re-enable inside mobile query ── */
       #fx-backdrop, #fx-sheet { display: block; }
+
       #fx-backdrop {
         position: fixed;
         inset: 0;
@@ -232,8 +488,12 @@
         z-index: 50;
         opacity: 0;
         pointer-events: none;
+        transition: opacity 0.25s ease;
       }
-      #fx-backdrop.open { opacity: 1; pointer-events: auto; }
+      #fx-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
       #fx-sheet {
         position: fixed;
         bottom: 0; left: 0; right: 0;
@@ -245,18 +505,347 @@
         transform: translateY(100%);
         transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
       }
-      #fx-sheet.open { transform: translateY(0); }
+      #fx-sheet.open {
+        transform: translateY(0);
+      }
+      .fx-handle {
+        width: 32px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border-mid);
+        margin: 0 auto 20px;
+      }
+      /* Section title */
+      .fx-title {
+        font-family: 'Pretendard', sans-serif;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        padding: 14px 20px 8px;
+        border-top: 1px solid var(--border-subtle);
+        margin-top: 6px;
+      }
+      /* First section title — no divider above it */
+      #fxTitleEffects {
+        border-top: none;
+        padding-top: 0;
+        margin-top: 0;
+      }
+
+      .fx-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 13px 20px;
+        background: transparent;
+        border: none;
+        border-top: 1px solid var(--border-subtle);
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-family: 'Pretendard', sans-serif;
+        font-size: 14px;
+        font-weight: 300;
+        letter-spacing: 0.3px;
+        gap: 14px;
+        -webkit-tap-highlight-color: transparent;
+        transition: color 0.15s;
+      }
+      .fx-row:first-of-type { border-top: none; }
+      .fx-row i { font-size: 20px; flex-shrink: 0; }
+      .fx-label { flex: 1; text-align: left; }
+      .fx-indicator {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--border-mid);
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+      .fx-row.active { color: var(--text-primary); }
+      .fx-row.active .fx-indicator { background: var(--text-primary); }
+
+      /* Scrollable sheet on short phones */
+      #fx-sheet {
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      /* Colour swatch in texture rows */
+      .fx-swatch {
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        flex-shrink: 0;
+        border: 1px solid var(--border-mid);
+      }
+
+      /* ↩ default row — hidden until a texture is active */
+      .fx-reset-row { display: none; }
+      .fx-reset-row.visible { display: flex; }
+      .fx-reset-row .fx-label {
+        color: var(--text-muted);
+        font-size: 12px;
+        letter-spacing: 0.3px;
+      }
+
+      /* Material pill row */
+      .fx-pill-row {
+        display: flex;
+        gap: 8px;
+        padding: 0 16px 8px;
+      }
+      .fx-pill-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 14px 8px;
+        border-radius: 10px;
+        background: transparent;
+        border: 1px solid var(--border-mid);
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-family: 'Pretendard', sans-serif;
+        font-size: 11px;
+        font-weight: 300;
+        letter-spacing: 0.5px;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fx-pill-btn .fx-swatch {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        border: 1px solid var(--border-mid);
+        flex-shrink: 0;
+      }
+      .fx-pill-btn.active {
+        background: rgba(0,0,0,0.06);
+        border-color: rgba(0,0,0,0.3);
+        color: var(--text-primary);
+      }
+
+      /* Scene cards */
+      .fx-scene-cards {
+        display: flex;
+        gap: 8px;
+        padding: 0 16px 8px;
+      }
+      .fx-scene-card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 8px;
+        border-radius: 10px;
+        background: transparent;
+        border: 1px solid var(--border-mid);
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fx-scene-card .fx-swatch {
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        border: 1px solid var(--border-mid);
+      }
+      .fx-scene-name {
+        font-family: 'Pretendard', sans-serif;
+        font-size: 9.5px;
+        font-weight: 300;
+        color: var(--text-secondary);
+        letter-spacing: 0.3px;
+        text-align: center;
+      }
+      .fx-scene-card.active {
+        background: rgba(0,0,0,0.06);
+        border-color: rgba(0,0,0,0.3);
+      }
+      .fx-scene-card.active .fx-scene-name { color: var(--text-primary); }
+
+      /* Utility action row */
+      .fx-util-row {
+        display: flex;
+        gap: 8px;
+        padding: 0 16px calc(12px + env(safe-area-inset-bottom));
+      }
+      .fx-util-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        padding: 10px 6px;
+        border-radius: 10px;
+        background: transparent;
+        border: 1px solid var(--border-mid);
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-family: 'Pretendard', sans-serif;
+        transition: background 0.15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fx-util-btn i { font-size: 18px; }
+      .fx-util-label {
+        font-size: 9px;
+        font-weight: 300;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .fx-util-btn.active { color: var(--text-primary); }
     }
 
-    /* Scenarios and other shared components */
-    #hud-scenarios { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
-    .scenario-btn {
-      display: flex; align-items: center; gap: 7px; padding: 5px 9px;
-      background: transparent; border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 6px; font-size: 9px; text-transform: uppercase;
-      color: rgba(255,255,255,0.7); cursor: pointer;
+    /* ── Focus-visible styles ── */
+    .tex-btn:focus-visible,
+    .preset-btn:focus-visible,
+    .mob-btn:focus-visible,
+    #hud .hud-act:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 2px;
     }
-    .scenario-btn.active { background: rgba(255,255,255,0.1); border-color: white; }
+
+    /* ── Scenario section ── */
+    #hud-scenarios {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+    .hud-scen-label {
+      font-size: 8px;
+      font-weight: 400;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    #hud-scenario-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .scenario-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 9px;
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      text-transform: uppercase;
+      color: #444444;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      pointer-events: all;
+      text-align: left;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .scenario-btn:hover {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.40);
+      color: #222222;
+    }
+    .scenario-btn.active {
+      background: rgba(0,0,0,0.06);
+      border-color: rgba(0,0,0,0.25);
+    }
+    .scen-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    #scenarioReset {
+      display: none;
+      margin-top: 5px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 1px;
+      color: #aaaaaa;
+      cursor: pointer;
+      pointer-events: all;
+      transition: color 0.15s;
+    }
+    #scenarioReset:hover { color: #555555; }
+    #scenarioReset.visible { display: block; }
+
+    /* ── Reduced-motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      .tex-btn, .mob-btn, #texClear, .fx-row, .fx-indicator {
+        transition: none;
+      }
+      #fx-backdrop, #fx-sheet { transition: none; }
+    }
+
+    /* ── Bottom sheet focus-visible ── */
+    .fx-row:focus-visible,
+    .fx-pill-btn:focus-visible,
+    .fx-scene-card:focus-visible,
+    .fx-util-btn:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: -2px;
+    }
+
+    /* ── Dark mode ── */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface-bg:      #1a1a1a;
+        --surface-frosted: rgba(28, 28, 28, 0.97);
+        --border-subtle:   rgba(255, 255, 255, 0.07);
+        --border-mid:      rgba(255, 255, 255, 0.15);
+        --border-strong:   rgba(255, 255, 255, 0.20);
+        --text-primary:    rgba(255, 255, 255, 0.95);
+        --text-secondary:  rgba(255, 255, 255, 0.65);
+        --text-muted:      rgba(255, 255, 255, 0.50);
+      }
+      #hud .hud-row > span:not(.key) { color: var(--text-secondary); }
+      #hud .key        { color: rgba(255,255,255,0.80); }
+      #hud .hud-title  { color: var(--text-primary); }
+      #hud .hud-group-label { color: rgba(255,255,255,0.40); }
+      #hud .hud-group { border-top-color: rgba(255,255,255,0.07); }
+      #hud .row-icon   { color: rgba(255,255,255,0.45); }
+      #hud .hud-act:hover { background: rgba(255,255,255,0.04); }
+      #hud .hud-act.row-on .key {
+        background: rgba(255,255,255,0.10);
+        border-color: rgba(255,255,255,0.35);
+        color: rgba(255,255,255,0.95);
+      }
+      #hud .hud-act.row-on > span:not(.key) { color: var(--text-primary); }
+      .mode-badge      { color: rgba(255,255,255,0.80); }
+      #hud .tex-btn    { color: rgba(255,255,255,0.75); }
+      #hud .tex-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.95); }
+      #hud-texture     { border-top-color: rgba(255, 255, 255, 0.08); }
+      #texClear        { color: rgba(255,255,255,0.35); }
+      #texClear:hover  { color: rgba(255,255,255,0.75); }
+      #presetReset     { color: rgba(255,255,255,0.35); }
+      #presetReset:hover { color: rgba(255,255,255,0.75); }
+      .preset-btn.active {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.30);
+      }
+      .scenario-btn { color: rgba(255,255,255,0.75); }
+      .scenario-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.95); border-color: rgba(255,255,255,0.4); }
+      .scenario-btn.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.30); }
+      #scenarioReset { color: rgba(255,255,255,0.35); }
+      #scenarioReset:hover { color: rgba(255,255,255,0.75); }
+      #hud-scenarios { border-top-color: rgba(255,255,255,0.08); }
+      .fx-row.active .fx-indicator { background: rgba(255,255,255,0.90); }
+      .fx-indicator { background: rgba(255,255,255,0.20); }
+      .fx-pill-btn.active {
+        background: rgba(255,255,255,0.10);
+        border-color: rgba(255,255,255,0.30);
+        color: rgba(255,255,255,0.95);
+      }
+      .fx-scene-card.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.28); }
+      .fx-scene-card.active .fx-scene-name { color: rgba(255,255,255,0.95); }
+      .fx-util-btn.active { color: rgba(255,255,255,0.95); }
+    }
+
   </style>
 </head>
 <body>
@@ -273,71 +862,57 @@
 
 <!-- HUD panel -->
 <div id="hud">
-  <div style="font-size: 26px; font-weight: 200; letter-spacing: 8px; text-transform: uppercase; margin-bottom: 4px;">Fabric</div>
-  <div class="hud-subtitle" style="white-space: nowrap; font-size: 11px; margin-bottom: 20px; opacity: 0.45; letter-spacing: 0.1em; text-transform: lowercase;">interactive cloth simulation</div>
-
-  <div class="hud-tabs tab-bar">
-    <div class="hud-tab tab active">Controls</div>
-    <div class="hud-tab tab">Style</div>
-  </div>
+  <div class="hud-title">Fabric</div>
+  <div class="hud-subtitle">interactive cloth simulation</div>
 
   <div class="hud-controls">
     <!-- Cloth group -->
     <div class="hud-group">
-      <div class="hud-group-label hud-section-title">Cloth</div>
-      <div class="hud-act"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-hand"></i></span><span class="hud-key">Drag</span><span>pull the cloth</span></div>
-      <div class="hud-act" data-hud-key="T" id="hudRowTear"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-scissors"></i></span><span class="key hud-key">T</span><span>tear mode</span></div>
-      <div class="hud-act" data-hud-key="O" id="hudRowCollider"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-sphere"></i></span><span class="key hud-key">O</span><span>add collider</span></div>
+      <div class="hud-group-label">Cloth</div>
+      <div class="hud-row"><span class="row-icon"><i class="ph ph-hand"></i></span><span class="key">Drag</span><span id="hudLabelDrag">pull the cloth</span></div>
+      <div class="hud-row hud-act" data-hud-key="T" id="hudRowTear" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-scissors" aria-hidden="true"></i></span><span class="key">T</span><span id="hudLabelTear">tear mode</span></div>
+      <div class="hud-row hud-act" data-hud-key="O" id="hudRowCollider" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-sphere" aria-hidden="true"></i></span><span class="key">O</span><span id="hudLabelCollider">add collider</span></div>
     </div>
     <!-- Effects group -->
     <div class="hud-group">
-      <div class="hud-group-label hud-section-title">Effects</div>
-      <div class="hud-act" data-hud-key="D" id="hudRowDirt"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-circle"></i></span><span class="key hud-key">D</span><span>throw dirt</span></div>
-      <div class="hud-act" data-hud-key="C" id="hudRowWater"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-drop"></i></span><span class="key hud-key">C</span><span>splash water</span></div>
-      <div class="hud-act" data-hud-key="W" id="hudRowWind"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-wind"></i></span><span class="key hud-key">W</span><span>toggle wind</span></div>
-      <div class="hud-act" data-hud-key="G" id="hudRowGrain"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-dots-six"></i></span><span class="key hud-key">G</span><span>grain overlay</span></div>
+      <div class="hud-group-label">Effects</div>
+      <div class="hud-row hud-act" data-hud-key="D" id="hudRowDirt" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-circle" aria-hidden="true"></i></span><span class="key">D</span><span id="hudLabelDirt">throw dirt</span></div>
+      <div class="hud-row hud-act" data-hud-key="C" id="hudRowWater" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-drop" aria-hidden="true"></i></span><span class="key">C</span><span id="hudLabelWater">splash water</span></div>
+      <div class="hud-row hud-act" data-hud-key="W" id="hudRowWind" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-wind" aria-hidden="true"></i></span><span class="key">W</span><span id="hudLabelWind">toggle wind</span></div>
+      <div class="hud-row hud-act" data-hud-key="G" id="hudRowGrain" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-dots-six" aria-hidden="true"></i></span><span class="key">G</span><span id="hudLabelGrain">grain overlay</span></div>
     </div>
     <!-- Utility group -->
     <div class="hud-group">
-      <div class="hud-group-label hud-section-title">Utility</div>
-      <div class="hud-act" data-hud-key="R"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-arrow-counter-clockwise"></i></span><span class="key hud-key">R</span><span>reset cloth</span></div>
-      <div class="hud-act" data-hud-key="S"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-floppy-disk"></i></span><span class="key hud-key">S</span><span>save image</span></div>
-      <div class="hud-act" data-hud-key="H"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-eye-slash"></i></span><span class="key hud-key">H</span><span>hide HUD</span></div>
+      <div class="hud-group-label">Utility</div>
+      <div class="hud-row hud-act" data-hud-key="R" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i></span><span class="key">R</span><span id="hudLabelReset">reset cloth</span></div>
+      <div class="hud-row hud-act" data-hud-key="S" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-floppy-disk" aria-hidden="true"></i></span><span class="key">S</span><span id="hudLabelSave">save image</span></div>
+      <div class="hud-row hud-act" data-hud-key="H" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-eye-slash" aria-hidden="true"></i></span><span class="key">H</span><span id="hudLabelHide">hide HUD</span></div>
+    </div>
+
+    <div class="hud-modes">
+      <span id="modeWind"  class="mode-badge">WIND ON</span>
+      <span id="modeTear"  class="mode-badge">TEAR MODE</span>
+      <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
+      <span id="modeGrain" class="mode-badge">GRAIN</span>
+      <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
+      <span id="modeWater" class="mode-badge">WATER MODE</span>
+      <span id="modeCollider" class="mode-badge">BALL</span>
     </div>
   </div>
 
   <div id="hud-texture">
-    <input type="file" id="texFile" accept="image/*" style="display: none;" />
-    <button id="texUploadBtn" class="upload-btn"><i class="ph ph-upload-simple"></i> Upload texture</button>
-    <div id="texClear" style="font-size: 10px; opacity: 0.5; cursor: pointer; margin-bottom: 8px;">✕&nbsp;&nbsp;clear texture</div>
-    <div id="hud-presets" class="material-buttons">
-      <button class="preset-btn material-btn" data-preset="SILK"><span class="preset-swatch" style="background:#ccc8c3; width: 10px; height: 10px; border-radius: 2px;"></span>SILK</button>
-      <button class="preset-btn material-btn" data-preset="DENIM"><span class="preset-swatch" style="background:#6b84a0; width: 10px; height: 10px; border-radius: 2px;"></span>DENIM</button>
-      <button class="preset-btn material-btn" data-preset="LINEN"><span class="preset-swatch" style="background:#c8b99a; width: 10px; height: 10px; border-radius: 2px;"></span>LINEN</button>
+    <div class="hud-group-label" id="hudLabelMaterial" style="margin-bottom:6px;opacity:1">Material</div>
+    <input type="file" id="texFile" accept="image/*" />
+    <button class="tex-btn" id="texUploadBtn"><i class="ph ph-upload-simple"></i> Upload texture</button>
+    <div id="texClear">✕&nbsp;&nbsp;clear texture</div>
+    <div id="hud-presets">
+      <button class="tex-btn preset-btn" data-preset="SILK"><span class="preset-swatch" style="background:#ccc8c3"></span>SILK</button>
+      <button class="tex-btn preset-btn" data-preset="DENIM"><span class="preset-swatch" style="background:#6b84a0"></span>DENIM</button>
+      <button class="tex-btn preset-btn" data-preset="LINEN"><span class="preset-swatch" style="background:#c8b99a"></span>LINEN</button>
     </div>
-    <div id="presetReset" style="font-size: 10px; opacity: 0.5; cursor: pointer; margin-top: 8px;">↩&nbsp;&nbsp;default</div>
-  </div>
-</div>
+    <div id="presetReset">↩&nbsp;&nbsp;default</div>
 
-  <div class="hud-modes" style="display:none">
-    <span id="modeWind"  class="mode-badge">WIND ON</span>
-    <span id="modeTear"  class="mode-badge">TEAR MODE</span>
-    <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
-    <span id="modeGrain" class="mode-badge">GRAIN</span>
-    <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
-    <span id="modeWater" class="mode-badge">WATER MODE</span>
-    <span id="modeCollider" class="mode-badge">BALL</span>
   </div>
-</div>
-
-<div class="hud-modes" style="display:none">
-  <span id="modeWind"  class="mode-badge">WIND ON</span>
-  <span id="modeTear"  class="mode-badge">TEAR MODE</span>
-  <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
-  <span id="modeGrain" class="mode-badge">GRAIN</span>
-  <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
-  <span id="modeWater" class="mode-badge">WATER MODE</span>
-  <span id="modeCollider" class="mode-badge">BALL</span>
 </div>
 
 
@@ -1642,10 +2217,6 @@ class Cloth {
       mobDirt .setAttribute('aria-pressed', String(dirtMode));
       mobWater.setAttribute('aria-pressed', String(waterMode));
       mobWind .setAttribute('aria-pressed', String(windEnabled));
-      mobTear .setAttribute('aria-current', tearMode ? 'page' : 'false');
-      mobDirt .setAttribute('aria-current', dirtMode ? 'page' : 'false');
-      mobWater.setAttribute('aria-current', waterMode ? 'page' : 'false');
-      mobWind .setAttribute('aria-current', windEnabled ? 'page' : 'false');
       /* More button dot — on when Grain, Collider or Mic is active */
       mobMore .classList.toggle('mode-on', grainOn || colliderType !== COLLIDER_NONE || micAnalyser !== null);
       /* More sheet toggles */
@@ -1674,12 +2245,6 @@ class Cloth {
       rowCollider.setAttribute('aria-pressed', String(colliderType !== COLLIDER_NONE));
       rowWind    .setAttribute('aria-pressed', String(windEnabled));
       rowGrain   .setAttribute('aria-pressed', String(grainOn));
-      rowTear    .setAttribute('aria-current', tearMode ? 'page' : 'false');
-      rowDirt    .setAttribute('aria-current', dirtMode ? 'page' : 'false');
-      rowWater   .setAttribute('aria-current', waterMode ? 'page' : 'false');
-      rowCollider.setAttribute('aria-current', colliderType !== COLLIDER_NONE ? 'page' : 'false');
-      rowWind    .setAttribute('aria-current', windEnabled ? 'page' : 'false');
-      rowGrain   .setAttribute('aria-current', grainOn ? 'page' : 'false');
     }
   }
 
@@ -2232,85 +2797,43 @@ class Cloth {
 
     /* ── Hanger ── only for top-row pin config (not curtain/sail) */
     if (pinConfig === 'top-row') (function drawHanger() {
-      const ptL  = cloth.points[0];
-      const ptR  = cloth.points[COLS - 1];
+      const ptL  = cloth.points[0];          // top-left  pinned point
+      const ptR  = cloth.points[COLS - 1];   // top-right pinned point
       const bL   = ptL.x, bR = ptR.x, bY = ptL.y;
       const mx   = (bL + bR) / 2;
-      const archH = Math.min(52, bY * 0.9);
+      const archH = Math.min(40, bY * 0.72); // how tall the shoulder arch rises
       const peakY = bY - archH;
-      
+      const hookR = 7;
+      const hookCY = peakY - hookR - 1;
+      const col = PREFERS_DARK ? 'rgba(200,200,200,0.50)' : 'rgba(55,55,55,0.50)';
+
       ctx2d.save();
-      
-      /* Rich Wooden Gradient */
-      const woodGrd = ctx2d.createLinearGradient(bL, bY, bR, bY);
-      if (PREFERS_DARK) {
-        woodGrd.addColorStop(0,   '#3a281b');
-        woodGrd.addColorStop(0.2, '#5a3e2b');
-        woodGrd.addColorStop(0.5, '#7a543a');
-        woodGrd.addColorStop(0.8, '#5a3e2b');
-        woodGrd.addColorStop(1,   '#3a281b');
-      } else {
-        woodGrd.addColorStop(0,   '#5d4037');
-        woodGrd.addColorStop(0.3, '#8d6e63');
-        woodGrd.addColorStop(0.5, '#a1887f');
-        woodGrd.addColorStop(0.7, '#8d6e63');
-        woodGrd.addColorStop(1,   '#5d4037');
-      }
-
-      /* Volumetric Shadow */
-      ctx2d.shadowColor = 'rgba(0,0,0,0.4)';
-      ctx2d.shadowBlur  = 12;
-      ctx2d.shadowOffsetY = 6;
-
-      ctx2d.strokeStyle = woodGrd;
-      ctx2d.lineWidth   = 12;
+      ctx2d.strokeStyle = col;
+      ctx2d.lineWidth   = 1.5;
       ctx2d.lineCap     = 'round';
       ctx2d.lineJoin    = 'round';
 
-      /* Main wooden body */
+      /* Crossbar + both shoulders in one path */
       ctx2d.beginPath();
+      /* Left shoulder: from bar-left up to peak */
       ctx2d.moveTo(bL, bY);
-      ctx2d.quadraticCurveTo(bL + (mx - bL) * 0.25, bY - archH * 0.35, mx, peakY);
-      ctx2d.quadraticCurveTo(bR - (bR - mx) * 0.25, bY - archH * 0.35, bR, bY);
-      ctx2d.stroke();
-
-      /* Wood grain detail pass */
-      ctx2d.shadowBlur = 0; ctx2d.shadowOffsetY = 0;
-      ctx2d.lineWidth = 1.2;
-      ctx2d.strokeStyle = 'rgba(0,0,0,0.12)';
-      for (let i = -4; i <= 4; i += 2) {
-        ctx2d.beginPath();
-        ctx2d.moveTo(bL, bY + i);
-        ctx2d.quadraticCurveTo(bL + (mx-bL)*0.25, bY - archH*0.35 + i, mx, peakY + i);
-        ctx2d.quadraticCurveTo(bR - (bR-mx)*0.25, bY - archH*0.35 + i, bR, bY + i);
-        ctx2d.stroke();
-      }
-
-      /* Metallic Brass Hook */
-      const hookGrd = ctx2d.createLinearGradient(mx - 10, peakY - 30, mx + 10, peakY);
-      if (PREFERS_DARK) {
-        hookGrd.addColorStop(0, '#d4af37'); // Gold/Brass
-        hookGrd.addColorStop(0.5, '#f9e79f'); // Highlight
-        hookGrd.addColorStop(1, '#9a7d0a'); // Shadow
-      } else {
-        hookGrd.addColorStop(0, '#b8860b');
-        hookGrd.addColorStop(0.5, '#ffd700');
-        hookGrd.addColorStop(1, '#8b6508');
-      }
-
-      ctx2d.strokeStyle = hookGrd;
-      ctx2d.lineWidth   = 3.5;
-      ctx2d.lineCap     = 'round';
-      
-      /* Hook Stem */
-      ctx2d.beginPath();
+      ctx2d.bezierCurveTo(bL, bY - archH * 0.38, mx - archH * 0.55, peakY, mx, peakY);
+      /* Right shoulder: from bar-right up to peak */
+      ctx2d.moveTo(bR, bY);
+      ctx2d.bezierCurveTo(bR, bY - archH * 0.38, mx + archH * 0.55, peakY, mx, peakY);
+      /* Hook stem */
       ctx2d.moveTo(mx, peakY);
-      ctx2d.lineTo(mx, peakY - 18);
+      ctx2d.lineTo(mx, hookCY + hookR);
+      /* Crossbar end caps */
+      ctx2d.moveTo(bL,  bY - 4);
+      ctx2d.lineTo(bL,  bY + 4);
+      ctx2d.moveTo(bR,  bY - 4);
+      ctx2d.lineTo(bR,  bY + 4);
       ctx2d.stroke();
 
-      /* Hook Arc */
+      /* Hook arc: from 6-o'clock counterclockwise ~270° to ~1:30-o'clock */
       ctx2d.beginPath();
-      ctx2d.arc(mx + 7, peakY - 24, 9, Math.PI * 0.7, -Math.PI * 1.15, true);
+      ctx2d.arc(mx, hookCY, hookR, Math.PI * 0.5, -Math.PI * 0.25, true);
       ctx2d.stroke();
 
       ctx2d.restore();
