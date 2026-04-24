@@ -118,7 +118,7 @@
     #hud .hud-subtitle {
       font-size: 9px;
       font-weight: 300;
-      letter-spacing: 3.5px;
+      letter-spacing: 4.5px; /* Increased for airy premium feel */
       color: var(--text-muted);
       text-transform: lowercase;
       margin-bottom: 18px;
@@ -128,9 +128,9 @@
     #hud .hud-group {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      padding-top: 14px;
-      padding-bottom: 10px;
+      gap: 6px;        /* 8pt grid adjustment */
+      padding-top: 16px; /* 8pt grid adjustment */
+      padding-bottom: 12px;
       border-top: 1px solid rgba(0,0,0,0.06);
     }
     #hud .hud-group:first-child {
@@ -140,8 +140,8 @@
 
     /* Micro section header */
     #hud .hud-group-label {
-      font-size: 9px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 600;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--text-muted);
@@ -190,13 +190,17 @@
       cursor: pointer;
     }
     #hud .hud-act:hover { background: rgba(0, 0, 0, 0.04); }
+    #hud .hud-act:focus-visible { 
+      outline: 2px solid var(--text-primary); 
+      outline-offset: -2px;
+    }
 
     /* Control label text */
     #hud .hud-row > span:not(.key) {
-      font-size: 10.5px;
-      font-weight: 300;
+      font-size: 13px;
+      font-weight: 400;
       color: var(--text-secondary);
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
       transition: color 0.12s;
     }
 
@@ -451,7 +455,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 3px;
+        gap: 4px; /* Increased from 3px per audit */
         background: transparent;
         border: none;
         cursor: pointer;
@@ -470,11 +474,15 @@
       }
       .mob-btn.mode-on { color: var(--text-primary); }
       .mob-btn:active  { color: var(--text-secondary); }
+      .mob-btn:focus-visible { 
+        outline: 2px solid var(--text-primary); 
+        outline-offset: -12px;
+      }
       /* Active indicator dot above icon */
       .mob-dot {
         position: absolute;
         top: 8px;
-        width: 4px; height: 4px;
+        width: 6px; height: 6px; /* Increased from 4px per audit */
         border-radius: 50%;
         background: var(--text-primary);
         opacity: 0;
@@ -514,7 +522,7 @@
       }
       .fx-handle {
         width: 32px;
-        height: 4px;
+        height: 5px; /* Increased from 4px per audit */
         border-radius: 2px;
         background: var(--border-mid);
         margin: 0 auto 20px;
@@ -2221,6 +2229,10 @@ class Cloth {
       mobDirt .setAttribute('aria-pressed', String(dirtMode));
       mobWater.setAttribute('aria-pressed', String(waterMode));
       mobWind .setAttribute('aria-pressed', String(windEnabled));
+      mobTear .setAttribute('aria-current', tearMode ? 'page' : 'false');
+      mobDirt .setAttribute('aria-current', dirtMode ? 'page' : 'false');
+      mobWater.setAttribute('aria-current', waterMode ? 'page' : 'false');
+      mobWind .setAttribute('aria-current', windEnabled ? 'page' : 'false');
       /* More button dot — on when Grain, Collider or Mic is active */
       mobMore .classList.toggle('mode-on', grainOn || colliderType !== COLLIDER_NONE || micAnalyser !== null);
       /* More sheet toggles */
@@ -2249,6 +2261,12 @@ class Cloth {
       rowCollider.setAttribute('aria-pressed', String(colliderType !== COLLIDER_NONE));
       rowWind    .setAttribute('aria-pressed', String(windEnabled));
       rowGrain   .setAttribute('aria-pressed', String(grainOn));
+      rowTear    .setAttribute('aria-current', tearMode ? 'page' : 'false');
+      rowDirt    .setAttribute('aria-current', dirtMode ? 'page' : 'false');
+      rowWater   .setAttribute('aria-current', waterMode ? 'page' : 'false');
+      rowCollider.setAttribute('aria-current', colliderType !== COLLIDER_NONE ? 'page' : 'false');
+      rowWind    .setAttribute('aria-current', windEnabled ? 'page' : 'false');
+      rowGrain   .setAttribute('aria-current', grainOn ? 'page' : 'false');
     }
   }
 
