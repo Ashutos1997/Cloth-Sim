@@ -1460,6 +1460,24 @@
         border-top: none !important;
       }
 
+      /* Material Swatch Squares */
+      .swatch-square {
+        width: 12px !important;
+        height: 12px !important;
+        border-radius: 2px !important;
+        display: inline-block !important;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.1) !important;
+      }
+
+      #hud .hud-row.active {
+        color: white !important;
+        opacity: 1 !important;
+      }
+      #hud .hud-row.active .key {
+        border-color: white !important;
+        opacity: 1 !important;
+      }
+
       /* Consistent Material and Row Layout */
       #hud-texture {
         margin-top: 0 !important;
@@ -1896,14 +1914,33 @@
     <div class="hud-group">
       <div class="hud-group-label" id="hudLabelMaterial" data-i18n="material">Material</div>
       <input type="file" id="texFile" accept="image/*" />
-      <button class="tex-btn" id="texUploadBtn"><i class="ph ph-upload-simple"></i> <span data-i18n="upload">Upload texture</span></button>
-      <div id="texClear"><span data-i18n="clear">✕&nbsp;&nbsp;clear texture</span></div>
-      <div id="hud-presets">
-        <button class="tex-btn preset-btn" data-preset="SILK"><span class="preset-swatch" style="background:#ccc8c3"></span>SILK</button>
-        <button class="tex-btn preset-btn" data-preset="DENIM"><span class="preset-swatch" style="background:#6b84a0"></span>DENIM</button>
-        <button class="tex-btn preset-btn" data-preset="LINEN"><span class="preset-swatch" style="background:#c8b99a"></span>LINEN</button>
+      
+      <div class="hud-row hud-act" id="texUploadBtn">
+        <span class="row-icon"><i class="ph ph-upload-simple"></i></span>
+        <span class="key">U</span>
+        <span data-i18n="upload">upload texture</span>
       </div>
-      <div id="presetReset" style="border:none !important; margin-top: 4px;"><span data-i18n="default">↩&nbsp;&nbsp;default</span></div>
+
+      <div class="hud-row hud-act preset-btn" data-preset="SILK">
+        <span class="row-icon"><span class="swatch-square" style="background:#ccc8c3"></span></span>
+        <span class="key">1</span>
+        <span>silk</span>
+      </div>
+      <div class="hud-row hud-act preset-btn" data-preset="DENIM">
+        <span class="row-icon"><span class="swatch-square" style="background:#6b84a0"></span></span>
+        <span class="key">2</span>
+        <span>denim</span>
+      </div>
+      <div class="hud-row hud-act preset-btn" data-preset="LINEN">
+        <span class="row-icon"><span class="swatch-square" style="background:#c8b99a"></span></span>
+        <span class="key">3</span>
+        <span>linen</span>
+      </div>
+
+      <div class="hud-row hud-act" id="presetReset">
+        <span class="row-icon">↩</span>
+        <span data-i18n="default">default texture</span>
+      </div>
 
       <!-- Language Switch -->
       <div style="margin-top: 14px; padding-top: 0; border-top: none; pointer-events: all; display: flex; align-items: center; gap: var(--space-md);">
