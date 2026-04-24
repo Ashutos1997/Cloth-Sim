@@ -887,6 +887,76 @@
     }
 
   </style>
+  <style id="floating-cards-polish">
+    #hud {
+      position: fixed !important;
+      top: 20px !important;
+      left: 20px !important;
+      width: auto !important;
+      min-width: 180px !important;
+      background: rgba(12,12,12,0.85) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 10px !important;
+      padding: 12px !important;
+      height: auto !important;
+      max-height: fit-content !important;
+      overflow: visible !important;
+      z-index: 100 !important;
+    }
+
+    #hud-texture {
+      position: fixed !important;
+      top: 20px !important;
+      left: 210px !important;
+      width: auto !important;
+      min-width: 160px !important;
+      background: rgba(12,12,12,0.85) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 10px !important;
+      padding: 12px !important;
+      bottom: unset !important;
+      z-index: 100 !important;
+    }
+
+    #hud .hud-act {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 4px 0 !important;
+      font-size: 12px !important;
+      opacity: 0.8 !important;
+      white-space: nowrap !important;
+    }
+
+    #hud .hud-key {
+      font-size: 10px !important;
+      padding: 1px 5px !important;
+      border: 1px solid rgba(255,255,255,0.2) !important;
+      border-radius: 3px !important;
+      background: transparent !important;
+      color: white !important;
+    }
+
+    #hud .hud-section-title {
+      font-size: 10px !important;
+      letter-spacing: 0.1em !important;
+      opacity: 0.4 !important;
+      margin-top: 12px !important;
+      margin-bottom: 4px !important;
+    }
+
+    #hud hr, #hud .divider {
+      display: none !important;
+    }
+
+    #hud .tab-bar {
+      display: none !important;
+    }
+  </style>
 </head>
 <body>
 <!-- SVG grain filter — referenced by body::after via url(#grain) -->
