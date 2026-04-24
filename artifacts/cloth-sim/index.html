@@ -4046,28 +4046,8 @@ class Cloth {
       }
     }
 
-    /* ── WebGL render ── */
+    /* WebGL render */
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    if (!isMobile()) {
-      /* Draw animated gradient background */
-      const bgTime  = performance.now() / 1000;
-      const bgWind  = windEnabled ? Math.abs(Math.sin(windPhase)) : 0;
-      gl.disable(gl.DEPTH_TEST);
-      gl.useProgram(bgProg);
-      gl.bindBuffer(gl.ARRAY_BUFFER, bgVBO);
-      gl.enableVertexAttribArray(aBGPosLoc);
-      gl.vertexAttribPointer(aBGPosLoc, 2, gl.FLOAT, false, 0, 0);
-      gl.uniform3f(uBGTopLoc,  bgTopCurrent[0], bgTopCurrent[1], bgTopCurrent[2]);
-      gl.uniform3f(uBGBotLoc,  bgBotCurrent[0], bgBotCurrent[1], bgBotCurrent[2]);
-      gl.uniform1f(uBGTimeLoc, bgTime);
-      gl.uniform1f(uBGWindLoc, bgWind);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-      gl.disableVertexAttribArray(aBGPosLoc);
-      gl.enable(gl.DEPTH_TEST);
-      /* Clear only depth so cloth renders over gradient */
-      gl.clear(gl.DEPTH_BUFFER_BIT);
-    }
 
     gl.useProgram(prog);
     gl.uniform1i(uHasTextureLoc, hasTexture ? 1 : 0);
