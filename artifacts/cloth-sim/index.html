@@ -678,6 +678,11 @@
       .fx-row.active { color: var(--color-text-primary); }
       .fx-row.active .fx-indicator { background: var(--color-text-primary); }
       .fx-row.mode-on .fx-indicator { background: white !important; }
+      
+      /* Explicitly brighter for reset/default rows */
+      .fx-reset-row, #fxDefault {
+        color: rgba(255, 255, 255, 0.95) !important;
+      }
 
       /* Scrollable sheet on short phones */
       #fx-sheet {
@@ -2034,7 +2039,8 @@
       </button>
     </div>
     <button class="fx-row fx-reset-row" id="fxDefault">
-      <span class="fx-label" data-i18n="defaultText">↩&nbsp;&nbsp;default texture</span>
+      <i class="ph ph-arrow-u-up-left"></i>
+      <span class="fx-label" data-i18n="defaultText">default texture</span>
     </button>
     <button class="fx-row" id="fxUpload">
       <i class="ph ph-upload-simple"></i>
@@ -3805,8 +3811,8 @@ class Cloth {
       modeTear: "TEAR MODE",
       material: "Material",
       upload: "Upload texture",
-      clear: "✕&nbsp;&nbsp;clear texture",
-      default: "↩&nbsp;&nbsp;default",
+      clear: "clear texture",
+      default: "default",
       touchTab: "Touch",
       effectsTab: "Effects",
       styleTab: "Style",
@@ -3819,7 +3825,7 @@ class Cloth {
       grainLabel: "Grain Overlay",
       colliderBall: "Collider Ball",
       matTitle: "Material & Texture",
-      defaultText: "↩&nbsp;&nbsp;default texture",
+      defaultText: "default texture",
       sessTitle: "Session Management",
       mobReset: "Reset",
       mobSave: "Save",
@@ -3849,8 +3855,8 @@ class Cloth {
       modeTear: "찢기 모드",
       material: "소재",
       upload: "텍스처 업로드",
-      clear: "✕&nbsp;&nbsp;텍스처 삭제",
-      default: "↩&nbsp;&nbsp;기본설정",
+      clear: "텍스처 삭제",
+      default: "기본설정",
       touchTab: "터치",
       effectsTab: "효과",
       styleTab: "스타일",
@@ -3863,7 +3869,7 @@ class Cloth {
       grainLabel: "그레인 오버레이",
       colliderBall: "볼 콜라이더",
       matTitle: "소재 및 텍스처",
-      defaultText: "↩&nbsp;&nbsp;기본 텍스처",
+      defaultText: "기본 텍스처",
       sessTitle: "세션 관리",
       mobReset: "초기화",
       mobSave: "저장",
