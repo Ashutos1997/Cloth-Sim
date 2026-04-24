@@ -4123,6 +4123,30 @@ class Cloth {
       ctx2d.stroke();
       ctx2d.restore();
     }
+
+    /* ── Cloth Shadows ── */
+    (function drawShadows() {
+      ctx2d.save();
+      // Only draw shadows for points that are moving or have high Z
+      ctx2d.fillStyle = PREFERS_DARK ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.1)';
+      ctx2d.filter = 'blur(12px)';
+      
+      const shadowOffsetX = 12;
+      const shadowOffsetY = 18;
+      
+      ctx2d.beginPath();
+      // Simplified shadow: draw a blob based on current cloth bounds
+      const pts = cloth.points;
+      for (let i = 0; i < pts.length; i += 4) { // Sample points for performance
+        const p = pts[i];
+        ctx2d.moveTo(p.x + shadowOffsetX, p.y + shadowOffsetY);
+        ctx2d.arc(p.x + shadowOffsetX, p.y + shadowOffsetY, 15, 0, Math.PI * 2);
+      }
+      ctx2d.fill();
+      ctx2d.restore();
+    })();
+
+    drawLightSource();
   }
 
   function updateHUDVisuals() {
