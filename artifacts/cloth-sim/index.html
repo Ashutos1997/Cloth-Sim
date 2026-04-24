@@ -2801,43 +2801,85 @@ class Cloth {
 
     /* ── Hanger ── only for top-row pin config (not curtain/sail) */
     if (pinConfig === 'top-row') (function drawHanger() {
-      const ptL  = cloth.points[0];          // top-left  pinned point
-      const ptR  = cloth.points[COLS - 1];   // top-right pinned point
+      const ptL  = cloth.points[0];
+      const ptR  = cloth.points[COLS - 1];
       const bL   = ptL.x, bR = ptR.x, bY = ptL.y;
       const mx   = (bL + bR) / 2;
-      const archH = Math.min(40, bY * 0.72); // how tall the shoulder arch rises
+      const archH = Math.min(52, bY * 0.9);
       const peakY = bY - archH;
-      const hookR = 7;
-      const hookCY = peakY - hookR - 1;
-      const col = PREFERS_DARK ? 'rgba(200,200,200,0.50)' : 'rgba(55,55,55,0.50)';
-
+      
       ctx2d.save();
-      ctx2d.strokeStyle = col;
-      ctx2d.lineWidth   = 1.5;
+      
+      /* Rich Wooden Gradient */
+      const woodGrd = ctx2d.createLinearGradient(bL, bY, bR, bY);
+      if (PREFERS_DARK) {
+        woodGrd.addColorStop(0,   '#3a281b');
+        woodGrd.addColorStop(0.2, '#5a3e2b');
+        woodGrd.addColorStop(0.5, '#7a543a');
+        woodGrd.addColorStop(0.8, '#5a3e2b');
+        woodGrd.addColorStop(1,   '#3a281b');
+      } else {
+        woodGrd.addColorStop(0,   '#5d4037');
+        woodGrd.addColorStop(0.3, '#8d6e63');
+        woodGrd.addColorStop(0.5, '#a1887f');
+        woodGrd.addColorStop(0.7, '#8d6e63');
+        woodGrd.addColorStop(1,   '#5d4037');
+      }
+
+      /* Volumetric Shadow */
+      ctx2d.shadowColor = 'rgba(0,0,0,0.4)';
+      ctx2d.shadowBlur  = 12;
+      ctx2d.shadowOffsetY = 6;
+
+      ctx2d.strokeStyle = woodGrd;
+      ctx2d.lineWidth   = 12;
       ctx2d.lineCap     = 'round';
       ctx2d.lineJoin    = 'round';
 
-      /* Crossbar + both shoulders in one path */
+      /* Main wooden body */
       ctx2d.beginPath();
-      /* Left shoulder: from bar-left up to peak */
       ctx2d.moveTo(bL, bY);
-      ctx2d.bezierCurveTo(bL, bY - archH * 0.38, mx - archH * 0.55, peakY, mx, peakY);
-      /* Right shoulder: from bar-right up to peak */
-      ctx2d.moveTo(bR, bY);
-      ctx2d.bezierCurveTo(bR, bY - archH * 0.38, mx + archH * 0.55, peakY, mx, peakY);
-      /* Hook stem */
-      ctx2d.moveTo(mx, peakY);
-      ctx2d.lineTo(mx, hookCY + hookR);
-      /* Crossbar end caps */
-      ctx2d.moveTo(bL,  bY - 4);
-      ctx2d.lineTo(bL,  bY + 4);
-      ctx2d.moveTo(bR,  bY - 4);
-      ctx2d.lineTo(bR,  bY + 4);
+      ctx2d.quadraticCurveTo(bL + (mx - bL) * 0.25, bY - archH * 0.35, mx, peakY);
+      ctx2d.quadraticCurveTo(bR - (bR - mx) * 0.25, bY - archH * 0.35, bR, bY);
       ctx2d.stroke();
 
-      /* Hook arc: from 6-o'clock counterclockwise ~270° to ~1:30-o'clock */
+      /* Wood grain detail pass */
+      ctx2d.shadowBlur = 0; ctx2d.shadowOffsetY = 0;
+      ctx2d.lineWidth = 1.2;
+      ctx2d.strokeStyle = 'rgba(0,0,0,0.12)';
+      for (let i = -4; i <= 4; i += 2) {
+        ctx2d.beginPath();
+        ctx2d.moveTo(bL, bY + i);
+        ctx2d.quadraticCurveTo(bL + (mx-bL)*0.25, bY - archH*0.35 + i, mx, peakY + i);
+        ctx2d.quadraticCurveTo(bR - (bR-mx)*0.25, bY - archH*0.35 + i, bR, bY + i);
+        ctx2d.stroke();
+      }
+
+      /* Metallic Brass Hook */
+      const hookGrd = ctx2d.createLinearGradient(mx - 10, peakY - 30, mx + 10, peakY);
+      if (PREFERS_DARK) {
+        hookGrd.addColorStop(0, '#d4af37'); // Gold/Brass
+        hookGrd.addColorStop(0.5, '#f9e79f'); // Highlight
+        hookGrd.addColorStop(1, '#9a7d0a'); // Shadow
+      } else {
+        hookGrd.addColorStop(0, '#b8860b');
+        hookGrd.addColorStop(0.5, '#ffd700');
+        hookGrd.addColorStop(1, '#8b6508');
+      }
+
+      ctx2d.strokeStyle = hookGrd;
+      ctx2d.lineWidth   = 3.5;
+      ctx2d.lineCap     = 'round';
+      
+      /* Hook Stem */
       ctx2d.beginPath();
-      ctx2d.arc(mx, hookCY, hookR, Math.PI * 0.5, -Math.PI * 0.25, true);
+      ctx2d.moveTo(mx, peakY);
+      ctx2d.lineTo(mx, peakY - 18);
+      ctx2d.stroke();
+
+      /* Hook Arc */
+      ctx2d.beginPath();
+      ctx2d.arc(mx + 7, peakY - 24, 9, Math.PI * 0.7, -Math.PI * 1.15, true);
       ctx2d.stroke();
 
       ctx2d.restore();
