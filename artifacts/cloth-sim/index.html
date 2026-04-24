@@ -12,9 +12,14 @@
   <style id="hud-redesign-final">
     body { background: #070707 !important; }
 
+    /* Hide legacy mobile and status artifacts */
+    #mob-header, #mob-nav, #fx-backdrop, #fx-sheet { display: none !important; }
+    .hud-modes { display: none !important; }
+
     #hud {
       position: fixed !important;
       bottom: 0 !important;
+      top: unset !important;
       left: 0 !important;
       right: 0 !important;
       width: 100vw !important;
@@ -32,9 +37,18 @@
       z-index: 100 !important;
       overflow: visible !important;
       box-sizing: border-box !important;
-      top: unset !important;
     }
 
+    /* Refactor internal layout for horizontal flow */
+    #hud .hud-controls {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 2px !important;
+    }
+
+    /* Flatten groupings to allow row flow */
+    #hud .hud-group { display: contents !important; }
     #hud .hud-section-title { display: none !important; }
     #hud .tab-bar { display: none !important; }
     #hud hr { display: none !important; }
@@ -50,22 +64,20 @@
       cursor: pointer !important;
       white-space: nowrap !important;
       min-width: 44px !important;
-      position: relative !important;
     }
 
     #hud .hud-act:hover {
       background: rgba(255,255,255,0.06) !important;
     }
 
-    /* Target the icon within the act row */
-    #hud .hud-act i {
+    /* Map styles to existing HTML tags since structure modification is forbidden */
+    #hud .hud-act i, #hud .hud-act .hud-icon {
       font-size: 15px !important;
       opacity: 0.6 !important;
       line-height: 1 !important;
     }
 
-    /* Target the text label within the act row */
-    #hud .hud-act span:last-child {
+    #hud .hud-act span:last-child, #hud .hud-act .hud-label {
       font-size: 9px !important;
       opacity: 0.45 !important;
       letter-spacing: 0.05em !important;
@@ -77,9 +89,7 @@
 
     #hud .hud-act.active i { opacity: 1 !important; }
     #hud .hud-act.active span:last-child { opacity: 0.9 !important; }
-    #hud .hud-act.active {
-      background: rgba(255,255,255,0.08) !important;
-    }
+    #hud .hud-act.active { background: rgba(255,255,255,0.08) !important; }
 
     #hud-texture {
       display: flex !important;
