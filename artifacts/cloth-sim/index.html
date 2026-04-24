@@ -698,9 +698,9 @@
       .fx-reset-row { display: none; }
       .fx-reset-row.visible { display: flex; }
       .fx-reset-row .fx-label {
-        color: var(--text-muted);
+        color: var(--color-text-secondary);
         font-size: 12px;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.02em;
       }
 
       /* Material pill row */
@@ -718,26 +718,26 @@
         padding: 14px 8px;
         border-radius: 10px;
         background: transparent;
-        border: 1px solid var(--border-mid);
+        border: 1px solid var(--color-border);
         cursor: pointer;
-        color: var(--text-secondary);
+        color: var(--color-text-secondary);
         font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 11px;
         font-weight: 300;
-        letter-spacing: 0.5px;
-        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        letter-spacing: 0.04em;
+        transition: background 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
         -webkit-tap-highlight-color: transparent;
       }
       .fx-pill-btn .fx-swatch {
         width: 10px; height: 10px;
         border-radius: 50%;
-        border: 1px solid var(--border-mid);
+        border: 1px solid var(--color-border);
         flex-shrink: 0;
       }
       .fx-pill-btn.active {
-        background: rgba(0,0,0,0.06);
-        border-color: rgba(0,0,0,0.3);
-        color: var(--text-primary);
+        background: var(--color-accent-active);
+        border-color: var(--color-border-active);
+        color: var(--color-text-primary);
       }
 
       /* Scene cards */
@@ -755,29 +755,29 @@
         padding: 14px 8px;
         border-radius: 10px;
         background: transparent;
-        border: 1px solid var(--border-mid);
+        border: 1px solid var(--color-border);
         cursor: pointer;
-        transition: background 0.15s, border-color 0.15s;
+        transition: background 150ms ease-out, border-color 150ms ease-out;
         -webkit-tap-highlight-color: transparent;
       }
       .fx-scene-card .fx-swatch {
         width: 22px; height: 22px;
         border-radius: 50%;
-        border: 1px solid var(--border-mid);
+        border: 1px solid var(--color-border);
       }
       .fx-scene-name {
         font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 9.5px;
         font-weight: 300;
-        color: var(--text-secondary);
-        letter-spacing: 0.3px;
+        color: var(--color-text-secondary);
+        letter-spacing: 0.02em;
         text-align: center;
       }
       .fx-scene-card.active {
-        background: rgba(0,0,0,0.06);
-        border-color: rgba(0,0,0,0.3);
+        background: var(--color-accent-active);
+        border-color: var(--color-border-active);
       }
-      .fx-scene-card.active .fx-scene-name { color: var(--text-primary); }
+      .fx-scene-card.active .fx-scene-name { color: var(--color-text-primary); }
 
       /* Utility action row */
       .fx-util-row {
@@ -794,21 +794,21 @@
         padding: 10px 6px;
         border-radius: 10px;
         background: transparent;
-        border: 1px solid var(--border-mid);
+        border: 1px solid var(--color-border);
         cursor: pointer;
-        color: var(--text-secondary);
+        color: var(--color-text-secondary);
         font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
-        transition: background 0.15s;
+        transition: background 150ms ease-out, color 150ms ease-out;
         -webkit-tap-highlight-color: transparent;
       }
       .fx-util-btn i { font-size: 18px; }
       .fx-util-label {
         font-size: 9px;
         font-weight: 300;
-        letter-spacing: 1px;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
       }
-      .fx-util-btn.active { color: var(--text-primary); }
+      .fx-util-btn.active { color: var(--color-text-primary); }
     }
 
     /* ── Focus-visible styles ── */
@@ -831,7 +831,7 @@
       font-weight: 400;
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: var(--text-muted);
+      color: var(--color-text-secondary);
       margin-bottom: 6px;
     }
     #hud-scenario-btns {
