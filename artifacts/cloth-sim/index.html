@@ -1878,32 +1878,30 @@
       <div class="hud-row hud-act" data-hud-key="S" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-floppy-disk" aria-hidden="true"></i></span><span class="key">S</span><span id="hudLabelSave" data-i18n="save">save image</span></div>
       <div class="hud-row hud-act" data-hud-key="V" id="hudRowRecord" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-record" aria-hidden="true"></i></span><span class="key">V</span><span id="hudLabelRecord" data-i18n="recordLabel">record video</span></div>
       <div class="hud-row hud-act" data-hud-key="H" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-eye-slash" aria-hidden="true"></i></span><span class="key">H</span><span id="hudLabelHide" data-i18n="hide">hide HUD</span></div>
-    </div>
-  </div>
+      <!-- SECTION 4: MATERIAL -->
+      <div class="hud-group">
+        <div class="hud-group-label" id="hudLabelMaterial" data-i18n="material">Material</div>
+        <input type="file" id="texFile" accept="image/*" />
+        <button class="tex-btn" id="texUploadBtn"><i class="ph ph-upload-simple"></i> <span data-i18n="upload">Upload texture</span></button>
+        <div id="texClear"><span data-i18n="clear">✕&nbsp;&nbsp;clear texture</span></div>
+        <div id="hud-presets">
+          <button class="tex-btn preset-btn" data-preset="SILK"><span class="preset-swatch" style="background:#ccc8c3"></span>SILK</button>
+          <button class="tex-btn preset-btn" data-preset="DENIM"><span class="preset-swatch" style="background:#6b84a0"></span>DENIM</button>
+          <button class="tex-btn preset-btn" data-preset="LINEN"><span class="preset-swatch" style="background:#c8b99a"></span>LINEN</button>
+        </div>
+        <div id="presetReset" style="border:none !important; margin-top: 6px;"><span data-i18n="default">↩&nbsp;&nbsp;default</span></div>
 
-  <div id="hud-texture">
-    <div class="hud-group-label" id="hudLabelMaterial" style="margin-bottom:10px;opacity:1" data-i18n="material">Material</div>
-    <input type="file" id="texFile" accept="image/*" />
-    <button class="tex-btn" id="texUploadBtn"><i class="ph ph-upload-simple"></i> <span data-i18n="upload">Upload texture</span></button>
-    <div id="texClear"><span data-i18n="clear">✕&nbsp;&nbsp;clear texture</span></div>
-    <div id="hud-presets" style="margin-bottom: 10px;">
-      <button class="tex-btn preset-btn" data-preset="SILK"><span class="preset-swatch" style="background:#ccc8c3"></span>SILK</button>
-      <button class="tex-btn preset-btn" data-preset="DENIM"><span class="preset-swatch" style="background:#6b84a0"></span>DENIM</button>
-      <button class="tex-btn preset-btn" data-preset="LINEN"><span class="preset-swatch" style="background:#c8b99a"></span>LINEN</button>
-    </div>
-    <div id="presetReset" style="border:none !important; margin-bottom: 10px;"><span data-i18n="default">↩&nbsp;&nbsp;default</span></div>
-
-    <!-- Language Switch -->
-    <div style="margin-top: 0; padding-top: 0; border-top: none; pointer-events: all; display: flex; align-items: center; gap: var(--space-md);">
-      <span style="opacity:0.4; font-size:12px; display:flex;"><i class="ph ph-globe"></i></span>
-      <div style="display: flex; gap: var(--space-xs);">
-        <span class="lang-btn active" id="btnLangEng">ENG</span>
-        <span class="lang-btn" id="btnLangKor">한글</span>
+        <!-- Language Switch -->
+        <div style="margin-top: 14px; padding-top: 0; border-top: none; pointer-events: all; display: flex; align-items: center; gap: var(--space-md);">
+          <span style="opacity:0.4; font-size:12px; display:flex;"><i class="ph ph-globe"></i></span>
+          <div style="display: flex; gap: var(--space-xs);">
+            <span class="lang-btn active" id="btnLangEng">ENG</span>
+            <span class="lang-btn" id="btnLangKor">한글</span>
+          </div>
+        </div>
       </div>
     </div>
-
   </div>
-</div>
 
 <div class="hud-modes">
   <span id="modeWind"  class="mode-badge" data-i18n="modeWind">WIND ON</span>
