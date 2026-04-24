@@ -1520,6 +1520,53 @@
         border-color: rgba(255,255,255,0.7) !important;
         background: rgba(255,255,255,0.06) !important;
       }
+
+      /* Fix icon clipping */
+      #hud,
+      #hud * {
+        overflow: visible !important;
+      }
+
+      /* Even spacing — section header acts as divider */
+      #hud .hud-group-label, #hud .hud-section-title {
+        margin-top: 16px !important;
+        margin-bottom: 6px !important;
+        padding-top: 14px !important;
+        border-top: 1px solid rgba(255,255,255,0.07) !important;
+      }
+
+      #hud .hud-group-label:first-child,
+      #hud .hud-group-label:first-of-type,
+      #hud .hud-section-title:first-child {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        border-top: none !important;
+      }
+
+      /* Row bottom border as divider */
+      #hud .hud-act {
+        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+        padding: 7px 0 !important;
+      }
+
+      /* Last row in each group — no border */
+      #hud .hud-act:last-of-type {
+        border-bottom: none !important;
+      }
+
+      /* Icon — force visible and fixed width */
+      #hud .hud-act i,
+      #hud .hud-act svg,
+      #hud .hud-act .row-icon,
+      #hud .hud-act .hud-icon {
+        min-width: 18px !important;
+        width: 18px !important;
+        flex-shrink: 0 !important;
+        display: inline-flex !important;
+        overflow: visible !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
     }
   </style>
 </head>
