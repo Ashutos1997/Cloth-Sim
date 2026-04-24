@@ -1449,29 +1449,34 @@
         border-top: 1px solid var(--color-border-subtle) !important;
       }
 
-      /* Remove extra gaps between groups */
-      #hud hr {
-        margin: 4px 0 !important;
-      }
-
-      /* Kill dead space before material */
-      #hud-texture {
-        margin-top: 4px !important;
-        padding-top: 12px !important;
-      }
-
-      /* Material section header */
-      #hud-texture .hud-group-label,
-      #hud-texture .hud-section-title,
+      /* Standardize Section Headers */
+      #hud .hud-group-label, 
+      #hud .hud-section-title,
       #hud .material-title {
-        margin-top: 0 !important;
-        margin-bottom: 8px !important;
+        margin-top: var(--space-xl) !important;
+        padding-top: var(--space-lg) !important;
+        margin-bottom: var(--space-sm) !important;
+        border-top: 1px solid var(--color-border) !important;
+        display: block !important;
+        width: 100% !important;
+        opacity: 0.35 !important;
+        font-size: 9px !important;
+        letter-spacing: 0.14em !important;
       }
 
-      /* Tighten upload button */
-      #texUploadBtn {
-        margin-bottom: 6px !important;
-        padding: 5px 8px !important;
+      /* First section header always sits at the very top */
+      #hud .hud-controls .hud-group:first-child .hud-group-label,
+      #hud .hud-section-title:first-child {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        border-top: none !important;
+      }
+
+      /* Consistent Material layout */
+      #hud-texture {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        border-top: none !important;
       }
 
       /* Material buttons even height */
