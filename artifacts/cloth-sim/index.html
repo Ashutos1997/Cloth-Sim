@@ -888,11 +888,18 @@
 
   </style>
   <style id="hud-redesign-final">
+    body { background: #070707 !important; }
+
+    #canvas, #overlay { left: 0 !important; width: 100vw !important; }
+
     #hud {
       position: fixed !important;
       top: 20px !important;
       left: 20px !important;
-      width: 200px !important;
+      width: 180px !important;
+      min-width: 180px !important;
+      max-width: 180px !important;
+      box-sizing: border-box !important;
       background: rgba(12,12,12,0.88) !important;
       backdrop-filter: blur(12px) !important;
       -webkit-backdrop-filter: blur(12px) !important;
@@ -900,7 +907,7 @@
       border-radius: 10px !important;
       padding: 14px !important;
       height: auto !important;
-      overflow-y: auto !important;
+      overflow: hidden !important;
       max-height: calc(100vh - 40px) !important;
       z-index: 100 !important;
     }
@@ -954,6 +961,7 @@
 
     #texUploadBtn {
       width: 100% !important;
+      box-sizing: border-box !important;
       margin-bottom: 8px !important;
       padding: 5px !important;
       font-size: 11px !important;
@@ -966,18 +974,25 @@
 
     #hud-presets {
       display: flex !important;
-      gap: 4px !important;
+      gap: 3px !important;
       flex-wrap: nowrap !important;
+      width: 100% !important;
     }
 
     .preset-btn.material-btn {
-      font-size: 11px !important;
-      padding: 3px 8px !important;
+      flex: 1 !important;
+      font-size: 10px !important;
+      padding: 3px 4px !important;
+      min-width: 0 !important;
+      text-align: center !important;
       border-radius: 4px !important;
       border: 1px solid rgba(255,255,255,0.15) !important;
       background: transparent !important;
       color: white !important;
       cursor: pointer !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
     }
 
     .preset-btn.material-btn.active {
