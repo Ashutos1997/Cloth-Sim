@@ -4181,6 +4181,58 @@ class Cloth {
       }
     }
 
+  /* ── Ambient Background Particles ── */
+  const ambientParticles = [];
+  const ambientCount = 80;
+
+  class AmbientParticle {
+    constructor() {
+      this.init(true);
+    }
+    init(randomStart = false) {
+      this.x = randomStart ? Math.random() * overlay.width : (Math.random() < 0.5 ? -10 : overlay.width + 10);
+      this.y = Math.random() * overlay.height;
+      this.vx = (Math.random() - 0.5) * 0.4;
+      this.vy = (Math.random() - 0.5) * 0.4;
+      this.size = Math.random() * 1.2 + 0.4;
+      this.alpha = Math.random() * 0.12 + 0.04;
+      this.pulse = Math.random() * Math.PI;
+    }
+    update() {
+      // Wind influence: acceleration towards the wind direction
+      const windTargetX = windEnabled ? 1.8 : (Math.random() - 0.5) * 0.4;
+      this.vx += (windTargetX - this.vx) * 0.015;
+      
+      this.x += this.vx;
+      this.y += this.vy;
+      this.pulse += 0.015;
+
+      // Wrap around edges
+      if (this.x > overlay.width + 20) this.x = -20;
+      if (this.x < -20) this.x = overlay.width + 20;
+      if (this.y > overlay.height + 20) this.y = -20;
+      if (this.y < -20) this.y = overlay.height + 20;
+    }
+    draw(ctx) {
+      const currentAlpha = this.alpha * (0.8 + Math.sin(this.pulse) * 0.2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${currentAlpha})`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  for (let i = 0; i < ambientCount; i++) {
+    ambientParticles.push(new AmbientParticle());
+  }
+
+  function drawAmbientParticles() {
+    ambientParticles.forEach(p => {
+      p.update();
+      p.draw(ctx2d);
+    });
+  }
+
     /* WebGL render */
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -4254,6 +4306,9 @@ class Cloth {
 
     /* ── Overlay: 2D decorations ── */
     ctx2d.clearRect(0, 0, overlay.width, overlay.height);
+
+    /* ── Ambient Background Particles ── */
+    drawAmbientParticles();
 
     /* ── Water particles (airborne droplets only) ── */
     if (waterParticles.length > 0) {
