@@ -242,6 +242,28 @@
       gap: 6px;
       flex-wrap: wrap;
       min-height: 0;
+      margin-top: 10px;
+    }
+
+    /* DESKTOP ONLY: Move modes to bottom-right fixed position */
+    @media (min-width: 769px) {
+      #hud .hud-modes {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 100;
+        margin-top: 0;
+        flex-direction: column;
+        align-items: flex-end;
+        pointer-events: none;
+      }
+      .mode-badge {
+        background: rgba(10, 10, 10, 0.4) !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
     }
 
     /* Individual mode badge */
@@ -1623,17 +1645,17 @@
       <div class="hud-row hud-act" data-hud-key="S" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-floppy-disk" aria-hidden="true"></i></span><span class="key">S</span><span id="hudLabelSave" data-i18n="save">save image</span></div>
       <div class="hud-row hud-act" data-hud-key="H" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-eye-slash" aria-hidden="true"></i></span><span class="key">H</span><span id="hudLabelHide" data-i18n="hide">hide HUD</span></div>
     </div>
+  </div>
 
-    <div class="hud-modes">
-      <span id="modeWind"  class="mode-badge" data-i18n="modeWind">WIND ON</span>
-      <span id="modeTear"  class="mode-badge" data-i18n="modeTear">TEAR MODE</span>
-      <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
-      <span id="modeGrain" class="mode-badge">GRAIN</span>
-      <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
-      <span id="modeWater" class="mode-badge">WATER MODE</span>
-      <span id="modeLight" class="mode-badge" data-i18n="modeLight">LIGHT</span>
-      <span id="modeCollider" class="mode-badge">BALL</span>
-    </div>
+  <div class="hud-modes">
+    <span id="modeWind"  class="mode-badge" data-i18n="modeWind">WIND ON</span>
+    <span id="modeTear"  class="mode-badge" data-i18n="modeTear">TEAR MODE</span>
+    <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
+    <span id="modeGrain" class="mode-badge">GRAIN</span>
+    <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
+    <span id="modeWater" class="mode-badge">WATER MODE</span>
+    <span id="modeLight" class="mode-badge" data-i18n="modeLight">LIGHT</span>
+    <span id="modeCollider" class="mode-badge">BALL</span>
   </div>
 
   <div id="hud-texture">
