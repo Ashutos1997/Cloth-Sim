@@ -1843,33 +1843,51 @@
         border-bottom: none !important;
       }
 
+      /* Make material section match other sections exactly */
       #hud-texture {
-        margin-top: 20px !important;
-        padding-top: 16px !important;
-        border-top: 1px solid rgba(255,255,255,0.06) !important;
-        position: static !important;
-        bottom: unset !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-      }
-
-      #hud-texture .hud-group-label {
         margin-top: 0 !important;
         padding-top: 0 !important;
         border-top: none !important;
-        margin-bottom: 8px !important;
+        position: static !important;
+        bottom: unset !important;
       }
 
+      /* Material header matches other section headers */
+      #hud-texture .hud-group-label,
+      #hud .material-title {
+        font-size: 9px !important;
+        letter-spacing: 0.14em !important;
+        opacity: 0.35 !important;
+        margin-top: 20px !important;
+        margin-bottom: 6px !important;
+        padding-top: 16px !important;
+        border-top: 1px solid rgba(255,255,255,0.06) !important;
+        display: block !important;
+      }
+
+      /* Upload button as a plain row like other items */
       #texUploadBtn {
-        margin-bottom: 8px !important;
-        padding: 6px 8px !important;
-        font-size: 11px !important;
-        border-radius: 4px !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        padding: 6px 0 !important;
+        font-size: 12px !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        color: rgba(255,255,255,0.75) !important;
+        text-align: left !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
       }
 
+      /* Material buttons as a plain row */
       #hud-presets {
         display: flex !important;
         gap: 4px !important;
+        padding: 6px 0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
       }
 
       /* Material Button Refinements */
@@ -1880,10 +1898,20 @@
         display: none !important;
       }
       .preset-btn.material-btn {
-        border-radius: 4px !important;
-        padding: 5px 0 !important;
+        flex: 1 !important;
+        padding: 4px 0 !important;
         font-size: 11px !important;
-        letter-spacing: 0.08em !important;
+        border-radius: 4px !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        background: transparent !important;
+        color: rgba(255,255,255,0.75) !important;
+        text-align: center !important;
+        letter-spacing: 0.06em !important;
+      }
+
+      .preset-btn.material-btn.active {
+        border-color: rgba(255,255,255,0.7) !important;
+        color: white !important;
       }
     }
 
