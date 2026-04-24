@@ -9,17 +9,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@200;300;400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.css" />
   <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
-  <style>
+  <style id="hud-redesign-final">
     /* ── Design tokens ── */
     :root {
-      --surface-bg:      #f5f5f5;
-      --surface-frosted: rgba(248, 248, 248, 0.97);
-      --border-subtle:   rgba(0, 0, 0, 0.07);
-      --border-mid:      rgba(0, 0, 0, 0.15);
-      --border-strong:   rgba(0, 0, 0, 0.20);
-      --text-primary:    #111111;
-      --text-secondary:  #666666;
-      --text-muted:      #767676;
+      --surface-bg:      #070707;
+      --surface-frosted: rgba(28, 28, 28, 0.97);
+      --border-subtle:   rgba(255, 255, 255, 0.07);
+      --border-mid:      rgba(255, 255, 255, 0.15);
+      --border-strong:   rgba(255, 255, 255, 0.20);
+      --text-primary:    rgba(255, 255, 255, 0.95);
+      --text-secondary:  rgba(255, 255, 255, 0.65);
+      --text-muted:      rgba(255, 255, 255, 0.50);
       --focus-ring:      #0066cc;
     }
 
@@ -28,30 +28,10 @@
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      background: var(--surface-bg);
       font-family: 'Pretendard', sans-serif;
     }
-    #canvas {
-      display: block;
-      position: fixed;
-      left: 280px;
-      top: 0;
-      width: calc(100vw - 280px);
-      height: 100vh;
-    }
 
-    /* ── Overlay canvas — 2D decorations (pinned dots, drag, tear cursor) ── */
-    #overlay {
-      position: fixed;
-      top: 0;
-      left: 280px;
-      width: calc(100vw - 280px);
-      height: 100%;
-      pointer-events: none;
-      display: block;
-    }
-
-    /* ── Film grain overlay — canvas area only ── */
+    /* ── Film grain overlay ── */
     #grain-overlay {
       content: '';
       position: fixed;
@@ -65,829 +45,9 @@
       z-index: 1;
       transition: opacity 0.3s ease;
     }
-    #grain-overlay.active { opacity: 0.10; }
-    @media (prefers-color-scheme: dark) {
-      #grain-overlay.active { opacity: 0.14; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      #grain-overlay { transition: none; }
-    }
+    #grain-overlay.active { opacity: 0.14; }
 
-    /* ── HUD panel ── */
-    #hud {
-      width: 260px !important;
-      background: #0f0f0f !important;
-      padding: 20px !important;
-      padding-bottom: 20px !important;
-    }
-
-    #hud .hud-section-title {
-      font-size: 10px !important;
-      letter-spacing: 0.12em !important;
-      opacity: 0.5 !important;
-      margin-top: 24px !important;
-      margin-bottom: 10px !important;
-    }
-
-    #hud .hud-act {
-      display: flex !important;
-      align-items: center !important;
-      gap: 10px !important;
-      padding: 7px 0 !important;
-      font-size: 13px !important;
-      opacity: 0.8 !important;
-    }
-
-    #hud .hud-key {
-      font-size: 11px !important;
-      padding: 1px 6px !important;
-      border: 1px solid rgba(255,255,255,0.25) !important;
-      border-radius: 4px !important;
-      background: transparent !important;
-      color: white !important;
-    }
-
-    #hud .tab-bar {
-      display: flex !important;
-      border-bottom: 1px solid rgba(255,255,255,0.08) !important;
-      margin-bottom: 20px !important;
-    }
-
-    #hud .tab-bar .tab {
-      flex: 1 !important;
-      text-align: center !important;
-      padding-bottom: 8px !important;
-      font-size: 11px !important;
-      letter-spacing: 0.08em !important;
-      cursor: pointer !important;
-      opacity: 0.35 !important;
-      border-bottom: 2px solid transparent !important;
-    }
-
-    #hud .tab-bar .tab.active {
-      opacity: 1 !important;
-      border-bottom: 2px solid white !important;
-    }
-
-    #hud-texture {
-      margin-top: 28px !important;
-      position: static !important;
-      bottom: unset !important;
-    }
-
-    #hud-texture .upload-btn {
-      width: 100% !important;
-      margin-bottom: 10px !important;
-      padding: 7px !important;
-      font-size: 11px !important;
-    }
-
-    #hud-texture .material-buttons {
-      display: inline-flex !important;
-      gap: 8px !important;
-    }
-
-    #hud-texture .material-btn {
-      border: 1px solid rgba(255,255,255,0.2) !important;
-      padding: 6px 14px !important;
-      border-radius: 4px !important;
-      font-size: 12px !important;
-      background: transparent !important;
-      color: white !important;
-    }
-
-    #hud-texture .material-btn.active {
-      border-color: white !important;
-      opacity: 1 !important;
-    }
-
-    #hud hr, #hud .divider {
-      display: none !important;
-    }
-
-    #hud {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      z-index: 100;
-      pointer-events: auto;
-      font-family: 'Pretendard', sans-serif;
-      color: white;
-    }
-
-    #hud .hud-hidden {
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-    #hud .hud-hidden * { pointer-events: none !important; }
-    @media (prefers-reduced-motion: reduce) {
-      #hud { transition: none; }
-    }
-
-    /* Middle controls container — fills available space */
-    #hud .hud-controls {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      overflow: hidden;
-    }
-
-    /* Each control row */
-    #hud .hud-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      line-height: 1;
-      padding: 4px 0;
-      border-radius: 4px;
-      transition: background 0.12s;
-    }
-
-    /* Icon slot */
-    #hud .row-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 13px;
-      font-size: 13px;
-      color: var(--text-muted);
-      opacity: 0.5;
-      flex-shrink: 0;
-    }
-
-    /* Interactive rows — clickable on desktop */
-    #hud .hud-act {
-      pointer-events: all;
-      cursor: pointer;
-    }
-    #hud .hud-act:hover { background: rgba(0, 0, 0, 0.04); }
-    #hud .hud-act:focus-visible { 
-      outline: 2px solid var(--text-primary); 
-      outline-offset: -2px;
-    }
-
-    /* Control label text */
-    #hud .hud-row > span:not(.key) {
-      font-size: 12px;
-      font-weight: 400;
-      color: #fff;
-      opacity: 0.75;
-      letter-spacing: 0.2px;
-      transition: color 0.12s, opacity 0.12s;
-    }
-
-    /* Key badge — outline only, no fill */
-    #hud .key {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 22px;
-      padding: 1px 5px;
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 3px;
-      font-family: 'Pretendard', sans-serif;
-      font-size: 10px;
-      font-weight: 400;
-      text-transform: uppercase;
-      color: #fff;
-      opacity: 0.7;
-      letter-spacing: 1px;
-      flex-shrink: 0;
-      transition: all 0.12s;
-    }
-
-    /* Active row — key badge fills, label brightens */
-    #hud .hud-act.row-on .key {
-      background: #fff;
-      border-color: #fff;
-      color: #000;
-      opacity: 1;
-    }
-    #hud .hud-act.row-on > span:not(.key) {
-      opacity: 1;
-    }
-
-    /* Separator — hidden; separation is handled by border-top on #hud-texture */
-    #hud .hud-sep {
-      display: none;
-    }
-
-    /* Mode badge row */
-    #hud .hud-modes {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      min-height: 0;
-    }
-
-    /* Individual mode badge */
-    .mode-badge {
-      display: none;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: transparent;
-      border: 1px solid var(--border-strong);
-      color: var(--text-secondary);
-      font-family: 'Pretendard', sans-serif;
-      font-size: 8px;
-      font-weight: 400;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-    }
-    .mode-badge.visible { display: inline-flex; }
-    .mode-badge::before {
-      content: '';
-      width: 4px; height: 4px;
-      border-radius: 50%;
-      background: var(--text-muted);
-      flex-shrink: 0;
-    }
-
-    /* Preset colour swatch dot */
-    .preset-swatch {
-      display: inline-block;
-      width: 7px;
-      height: 7px;
-      border-radius: 2px;
-      flex-shrink: 0;
-      margin-right: 2px;
-    }
-
-    /* ── Bottom canvas label — centered in the canvas area (right of panel) ── */
-    #canvas-label { display: none; }
-
-    /* ── Mobile header + nav bar — hidden on desktop ── */
-    #mob-header { display: none; }
-    #mob-nav    { display: none; }
-
-    /* ── Effects sheet + backdrop — hidden outside mobile media query ── */
-    #fx-backdrop, #fx-sheet { display: none; }
-
-    /* ── Bottom tools section — pinned to bottom ── */
-    #hud-texture {
-      margin-top: 0;
-    }
-    #texFile { display: none; }
-    #texUploadBtn {
-      width: 100%;
-      margin-bottom: 6px;
-      font-size: 11px;
-      padding: 5px;
-    }
-    #hud .tex-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 4px;
-      font-family: 'Pretendard', sans-serif;
-      font-size: 11px;
-      font-weight: 400;
-      text-transform: uppercase;
-      color: #eeeeee;
-      letter-spacing: 1px;
-      cursor: pointer;
-      pointer-events: all;
-      transition: all 0.15s;
-    }
-    #hud .tex-btn:hover {
-      background: rgba(0, 0, 0, 0.04);
-      border-color: rgba(0, 0, 0, 0.40);
-      color: #222222;
-    }
-    #texClear {
-      display: none;
-      margin-top: 8px;
-      font-family: 'Pretendard', sans-serif;
-      font-size: 9px;
-      font-weight: 300;
-      letter-spacing: 1px;
-      color: #aaaaaa;
-      cursor: pointer;
-      pointer-events: all;
-      transition: color 0.15s;
-    }
-    #texClear:hover { color: #555555; }
-    #texClear.visible { display: block; }
-
-    #hud-presets {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .preset-btn.active {
-      border-color: white;
-      opacity: 1;
-      background: rgba(255, 255, 255, 0.1);
-    }
-    #presetReset {
-      display: none;
-      margin-top: 6px;
-      font-size: 9px;
-      font-weight: 300;
-      letter-spacing: 1px;
-      color: #aaaaaa;
-      cursor: pointer;
-      pointer-events: all;
-      transition: color 0.15s;
-    }
-    #presetReset:hover { color: #555555; }
-    #presetReset.visible { display: block; }
-
-    /* Volume meter bar inside mic badge */
-    .mic-meter {
-      display: inline-block;
-      height: 6px;
-      width: 0px;
-      max-width: 40px;
-      background: #888888;
-      border-radius: 3px;
-      transition: width 0.05s ease;
-    }
-
-    /* ── Mobile layout ≤768px ── */
-    @media (max-width: 768px) {
-      #hud, #canvas-label { display: none !important; }
-      /* Restore full-width canvas on mobile — no panel offset */
-      #canvas  { left: 0; width: 100vw; }
-      #overlay { left: 0; width: 100%; }
-
-      #mob-header {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: fixed;
-        top: 0; left: 0; right: 0;
-        height: calc(48px + env(safe-area-inset-top));
-        padding: 0 16px;
-        padding-top: env(safe-area-inset-top);
-        /* Ensure visual center is physical center even with a notch */
-        padding-left:  max(16px, env(safe-area-inset-left), env(safe-area-inset-right));
-        padding-right: max(16px, env(safe-area-inset-left), env(safe-area-inset-right));
-        background: var(--surface-frosted);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid var(--border-subtle);
-        z-index: 10;
-        pointer-events: none;
-        user-select: none;
-      }
-      #mob-header .mob-title {
-        font-size: 17px;
-        font-weight: 200;
-        letter-spacing: 6px;
-        text-indent: 6px; /* center compensation for letter-spacing */
-        color: var(--text-primary);
-        text-transform: uppercase;
-        line-height: 1;
-      }
-      #mob-header .mob-subtitle {
-        font-size: 12px;
-        font-weight: 300;
-        letter-spacing: 2px;
-        text-indent: 2px; /* center compensation for letter-spacing */
-        color: var(--text-muted);
-        text-transform: lowercase;
-        margin-top: 4px;
-      }
-
-      #mob-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        height: calc(64px + env(safe-area-inset-bottom));
-        padding-bottom: env(safe-area-inset-bottom);
-        padding-left:  max(16px, env(safe-area-inset-left));
-        padding-right: max(16px, env(safe-area-inset-right));
-        background: var(--surface-frosted);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-top: 1px solid var(--border-subtle);
-        z-index: 10;
-        align-items: stretch;
-      }
-
-      .mob-btn {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px; /* Increased from 3px per audit */
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        color: var(--text-muted);
-        transition: color 0.15s;
-        -webkit-tap-highlight-color: transparent;
-        position: relative;
-      }
-      .mob-btn i { font-size: 20px; line-height: 1; }
-      .mob-label {
-        font-family: 'Pretendard', sans-serif;
-        font-size: 10px;
-        font-weight: 300;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-      }
-      .mob-btn.mode-on { color: var(--text-primary); }
-      .mob-btn:active  { color: var(--text-secondary); }
-      .mob-btn:focus-visible { 
-        outline: 2px solid var(--text-primary); 
-        outline-offset: -12px;
-      }
-      /* Active indicator dot above icon */
-      .mob-dot {
-        position: absolute;
-        top: 8px;
-        width: 6px; height: 6px; /* Increased from 4px per audit */
-        border-radius: 50%;
-        background: var(--text-primary);
-        opacity: 0;
-        transition: opacity 0.15s;
-      }
-      .mob-btn.mode-on .mob-dot { opacity: 1; }
-
-      /* ── Effects bottom sheet — re-enable inside mobile query ── */
-      #fx-backdrop, #fx-sheet { display: block; }
-
-      #fx-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.45);
-        z-index: 50;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.25s ease;
-      }
-      #fx-backdrop.open {
-        opacity: 1;
-        pointer-events: auto;
-      }
-      #fx-sheet {
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        background: var(--surface-frosted);
-        border-top: 1px solid var(--border-mid);
-        border-radius: 16px 16px 0 0;
-        padding: 12px 0 calc(20px + env(safe-area-inset-bottom)) 0;
-        z-index: 51;
-        transform: translateY(100%);
-        transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
-      }
-      #fx-sheet.open {
-        transform: translateY(0);
-      }
-      .fx-handle {
-        width: 32px;
-        height: 5px; /* Increased from 4px per audit */
-        border-radius: 2px;
-        background: var(--border-mid);
-        margin: 0 auto 20px;
-      }
-      /* Section title */
-      .fx-title {
-        font-family: 'Pretendard', sans-serif;
-        font-size: 9px;
-        font-weight: 500;
-        letter-spacing: 2.5px;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        padding: 14px 20px 8px;
-        border-top: 1px solid var(--border-subtle);
-        margin-top: 6px;
-      }
-      /* First section title — no divider above it */
-      #fxTitleEffects {
-        border-top: none;
-        padding-top: 0;
-        margin-top: 0;
-      }
-
-      .fx-row {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        padding: 13px 20px;
-        background: transparent;
-        border: none;
-        border-top: 1px solid var(--border-subtle);
-        cursor: pointer;
-        color: var(--text-secondary);
-        font-family: 'Pretendard', sans-serif;
-        font-size: 14px;
-        font-weight: 300;
-        letter-spacing: 0.3px;
-        gap: 14px;
-        -webkit-tap-highlight-color: transparent;
-        transition: color 0.15s;
-      }
-      .fx-row:first-of-type { border-top: none; }
-      .fx-row i { font-size: 20px; flex-shrink: 0; }
-      .fx-label { flex: 1; text-align: left; }
-      .fx-indicator {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--border-mid);
-        flex-shrink: 0;
-        transition: background 0.15s;
-      }
-      .fx-row.active { color: var(--text-primary); }
-      .fx-row.active .fx-indicator { background: var(--text-primary); }
-
-      /* Scrollable sheet on short phones */
-      #fx-sheet {
-        max-height: 80vh;
-        overflow-y: auto;
-      }
-
-      /* Colour swatch in texture rows */
-      .fx-swatch {
-        width: 20px;
-        height: 20px;
-        border-radius: 5px;
-        flex-shrink: 0;
-        border: 1px solid var(--border-mid);
-      }
-
-      /* ↩ default row — hidden until a texture is active */
-      .fx-reset-row { display: none; }
-      .fx-reset-row.visible { display: flex; }
-      .fx-reset-row .fx-label {
-        color: var(--text-muted);
-        font-size: 12px;
-        letter-spacing: 0.3px;
-      }
-
-      /* Material pill row */
-      .fx-pill-row {
-        display: flex;
-        gap: 8px;
-        padding: 0 16px 8px;
-      }
-      .fx-pill-btn {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 14px 8px;
-        border-radius: 10px;
-        background: transparent;
-        border: 1px solid var(--border-mid);
-        cursor: pointer;
-        color: var(--text-secondary);
-        font-family: 'Pretendard', sans-serif;
-        font-size: 11px;
-        font-weight: 300;
-        letter-spacing: 0.5px;
-        transition: background 0.15s, border-color 0.15s, color 0.15s;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .fx-pill-btn .fx-swatch {
-        width: 10px; height: 10px;
-        border-radius: 50%;
-        border: 1px solid var(--border-mid);
-        flex-shrink: 0;
-      }
-      .fx-pill-btn.active {
-        background: rgba(0,0,0,0.06);
-        border-color: rgba(0,0,0,0.3);
-        color: var(--text-primary);
-      }
-
-      /* Scene cards */
-      .fx-scene-cards {
-        display: flex;
-        gap: 8px;
-        padding: 0 16px 8px;
-      }
-      .fx-scene-card {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        padding: 14px 8px;
-        border-radius: 10px;
-        background: transparent;
-        border: 1px solid var(--border-mid);
-        cursor: pointer;
-        transition: background 0.15s, border-color 0.15s;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .fx-scene-card .fx-swatch {
-        width: 22px; height: 22px;
-        border-radius: 50%;
-        border: 1px solid var(--border-mid);
-      }
-      .fx-scene-name {
-        font-family: 'Pretendard', sans-serif;
-        font-size: 9.5px;
-        font-weight: 300;
-        color: var(--text-secondary);
-        letter-spacing: 0.3px;
-        text-align: center;
-      }
-      .fx-scene-card.active {
-        background: rgba(0,0,0,0.06);
-        border-color: rgba(0,0,0,0.3);
-      }
-      .fx-scene-card.active .fx-scene-name { color: var(--text-primary); }
-
-      /* Utility action row */
-      .fx-util-row {
-        display: flex;
-        gap: 8px;
-        padding: 0 16px calc(12px + env(safe-area-inset-bottom));
-      }
-      .fx-util-btn {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        padding: 10px 6px;
-        border-radius: 10px;
-        background: transparent;
-        border: 1px solid var(--border-mid);
-        cursor: pointer;
-        color: var(--text-secondary);
-        font-family: 'Pretendard', sans-serif;
-        transition: background 0.15s;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .fx-util-btn i { font-size: 18px; }
-      .fx-util-label {
-        font-size: 9px;
-        font-weight: 300;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
-      .fx-util-btn.active { color: var(--text-primary); }
-    }
-
-    /* ── Focus-visible styles ── */
-    .tex-btn:focus-visible,
-    .preset-btn:focus-visible,
-    .mob-btn:focus-visible,
-    #hud .hud-act:focus-visible {
-      outline: 2px solid var(--focus-ring);
-      outline-offset: 2px;
-    }
-
-    /* ── Scenario section ── */
-    #hud-scenarios {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(0,0,0,0.06);
-    }
-    .hud-scen-label {
-      font-size: 8px;
-      font-weight: 400;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    #hud-scenario-btns {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .scenario-btn {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 5px 9px;
-      background: transparent;
-      border: 1px solid var(--border-strong);
-      border-radius: 6px;
-      font-family: 'Pretendard', sans-serif;
-      font-size: 9px;
-      font-weight: 300;
-      text-transform: uppercase;
-      color: #444444;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      pointer-events: all;
-      text-align: left;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
-    }
-    .scenario-btn:hover {
-      background: rgba(0,0,0,0.04);
-      border-color: rgba(0,0,0,0.40);
-      color: #222222;
-    }
-    .scenario-btn.active {
-      background: rgba(0,0,0,0.06);
-      border-color: rgba(0,0,0,0.25);
-    }
-    .scen-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    #scenarioReset {
-      display: none;
-      margin-top: 5px;
-      font-family: 'Pretendard', sans-serif;
-      font-size: 9px;
-      font-weight: 300;
-      letter-spacing: 1px;
-      color: #aaaaaa;
-      cursor: pointer;
-      pointer-events: all;
-      transition: color 0.15s;
-    }
-    #scenarioReset:hover { color: #555555; }
-    #scenarioReset.visible { display: block; }
-
-    /* ── Reduced-motion ── */
-    @media (prefers-reduced-motion: reduce) {
-      .tex-btn, .mob-btn, #texClear, .fx-row, .fx-indicator {
-        transition: none;
-      }
-      #fx-backdrop, #fx-sheet { transition: none; }
-    }
-
-    /* ── Bottom sheet focus-visible ── */
-    .fx-row:focus-visible,
-    .fx-pill-btn:focus-visible,
-    .fx-scene-card:focus-visible,
-    .fx-util-btn:focus-visible {
-      outline: 2px solid var(--focus-ring);
-      outline-offset: -2px;
-    }
-
-    /* ── Dark mode ── */
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --surface-bg:      #1a1a1a;
-        --surface-frosted: rgba(28, 28, 28, 0.97);
-        --border-subtle:   rgba(255, 255, 255, 0.07);
-        --border-mid:      rgba(255, 255, 255, 0.15);
-        --border-strong:   rgba(255, 255, 255, 0.20);
-        --text-primary:    rgba(255, 255, 255, 0.95);
-        --text-secondary:  rgba(255, 255, 255, 0.65);
-        --text-muted:      rgba(255, 255, 255, 0.50);
-      }
-      #hud .hud-row > span:not(.key) { color: var(--text-secondary); }
-      #hud .key        { color: rgba(255,255,255,0.80); }
-      #hud .hud-title  { color: var(--text-primary); }
-      #hud .hud-group-label { color: rgba(255,255,255,0.40); }
-      #hud .hud-group { border-top-color: rgba(255,255,255,0.07); }
-      #hud .row-icon   { color: rgba(255,255,255,0.45); }
-      #hud .hud-act:hover { background: rgba(255,255,255,0.04); }
-      #hud .hud-act.row-on .key {
-        background: rgba(255,255,255,0.10);
-        border-color: rgba(255,255,255,0.35);
-        color: rgba(255,255,255,0.95);
-      }
-      #hud .hud-act.row-on > span:not(.key) { color: var(--text-primary); }
-      .mode-badge      { color: rgba(255,255,255,0.80); }
-      #hud .tex-btn    { color: rgba(255,255,255,0.75); }
-      #hud .tex-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.95); }
-      #hud-texture     { border-top-color: rgba(255, 255, 255, 0.08); }
-      #texClear        { color: rgba(255,255,255,0.35); }
-      #texClear:hover  { color: rgba(255,255,255,0.75); }
-      #presetReset     { color: rgba(255,255,255,0.35); }
-      #presetReset:hover { color: rgba(255,255,255,0.75); }
-      .preset-btn.active {
-        background: rgba(255,255,255,0.08);
-        border-color: rgba(255,255,255,0.30);
-      }
-      .scenario-btn { color: rgba(255,255,255,0.75); }
-      .scenario-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.95); border-color: rgba(255,255,255,0.4); }
-      .scenario-btn.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.30); }
-      #scenarioReset { color: rgba(255,255,255,0.35); }
-      #scenarioReset:hover { color: rgba(255,255,255,0.75); }
-      #hud-scenarios { border-top-color: rgba(255,255,255,0.08); }
-      .fx-row.active .fx-indicator { background: rgba(255,255,255,0.90); }
-      .fx-indicator { background: rgba(255,255,255,0.20); }
-      .fx-pill-btn.active {
-        background: rgba(255,255,255,0.10);
-        border-color: rgba(255,255,255,0.30);
-        color: rgba(255,255,255,0.95);
-      }
-      .fx-scene-card.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.28); }
-      .fx-scene-card.active .fx-scene-name { color: rgba(255,255,255,0.95); }
-      .fx-util-btn.active { color: rgba(255,255,255,0.95); }
-    }
-
-  </style>
-  <style id="hud-redesign-final">
+    /* ── USER SPECIFIED RULES ── */
     body { background: #070707 !important; }
 
     #canvas, #overlay { left: 0 !important; width: 100vw !important; }
@@ -896,9 +56,7 @@
       position: fixed !important;
       top: 20px !important;
       left: 20px !important;
-      width: 180px !important;
-      min-width: 180px !important;
-      max-width: 180px !important;
+      width: 190px !important;
       box-sizing: border-box !important;
       background: rgba(12,12,12,0.88) !important;
       backdrop-filter: blur(12px) !important;
@@ -906,9 +64,8 @@
       border: 1px solid rgba(255,255,255,0.08) !important;
       border-radius: 10px !important;
       padding: 14px !important;
-      height: auto !important;
-      overflow: hidden !important;
       max-height: calc(100vh - 40px) !important;
+      overflow-y: auto !important;
       z-index: 100 !important;
     }
 
@@ -939,31 +96,25 @@
       opacity: 0.4 !important;
       margin-top: 14px !important;
       margin-bottom: 4px !important;
+      color: rgba(255,255,255,0.4) !important;
     }
 
-    #hud hr, #hud .divider {
-      border-color: rgba(255,255,255,0.06) !important;
-      margin: 6px 0 !important;
-    }
-
-    #hud .tab-bar {
-      display: none !important;
-    }
+    #hud .tab-bar { display: none !important; }
+    #hud hr { border-color: rgba(255,255,255,0.06) !important; margin: 6px 0 !important; }
 
     #hud-texture {
       margin-top: 14px !important;
       padding-top: 14px !important;
       border-top: 1px solid rgba(255,255,255,0.06) !important;
       position: static !important;
-      bottom: unset !important;
-      left: unset !important;
     }
 
     #texUploadBtn {
+      display: block !important;
       width: 100% !important;
       box-sizing: border-box !important;
       margin-bottom: 8px !important;
-      padding: 5px !important;
+      padding: 6px !important;
       font-size: 11px !important;
       border: 1px solid rgba(255,255,255,0.15) !important;
       border-radius: 4px !important;
@@ -974,31 +125,138 @@
 
     #hud-presets {
       display: flex !important;
-      gap: 3px !important;
-      flex-wrap: nowrap !important;
+      gap: 4px !important;
       width: 100% !important;
+      box-sizing: border-box !important;
     }
 
     .preset-btn.material-btn {
       flex: 1 !important;
-      font-size: 10px !important;
-      padding: 3px 4px !important;
-      min-width: 0 !important;
+      font-size: 11px !important;
+      padding: 4px 0 !important;
       text-align: center !important;
       border-radius: 4px !important;
       border: 1px solid rgba(255,255,255,0.15) !important;
       background: transparent !important;
       color: white !important;
       cursor: pointer !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
       white-space: nowrap !important;
+      overflow: visible !important;
+      text-overflow: unset !important;
     }
 
     .preset-btn.material-btn.active {
       border-color: white !important;
-      opacity: 1 !important;
     }
+
+    /* ── Mobile layout ≤768px ── */
+    @media (max-width: 768px) {
+      #hud { display: none !important; }
+      #canvas, #overlay { left: 0 !important; width: 100vw !important; }
+
+      #mob-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: calc(48px + env(safe-area-inset-top));
+        padding: 0 16px;
+        padding-top: env(safe-area-inset-top);
+        background: var(--surface-frosted);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-subtle);
+        z-index: 10;
+        pointer-events: none;
+      }
+      #mob-header .mob-title {
+        font-size: 17px;
+        font-weight: 200;
+        letter-spacing: 6px;
+        color: var(--text-primary);
+        text-transform: uppercase;
+      }
+      #mob-header .mob-subtitle {
+        font-size: 12px;
+        font-weight: 300;
+        letter-spacing: 2px;
+        color: var(--text-muted);
+        text-transform: lowercase;
+        margin-top: 4px;
+      }
+
+      #mob-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: calc(64px + env(safe-area-inset-bottom));
+        padding-bottom: env(safe-area-inset-bottom);
+        background: var(--surface-frosted);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid var(--border-subtle);
+        z-index: 10;
+      }
+
+      .mob-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+      }
+      .mob-btn i { font-size: 20px; }
+      .mob-label { font-size: 10px; text-transform: uppercase; }
+      .mob-btn.mode-on { color: var(--text-primary); }
+      .mob-dot {
+        position: absolute;
+        top: 8px;
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--text-primary);
+        opacity: 0;
+      }
+      .mob-btn.mode-on .mob-dot { opacity: 1; }
+
+      #fx-backdrop, #fx-sheet { display: block; }
+      #fx-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+      }
+      #fx-backdrop.open { opacity: 1; pointer-events: auto; }
+      #fx-sheet {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: var(--surface-frosted);
+        border-top: 1px solid var(--border-mid);
+        border-radius: 16px 16px 0 0;
+        padding: 12px 0 calc(20px + env(safe-area-inset-bottom)) 0;
+        z-index: 51;
+        transform: translateY(100%);
+        transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+      }
+      #fx-sheet.open { transform: translateY(0); }
+    }
+
+    /* Scenarios and other shared components */
+    #hud-scenarios { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+    .scenario-btn {
+      display: flex; align-items: center; gap: 7px; padding: 5px 9px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px; font-size: 9px; text-transform: uppercase;
+      color: rgba(255,255,255,0.7); cursor: pointer;
+    }
+    .scenario-btn.active { background: rgba(255,255,255,0.1); border-color: white; }
   </style>
 </head>
 <body>
