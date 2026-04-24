@@ -4622,5 +4622,25 @@ class Cloth {
   window.stopIndicator  = stopIndicator;
 })();
 </script>
+
+<script>
+(function() {
+  const mobRecBtn = document.getElementById('fxRecord') || 
+                    document.getElementById('mob-record') || 
+                    document.querySelector('[data-action="record"]');
+  
+  const sheet = document.getElementById('fx-sheet');
+
+  if (mobRecBtn && sheet) {
+    mobRecBtn.addEventListener('click', function() {
+      // Close the sheet
+      sheet.classList.remove('open', 'active', 'visible', 'sheet-open');
+      sheet.style.transform = 'translateY(100%)';
+      const backdrop = document.getElementById('fx-backdrop');
+      if (backdrop) backdrop.classList.remove('open');
+    });
+  }
+})();
+</script>
 </body>
 </html>
