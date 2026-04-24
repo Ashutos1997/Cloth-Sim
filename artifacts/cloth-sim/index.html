@@ -12,16 +12,41 @@
   <style>
     /* ── Design tokens ── */
     :root {
-      --surface-bg:      #1a1a1a;
-      --surface-frosted: rgba(28, 28, 28, 0.97);
-      --border-subtle:   rgba(255, 255, 255, 0.07);
-      --border-mid:      rgba(255, 255, 255, 0.15);
-      --border-strong:   rgba(255, 255, 255, 0.20);
-      --text-primary:    rgba(255, 255, 255, 0.98);
-      --text-secondary:  rgba(255, 255, 255, 0.65);
-      --text-muted:      rgba(255, 255, 255, 0.58);
-      --focus-ring:      #0066cc;
-      --radius-ui:       8px;
+      /* Backgrounds */
+      --color-surface:        #080808;
+      --color-surface-raised: rgba(12, 12, 12, 0.88);
+      --color-surface-frosted: rgba(17, 17, 17, 0.92);
+
+      /* Borders */
+      --color-border:         rgba(255, 255, 255, 0.06);
+      --color-border-subtle:  rgba(255, 255, 255, 0.04);
+      --color-border-active:  rgba(255, 255, 255, 0.60);
+
+      /* Text */
+      --color-text-primary:   rgba(255, 255, 255, 0.80);
+      --color-text-secondary: rgba(255, 255, 255, 0.45);
+      --color-text-tertiary:  rgba(255, 255, 255, 0.30);
+      --color-text-disabled:  rgba(255, 255, 255, 0.20);
+
+      /* Accents */
+      --color-accent-rec:     #ff3b3b;
+      --color-accent-active:  rgba(255, 255, 255, 0.05);
+
+      /* Spacing Scale */
+      --space-2xs: 2px;
+      --space-xs:  4px;
+      --space-sm:  8px;
+      --space-md:  12px;
+      --space-lg:  16px;
+      --space-xl:  20px;
+      --space-2xl: 24px;
+
+      /* Z-Index Scale */
+      --z-canvas:    1;
+      --z-hud:       100;
+      --z-sheet:     200;
+      --z-indicator: 300;
+      --z-overlay:   400;
     }
 
     /* ── Reset & layout ── */
@@ -29,8 +54,8 @@
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      background: var(--surface-bg);
-      font-family: 'Pretendard', sans-serif;
+      background: var(--color-surface);
+      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
     }
     #canvas {
       display: block;
@@ -63,8 +88,8 @@
       filter: url(#grain);
       opacity: 0;
       pointer-events: none;
-      z-index: 1;
-      transition: opacity 0.3s ease;
+      z-index: var(--z-canvas);
+      transition: opacity 200ms ease;
     }
     #grain-overlay.active { opacity: 0.10; }
     @media (prefers-color-scheme: dark) {
@@ -86,18 +111,18 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
-      padding: 32px 28px;
+      padding: var(--space-xl) var(--space-lg);
       box-sizing: border-box;
-      background: var(--surface-frosted);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border-right: 1px solid var(--border-subtle);
-      font-family: 'Pretendard', sans-serif;
-      color: var(--text-muted);
+      background: var(--color-surface-frosted);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-right: 1px solid var(--color-border-subtle);
+      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      color: var(--color-text-tertiary);
       pointer-events: none;
       user-select: none;
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
-      z-index: 50;
+      transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1), opacity 200ms ease;
+      z-index: var(--z-hud);
     }
     .hud-hidden {
       transform: translateX(-100%);
@@ -111,22 +136,22 @@
 
     /* Brand title */
     #hud .hud-title {
-      font-size: 26px;
+      font-size: 20px;
       font-weight: 200;
-      letter-spacing: 8px;
-      color: var(--text-primary);
-      text-transform: uppercase;
-      margin-bottom: 4px;
+      letter-spacing: 0.3em;
+      color: var(--color-text-primary);
+      text-transform: none;
+      margin-bottom: var(--space-xs);
     }
 
     /* Subtitle */
     #hud .hud-subtitle {
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 300;
-      letter-spacing: 2px;
-      color: var(--text-muted);
-      text-transform: lowercase;
-      margin-bottom: 24px;
+      letter-spacing: 0.18em;
+      color: var(--color-text-secondary);
+      text-transform: none;
+      margin-bottom: var(--space-2xl);
     }
 
     /* Group wrapper */
@@ -169,12 +194,14 @@
     #hud .hud-row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      line-height: 1;
-      margin: 0 -7px;
-      padding: 3px 7px;
-      border-radius: 6px;
-      transition: background 0.12s;
+      gap: var(--space-sm);
+      padding: 6px 0;
+      border-bottom: 1px solid var(--color-border-subtle);
+      transition: opacity 150ms ease-out, border-color 150ms ease-out;
+      opacity: 0.50;
+    }
+    #hud .hud-row:last-of-type {
+      border-bottom: none;
     }
 
     /* Icon slot */
@@ -198,31 +225,43 @@
 
     /* Control label text */
     #hud .hud-row > span:not(.key) {
-      font-size: 13px;
-      font-weight: 300;
-      color: var(--text-secondary);
-      letter-spacing: 0.3px;
-      transition: color 0.12s;
+      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--color-text-primary);
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+      transition: color 150ms ease-out;
     }
 
-    /* Key badge — outline only, no fill */
+    #hud .hud-act:hover {
+      opacity: 0.75;
+    }
+    #hud .hud-act.mode-on,
+    #hud .hud-act.row-on {
+      opacity: 1.00;
+    }
+
+    /* Key badge — minimal outline */
     #hud .key {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 30px;
-      padding: 4px 8px;
+      min-width: 16px;
+      padding: 1px 5px;
       background: transparent;
-      border: 1px solid var(--border-mid);
-      border-radius: var(--radius-ui);
-      font-family: 'Pretendard', sans-serif;
-      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.20);
+      border-radius: 3px;
+      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-size: 10px;
       font-weight: 400;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.90);
-      letter-spacing: 1px;
+      color: white;
+      opacity: 0.60;
+      letter-spacing: 0.02em;
       flex-shrink: 0;
-      transition: background 0.12s, border-color 0.12s, color 0.12s;
+      text-align: center;
+      transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out, opacity 150ms ease-out;
     }
 
     /* Active row — key badge fills, label brightens */
@@ -285,7 +324,7 @@
       background: transparent;
       border: 1px solid var(--border-strong);
       color: rgba(255, 255, 255, 0.90);
-      font-family: 'Pretendard', sans-serif;
+      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 12px;
       font-weight: 400;
       letter-spacing: 1px;
@@ -318,7 +357,7 @@
       cursor: pointer;
       padding: 3px 8px;
       border-radius: 4px;
-      transition: all 0.2s;
+      transition: opacity 150ms ease-out, border-color 150ms ease-out;
       border: 1px solid transparent;
       letter-spacing: 0.02em;
     }
@@ -337,8 +376,8 @@
       padding: 6px 12px;
       border-radius: var(--radius-ui);
       cursor: pointer;
-      transition: all 0.2s;
-      font-family: 'Pretendard', sans-serif;
+      transition: opacity 150ms ease-out, border-color 150ms ease-out;
+      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
     }
     .lang-pill.active {
       background: rgba(255,255,255,0.1);
@@ -352,7 +391,7 @@
       bottom: 28px;
       left: calc(280px + (100vw - 280px) / 2);
       transform: translateX(-50%);
-      font-family: 'Pretendard', sans-serif;
+      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 12px;
       font-weight: 300;
       letter-spacing: 6px;
@@ -386,7 +425,7 @@
       background: transparent;
       border: 1px solid var(--border-strong);
       border-radius: var(--radius-ui);
-      font-family: 'Pretendard', sans-serif;
+      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 12px;
       font-weight: 300;
       text-transform: uppercase;
@@ -404,7 +443,7 @@
     #texClear {
       display: none;
       margin-top: 10px;
-      font-family: 'Pretendard', sans-serif;
+      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 12px;
       font-weight: 300;
       letter-spacing: 0.5px;
@@ -477,35 +516,35 @@
         user-select: none;
       }
       #mob-header .mob-title {
-        font-size: 17px;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-weight: 200;
-        letter-spacing: 6px;
-        color: var(--text-primary);
-        text-transform: uppercase;
+        font-size: 18px;
+        letter-spacing: 0.30em;
+        color: var(--color-text-primary);
+        text-transform: none;
         line-height: 1;
       }
       #mob-header .mob-subtitle {
-        font-size: 12px;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-weight: 300;
-        letter-spacing: 2px;
-        color: var(--text-muted);
-        text-transform: lowercase;
-        margin-top: 4px;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        color: var(--color-text-tertiary);
+        text-transform: none;
+        margin-top: var(--space-xs);
       }
 
       #mob-nav {
         display: flex;
         position: fixed;
         bottom: 0; left: 0; right: 0;
-        height: calc(64px + env(safe-area-inset-bottom));
-        padding-bottom: env(safe-area-inset-bottom);
-        padding-left:  max(16px, env(safe-area-inset-left));
-        padding-right: max(16px, env(safe-area-inset-right));
-        background: var(--surface-frosted);
+        height: 60px;
+        padding: 0 var(--space-lg);
+        background: var(--color-surface-frosted);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border-top: 1px solid var(--border-subtle);
-        z-index: 10;
+        border-top: 1px solid var(--color-border);
+        z-index: var(--z-hud);
         align-items: stretch;
       }
 
@@ -527,10 +566,10 @@
       }
       .mob-btn i { font-size: 20px; line-height: 1; }
       .mob-label {
-        font-family: 'Pretendard', sans-serif;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 10px;
-        font-weight: 300;
-        letter-spacing: 1.5px;
+        font-weight: 400;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
       }
       .mob-btn.mode-on { color: var(--text-primary); }
@@ -565,14 +604,18 @@
       }
       #fx-sheet {
         position: fixed;
-        bottom: 0; left: 0; right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
         background: var(--surface-frosted);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border-top: 1px solid var(--border-mid);
         border-radius: 16px 16px 0 0;
-        padding: 12px 0 calc(20px + env(safe-area-inset-bottom)) 0;
-        z-index: 51;
+        padding: var(--space-md) var(--space-xl) var(--space-2xl);
+        z-index: var(--z-sheet);
         transform: translateY(100%);
-        transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+        transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
       }
       #fx-sheet.open {
         transform: translateY(0);
@@ -586,7 +629,7 @@
       }
       /* Section title */
       .fx-title {
-        font-family: 'Pretendard', sans-serif;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 9px;
         font-weight: 500;
         letter-spacing: 2.5px;
@@ -613,7 +656,7 @@
         border-top: 1px solid var(--border-subtle);
         cursor: pointer;
         color: var(--text-secondary);
-        font-family: 'Pretendard', sans-serif;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 14px;
         font-weight: 300;
         letter-spacing: 0.3px;
@@ -678,7 +721,7 @@
         border: 1px solid var(--border-mid);
         cursor: pointer;
         color: var(--text-secondary);
-        font-family: 'Pretendard', sans-serif;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 11px;
         font-weight: 300;
         letter-spacing: 0.5px;
@@ -723,7 +766,7 @@
         border: 1px solid var(--border-mid);
       }
       .fx-scene-name {
-        font-family: 'Pretendard', sans-serif;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 9.5px;
         font-weight: 300;
         color: var(--text-secondary);
@@ -754,7 +797,7 @@
         border: 1px solid var(--border-mid);
         cursor: pointer;
         color: var(--text-secondary);
-        font-family: 'Pretendard', sans-serif;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
         transition: background 0.15s;
         -webkit-tap-highlight-color: transparent;
       }
@@ -804,7 +847,7 @@
       background: transparent;
       border: 1px solid var(--border-strong);
       border-radius: 6px;
-      font-family: 'Pretendard', sans-serif;
+      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 9px;
       font-weight: 300;
       text-transform: uppercase;
@@ -832,7 +875,7 @@
     #scenarioReset {
       display: none;
       margin-top: 5px;
-      font-family: 'Pretendard', sans-serif;
+      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 9px;
       font-weight: 300;
       letter-spacing: 1px;
@@ -1403,7 +1446,7 @@
       /* Dividers between rows */
       #hud .hud-act + #hud .hud-act,
       .hud-row + .hud-row {
-        border-top: 1px solid rgba(255,255,255,0.04) !important;
+        border-top: 1px solid var(--color-border-subtle) !important;
       }
 
       /* Remove extra gaps between groups */
@@ -1438,10 +1481,10 @@
 
       /* Even spacing above every section header */
       #hud .hud-group-label, #hud .hud-section-title {
-        margin-top: 20px !important;
-        margin-bottom: 8px !important;
-        padding-top: 12px !important;
-        border-top: 1px solid rgba(255,255,255,0.06) !important;
+        margin-top: var(--space-xl) !important;
+        margin-bottom: var(--space-sm) !important;
+        padding-top: var(--space-md) !important;
+        border-top: 1px solid var(--color-border) !important;
         display: block !important;
         width: 100% !important;
       }
@@ -1743,10 +1786,10 @@
     body {
       background-image: 
         radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px),
-        radial-gradient(ellipse 55% 65% at 62% 42%, rgba(60,60,70,0.35) 0%, rgba(30,30,35,0.2) 35%, rgba(8,8,8,1) 70%) !important;
+        radial-gradient(ellipse 55% 65% at 62% 42%, rgba(60,60,70,0.35) 0%, rgba(30,30,35,0.2) 35%, var(--color-surface) 70%) !important;
       background-size: 24px 24px, 100% 100% !important;
       background-position: 0 0, 0 0 !important;
-      background-color: #080808 !important;
+      background-color: var(--color-surface) !important;
     }
 
     canvas {
@@ -1757,13 +1800,13 @@
     @media (min-width: 768px) {
       #canvas-meta {
         position: fixed !important;
-        bottom: 24px !important;
-        right: 24px !important;
+        bottom: var(--space-2xl) !important;
+        right: var(--space-2xl) !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: flex-end !important;
-        gap: 4px !important;
-        z-index: 50 !important;
+        gap: var(--space-xs) !important;
+        z-index: var(--z-hud) !important;
         pointer-events: none !important;
       }
 
@@ -1771,18 +1814,18 @@
         font-size: 10px !important;
         letter-spacing: 0.1em !important;
         text-transform: uppercase !important;
-        color: rgba(255,255,255,0.3) !important;
+        color: var(--color-text-tertiary) !important;
         font-family: inherit !important;
         display: block !important;
       }
 
       #canvas-meta .meta-row.meta-active {
-        color: rgba(255,255,255,0.6) !important;
+        color: var(--color-text-secondary) !important;
       }
 
       #canvas-meta .meta-fps {
         font-size: 11px !important;
-        color: rgba(255,255,255,0.2) !important;
+        color: var(--color-text-disabled) !important;
         letter-spacing: 0.08em !important;
       }
 
@@ -1808,22 +1851,22 @@
 
       /* HUD Refinements */
       #hud { 
-        padding: 20px 16px 20px 16px !important; 
+        padding: var(--space-xl) var(--space-lg) var(--space-xl) var(--space-lg) !important; 
         display: flex !important;
         flex-direction: column !important;
         gap: 0 !important;
       }
       
-      #hudSubtitle { margin-bottom: 20px !important; }
+      #hudSubtitle { margin-bottom: var(--space-xl) !important; }
 
       .hud-group-label { 
         font-size: 9px !important;
         letter-spacing: 0.14em !important;
         opacity: 0.35 !important;
-        margin-top: 20px !important;
+        margin-top: var(--space-xl) !important;
         margin-bottom: 6px !important;
-        padding-top: 16px !important;
-        border-top: 1px solid rgba(255,255,255,0.06) !important;
+        padding-top: var(--space-lg) !important;
+        border-top: 1px solid var(--color-border) !important;
         padding-left: 0 !important;
         display: block !important;
       }
@@ -1837,7 +1880,7 @@
       .hud-row.hud-act {
         padding: 6px 0 !important;
         gap: 10px !important;
-        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+        border-bottom: 1px solid var(--color-border-subtle) !important;
       }
 
       .hud-row.hud-act:last-of-type {
@@ -1862,10 +1905,10 @@
         padding: 6px 0 !important;
         font-size: 12px !important;
         border: none !important;
-        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+        border-bottom: 1px solid var(--color-border-subtle) !important;
         border-radius: 0 !important;
         background: transparent !important;
-        color: rgba(255,255,255,0.75) !important;
+        color: var(--color-text-secondary) !important;
         text-align: left !important;
         cursor: pointer !important;
         box-sizing: border-box !important;
@@ -1895,16 +1938,16 @@
         border-radius: 4px !important;
         border: 1px solid rgba(255,255,255,0.12) !important;
         background: transparent !important;
-        color: rgba(255,255,255,0.65) !important;
+        color: var(--color-text-secondary) !important;
         text-align: center !important;
         letter-spacing: 0.06em !important;
         text-transform: lowercase !important;
       }
 
       .preset-btn.material-btn.active {
-        border-color: rgba(255,255,255,0.6) !important;
-        color: rgba(255,255,255,0.95) !important;
-        background: rgba(255,255,255,0.05) !important;
+        border-color: var(--color-border-active) !important;
+        color: var(--color-text-primary) !important;
+        background: var(--color-accent-active) !important;
       }
     }
 
@@ -1924,7 +1967,7 @@
         font-weight: 300 !important;
         letter-spacing: 0.18em !important;
         font-size: 10px !important;
-        opacity: 0.4 !important;
+        opacity: var(--color-text-tertiary) !important;
         font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif !important;
       }
 
@@ -1936,9 +1979,10 @@
         left: 50% !important;
         transform: translateX(-50%) !important;
         background: rgba(0,0,0,0.5) !important;
-        padding: 4px 12px !important;
+        padding: var(--space-xs) var(--space-md) !important;
         border-radius: 20px !important;
         backdrop-filter: blur(8px) !important;
+        z-index: var(--z-indicator) !important;
       }
     }
   </style>
@@ -1956,10 +2000,10 @@
 <canvas id="overlay"></canvas>
 <div id="grain-overlay"></div>
 
-<div id="rec-indicator" style="display:none; position:fixed; top:20px; right:24px; z-index:200; align-items:center; gap:6px; pointer-events:none;">
-  <div id="rec-dot" style="width:8px; height:8px; border-radius:50%; background:#ff3b3b;"></div>
-  <span id="rec-label" style="font-size:10px; letter-spacing:0.12em; color:rgba(255,255,255,0.9); font-family:inherit;">REC</span>
-  <span id="rec-timer" style="font-size:10px; letter-spacing:0.08em; color:rgba(255,255,255,0.6); font-family:inherit;">0:00</span>
+<div id="rec-indicator" style="display:none; position:fixed; top:var(--space-xl); right:var(--space-2xl); z-index:var(--z-indicator); align-items:center; gap:var(--space-sm); pointer-events:none;">
+  <div id="rec-dot" style="width:var(--space-sm); height:var(--space-sm); border-radius:50%; background:var(--color-accent-rec);"></div>
+  <span id="rec-label" style="font-size:10px; letter-spacing:0.12em; color:var(--color-text-primary); font-family:inherit;">REC</span>
+  <span id="rec-timer" style="font-size:10px; letter-spacing:0.08em; color:var(--color-text-tertiary); font-family:inherit;">0:00</span>
 </div>
 
 <!-- Metadata Overlay (Desktop only) -->
@@ -2014,9 +2058,9 @@
     <div id="presetReset" style="border:none !important; margin-bottom: 10px;"><span data-i18n="default">↩&nbsp;&nbsp;default</span></div>
 
     <!-- Language Switch -->
-    <div style="margin-top: 0; padding-top: 0; border-top: none; pointer-events: all; display: flex; align-items: center; gap: 10px;">
+    <div style="margin-top: 0; padding-top: 0; border-top: none; pointer-events: all; display: flex; align-items: center; gap: var(--space-md);">
       <span style="opacity:0.4; font-size:12px; display:flex;"><i class="ph ph-globe"></i></span>
-      <div style="display: flex; gap: 4px;">
+      <div style="display: flex; gap: var(--space-xs);">
         <span class="lang-btn active" id="btnLangEng">ENG</span>
         <span class="lang-btn" id="btnLangKor">한글</span>
       </div>
