@@ -1,0 +1,3031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloth Simulation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@200;300;400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.css" />
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <style>
+    /* ── Design tokens ── */
+    :root {
+      --surface-bg:      #f5f5f5;
+      --surface-frosted: rgba(248, 248, 248, 0.97);
+      --border-subtle:   rgba(0, 0, 0, 0.07);
+      --border-mid:      rgba(0, 0, 0, 0.15);
+      --border-strong:   rgba(0, 0, 0, 0.20);
+      --text-primary:    #111111;
+      --text-secondary:  #666666;
+      --text-muted:      #767676;
+      --focus-ring:      #0066cc;
+    }
+
+    /* ── Reset & layout ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--surface-bg);
+      font-family: 'Pretendard', sans-serif;
+    }
+    #canvas {
+      display: block;
+      position: fixed;
+      left: 280px;
+      top: 0;
+      width: calc(100vw - 280px);
+      height: 100vh;
+    }
+
+    /* ── Overlay canvas — 2D decorations (pinned dots, drag, tear cursor) ── */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 280px;
+      width: calc(100vw - 280px);
+      height: 100%;
+      pointer-events: none;
+      display: block;
+    }
+
+    /* ── Film grain overlay — canvas area only ── */
+    #grain-overlay {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 280px;
+      width: calc(100vw - 280px);
+      height: 100vh;
+      filter: url(#grain);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 1;
+      transition: opacity 0.3s ease;
+    }
+    #grain-overlay.active { opacity: 0.10; }
+    @media (prefers-color-scheme: dark) {
+      #grain-overlay.active { opacity: 0.14; }
+    }
+    @media (max-width: 768px) {
+      #grain-overlay { left: 0; width: 100vw; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #grain-overlay { transition: none; }
+    }
+
+    /* ── HUD panel — full-height left panel ── */
+    #hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 28px;
+      box-sizing: border-box;
+      border-right: 1px solid var(--border-subtle);
+      font-family: 'Pretendard', sans-serif;
+      color: var(--text-muted);
+      pointer-events: none;
+      user-select: none;
+      transition: opacity 0.4s ease;
+      z-index: 5;
+    }
+    .hud-hidden {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    .hud-hidden * { pointer-events: none !important; }
+    @media (prefers-reduced-motion: reduce) {
+      #hud { transition: none; }
+    }
+
+    /* Brand title */
+    #hud .hud-title {
+      font-size: 26px;
+      font-weight: 200;
+      letter-spacing: 8px;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    /* Subtitle */
+    #hud .hud-subtitle {
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 3.5px;
+      color: var(--text-muted);
+      text-transform: lowercase;
+      margin-bottom: 18px;
+    }
+
+    /* Group wrapper */
+    #hud .hud-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 14px;
+      padding-bottom: 10px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+    #hud .hud-group:first-child {
+      padding-top: 0;
+      border-top: none;
+    }
+
+    /* Micro section header */
+    #hud .hud-group-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      opacity: 1;
+      padding: 0 2px;
+      margin-bottom: 1px;
+      margin-top: 0;
+    }
+
+    /* Middle controls container — fills available space */
+    #hud .hud-controls {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    /* Each control row */
+    #hud .hud-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1;
+      margin: 0 -7px;
+      padding: 3px 7px;
+      border-radius: 6px;
+      transition: background 0.12s;
+    }
+
+    /* Icon slot */
+    #hud .row-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+      opacity: 1;
+      flex-shrink: 0;
+    }
+
+    /* Interactive rows — clickable on desktop */
+    #hud .hud-act {
+      pointer-events: all;
+      cursor: pointer;
+    }
+    #hud .hud-act:hover { background: rgba(0, 0, 0, 0.04); }
+
+    /* Control label text */
+    #hud .hud-row > span:not(.key) {
+      font-size: 10.5px;
+      font-weight: 300;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+      transition: color 0.12s;
+    }
+
+    /* Key badge — outline only, no fill */
+    #hud .key {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      padding: 3px 7px;
+      background: transparent;
+      border: 1px solid var(--border-mid);
+      border-radius: 6px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 8px;
+      font-weight: 400;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      letter-spacing: 1.5px;
+      flex-shrink: 0;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+
+    /* Active row — key badge fills, label brightens */
+    #hud .hud-act.row-on .key {
+      background: rgba(0, 0, 0, 0.08);
+      border-color: rgba(0, 0, 0, 0.30);
+      color: #1a1a1a;
+    }
+    #hud .hud-act.row-on > span:not(.key) {
+      color: var(--text-primary);
+    }
+
+    /* Separator — hidden; separation is handled by border-top on #hud-texture */
+    #hud .hud-sep {
+      display: none;
+    }
+
+    /* Mode badge row */
+    #hud .hud-modes {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-height: 0;
+    }
+
+    /* Individual mode badge */
+    .mode-badge {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      font-family: 'Pretendard', sans-serif;
+      font-size: 8px;
+      font-weight: 400;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .mode-badge.visible { display: inline-flex; }
+    .mode-badge::before {
+      content: '';
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* Preset colour swatch dot */
+    .preset-swatch {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      margin-right: 2px;
+    }
+
+    /* ── Bottom canvas label — centered in the canvas area (right of panel) ── */
+    #canvas-label {
+      position: fixed;
+      bottom: 28px;
+      left: calc(280px + (100vw - 280px) / 2);
+      transform: translateX(-50%);
+      font-family: 'Pretendard', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 7px;
+      color: var(--text-muted);
+      text-transform: lowercase;
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+      opacity: 0.7;
+    }
+
+    /* ── Mobile header + nav bar — hidden on desktop ── */
+    #mob-header { display: none; }
+    #mob-nav    { display: none; }
+
+    /* ── Effects sheet + backdrop — hidden outside mobile media query ── */
+    #fx-backdrop, #fx-sheet { display: none; }
+
+    /* ── Bottom tools section — pinned to bottom ── */
+    #hud-texture {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    #texFile { display: none; }
+    #hud .tex-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      text-transform: uppercase;
+      color: #444444;
+      letter-spacing: 2px;
+      cursor: pointer;
+      pointer-events: all;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    #hud .tex-btn:hover {
+      background: rgba(0, 0, 0, 0.04);
+      border-color: rgba(0, 0, 0, 0.40);
+      color: #222222;
+    }
+    #texClear {
+      display: none;
+      margin-top: 8px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 1px;
+      color: #aaaaaa;
+      cursor: pointer;
+      pointer-events: all;
+      transition: color 0.15s;
+    }
+    #texClear:hover { color: #555555; }
+    #texClear.visible { display: block; }
+
+    #hud-presets {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .preset-btn.active {
+      background: rgba(0, 0, 0, 0.06);
+      border-color: rgba(0, 0, 0, 0.25);
+    }
+    #presetReset {
+      display: none;
+      margin-top: 6px;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 1px;
+      color: #aaaaaa;
+      cursor: pointer;
+      pointer-events: all;
+      transition: color 0.15s;
+    }
+    #presetReset:hover { color: #555555; }
+    #presetReset.visible { display: block; }
+
+    /* Volume meter bar inside mic badge */
+    .mic-meter {
+      display: inline-block;
+      height: 6px;
+      width: 0px;
+      max-width: 40px;
+      background: #888888;
+      border-radius: 3px;
+      transition: width 0.05s ease;
+    }
+
+    /* ── Mobile layout ≤768px ── */
+    @media (max-width: 768px) {
+      #hud, #canvas-label { display: none !important; }
+      /* Restore full-width canvas on mobile — no panel offset */
+      #canvas  { left: 0; width: 100vw; }
+      #overlay { left: 0; width: 100%; }
+
+      #mob-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: calc(48px + env(safe-area-inset-top));
+        padding: 0 16px;
+        padding-top: env(safe-area-inset-top);
+        /* Ensure visual center is physical center even with a notch */
+        padding-left:  max(16px, env(safe-area-inset-left), env(safe-area-inset-right));
+        padding-right: max(16px, env(safe-area-inset-left), env(safe-area-inset-right));
+        background: var(--surface-frosted);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-subtle);
+        z-index: 10;
+        pointer-events: none;
+        user-select: none;
+      }
+      #mob-header .mob-title {
+        font-size: 17px;
+        font-weight: 200;
+        letter-spacing: 6px;
+        text-indent: 6px; /* center compensation for letter-spacing */
+        color: var(--text-primary);
+        text-transform: uppercase;
+        line-height: 1;
+      }
+      #mob-header .mob-subtitle {
+        font-size: 12px;
+        font-weight: 300;
+        letter-spacing: 2px;
+        text-indent: 2px; /* center compensation for letter-spacing */
+        color: var(--text-muted);
+        text-transform: lowercase;
+        margin-top: 4px;
+      }
+
+      #mob-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: calc(64px + env(safe-area-inset-bottom));
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left:  max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        background: var(--surface-frosted);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid var(--border-subtle);
+        z-index: 10;
+        align-items: stretch;
+      }
+
+      .mob-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: color 0.15s;
+        -webkit-tap-highlight-color: transparent;
+        position: relative;
+      }
+      .mob-btn i { font-size: 20px; line-height: 1; }
+      .mob-label {
+        font-family: 'Pretendard', sans-serif;
+        font-size: 10px;
+        font-weight: 300;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+      }
+      .mob-btn.mode-on { color: var(--text-primary); }
+      .mob-btn:active  { color: var(--text-secondary); }
+      /* Active indicator dot above icon */
+      .mob-dot {
+        position: absolute;
+        top: 8px;
+        width: 4px; height: 4px;
+        border-radius: 50%;
+        background: var(--text-primary);
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      .mob-btn.mode-on .mob-dot { opacity: 1; }
+
+      /* ── Effects bottom sheet — re-enable inside mobile query ── */
+      #fx-backdrop, #fx-sheet { display: block; }
+
+      #fx-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+      }
+      #fx-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #fx-sheet {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: var(--surface-frosted);
+        border-top: 1px solid var(--border-mid);
+        border-radius: 16px 16px 0 0;
+        padding: 12px 0 calc(20px + env(safe-area-inset-bottom)) 0;
+        z-index: 51;
+        transform: translateY(100%);
+        transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+      }
+      #fx-sheet.open {
+        transform: translateY(0);
+      }
+      .fx-handle {
+        width: 32px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border-mid);
+        margin: 0 auto 20px;
+      }
+      /* Section title */
+      .fx-title {
+        font-family: 'Pretendard', sans-serif;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        padding: 14px 20px 8px;
+        border-top: 1px solid var(--border-subtle);
+        margin-top: 6px;
+      }
+      /* First section title — no divider above it */
+      #fxTitleEffects {
+        border-top: none;
+        padding-top: 0;
+        margin-top: 0;
+      }
+
+      .fx-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 13px 20px;
+        background: transparent;
+        border: none;
+        border-top: 1px solid var(--border-subtle);
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-family: 'Pretendard', sans-serif;
+        font-size: 14px;
+        font-weight: 300;
+        letter-spacing: 0.3px;
+        gap: 14px;
+        -webkit-tap-highlight-color: transparent;
+        transition: color 0.15s;
+      }
+      .fx-row:first-of-type { border-top: none; }
+      .fx-row i { font-size: 20px; flex-shrink: 0; }
+      .fx-label { flex: 1; text-align: left; }
+      .fx-indicator {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--border-mid);
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+      .fx-row.active { color: var(--text-primary); }
+      .fx-row.active .fx-indicator { background: var(--text-primary); }
+
+      /* Scrollable sheet on short phones */
+      #fx-sheet {
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      /* Colour swatch in texture rows */
+      .fx-swatch {
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        flex-shrink: 0;
+        border: 1px solid var(--border-mid);
+      }
+
+      /* ↩ default row — hidden until a texture is active */
+      .fx-reset-row { display: none; }
+      .fx-reset-row.visible { display: flex; }
+      .fx-reset-row .fx-label {
+        color: var(--text-muted);
+        font-size: 12px;
+        letter-spacing: 0.3px;
+      }
+
+      /* Material pill row */
+      .fx-pill-row {
+        display: flex;
+        gap: 8px;
+        padding: 0 16px 8px;
+      }
+      .fx-pill-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 14px 8px;
+        border-radius: 10px;
+        background: transparent;
+        border: 1px solid var(--border-mid);
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-family: 'Pretendard', sans-serif;
+        font-size: 11px;
+        font-weight: 300;
+        letter-spacing: 0.5px;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fx-pill-btn .fx-swatch {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        border: 1px solid var(--border-mid);
+        flex-shrink: 0;
+      }
+      .fx-pill-btn.active {
+        background: rgba(0,0,0,0.06);
+        border-color: rgba(0,0,0,0.3);
+        color: var(--text-primary);
+      }
+
+      /* Scene cards */
+      .fx-scene-cards {
+        display: flex;
+        gap: 8px;
+        padding: 0 16px 8px;
+      }
+      .fx-scene-card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 8px;
+        border-radius: 10px;
+        background: transparent;
+        border: 1px solid var(--border-mid);
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fx-scene-card .fx-swatch {
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        border: 1px solid var(--border-mid);
+      }
+      .fx-scene-name {
+        font-family: 'Pretendard', sans-serif;
+        font-size: 9.5px;
+        font-weight: 300;
+        color: var(--text-secondary);
+        letter-spacing: 0.3px;
+        text-align: center;
+      }
+      .fx-scene-card.active {
+        background: rgba(0,0,0,0.06);
+        border-color: rgba(0,0,0,0.3);
+      }
+      .fx-scene-card.active .fx-scene-name { color: var(--text-primary); }
+
+      /* Utility action row */
+      .fx-util-row {
+        display: flex;
+        gap: 8px;
+        padding: 0 16px calc(12px + env(safe-area-inset-bottom));
+      }
+      .fx-util-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        padding: 10px 6px;
+        border-radius: 10px;
+        background: transparent;
+        border: 1px solid var(--border-mid);
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-family: 'Pretendard', sans-serif;
+        transition: background 0.15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fx-util-btn i { font-size: 18px; }
+      .fx-util-label {
+        font-size: 9px;
+        font-weight: 300;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .fx-util-btn.active { color: var(--text-primary); }
+    }
+
+    /* ── Focus-visible styles ── */
+    .tex-btn:focus-visible,
+    .preset-btn:focus-visible,
+    .mob-btn:focus-visible,
+    #hud .hud-act:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    /* ── Scenario section ── */
+    #hud-scenarios {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+    .hud-scen-label {
+      font-size: 8px;
+      font-weight: 400;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    #hud-scenario-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .scenario-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 9px;
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      text-transform: uppercase;
+      color: #444444;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      pointer-events: all;
+      text-align: left;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .scenario-btn:hover {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.40);
+      color: #222222;
+    }
+    .scenario-btn.active {
+      background: rgba(0,0,0,0.06);
+      border-color: rgba(0,0,0,0.25);
+    }
+    .scen-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    #scenarioReset {
+      display: none;
+      margin-top: 5px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 1px;
+      color: #aaaaaa;
+      cursor: pointer;
+      pointer-events: all;
+      transition: color 0.15s;
+    }
+    #scenarioReset:hover { color: #555555; }
+    #scenarioReset.visible { display: block; }
+
+    /* ── Reduced-motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      .tex-btn, .mob-btn, #texClear, .fx-row, .fx-indicator {
+        transition: none;
+      }
+      #fx-backdrop, #fx-sheet { transition: none; }
+    }
+
+    /* ── Bottom sheet focus-visible ── */
+    .fx-row:focus-visible,
+    .fx-pill-btn:focus-visible,
+    .fx-scene-card:focus-visible,
+    .fx-util-btn:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: -2px;
+    }
+
+    /* ── Dark mode ── */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface-bg:      #1a1a1a;
+        --surface-frosted: rgba(28, 28, 28, 0.97);
+        --border-subtle:   rgba(255, 255, 255, 0.07);
+        --border-mid:      rgba(255, 255, 255, 0.15);
+        --border-strong:   rgba(255, 255, 255, 0.20);
+        --text-primary:    rgba(255, 255, 255, 0.95);
+        --text-secondary:  rgba(255, 255, 255, 0.65);
+        --text-muted:      rgba(255, 255, 255, 0.50);
+      }
+      #hud .hud-row > span:not(.key) { color: var(--text-secondary); }
+      #hud .key        { color: rgba(255,255,255,0.80); }
+      #hud .hud-title  { color: var(--text-primary); }
+      #hud .hud-group-label { color: rgba(255,255,255,0.40); }
+      #hud .hud-group { border-top-color: rgba(255,255,255,0.07); }
+      #hud .row-icon   { color: rgba(255,255,255,0.45); }
+      #hud .hud-act:hover { background: rgba(255,255,255,0.04); }
+      #hud .hud-act.row-on .key {
+        background: rgba(255,255,255,0.10);
+        border-color: rgba(255,255,255,0.35);
+        color: rgba(255,255,255,0.95);
+      }
+      #hud .hud-act.row-on > span:not(.key) { color: var(--text-primary); }
+      .mode-badge      { color: rgba(255,255,255,0.80); }
+      #hud .tex-btn    { color: rgba(255,255,255,0.75); }
+      #hud .tex-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.95); }
+      #hud-texture     { border-top-color: rgba(255, 255, 255, 0.08); }
+      #texClear        { color: rgba(255,255,255,0.35); }
+      #texClear:hover  { color: rgba(255,255,255,0.75); }
+      #presetReset     { color: rgba(255,255,255,0.35); }
+      #presetReset:hover { color: rgba(255,255,255,0.75); }
+      .preset-btn.active {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.30);
+      }
+      .scenario-btn { color: rgba(255,255,255,0.75); }
+      .scenario-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.95); border-color: rgba(255,255,255,0.4); }
+      .scenario-btn.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.30); }
+      #scenarioReset { color: rgba(255,255,255,0.35); }
+      #scenarioReset:hover { color: rgba(255,255,255,0.75); }
+      #hud-scenarios { border-top-color: rgba(255,255,255,0.08); }
+      .fx-row.active .fx-indicator { background: rgba(255,255,255,0.90); }
+      .fx-indicator { background: rgba(255,255,255,0.20); }
+      .fx-pill-btn.active {
+        background: rgba(255,255,255,0.10);
+        border-color: rgba(255,255,255,0.30);
+        color: rgba(255,255,255,0.95);
+      }
+      .fx-scene-card.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.28); }
+      .fx-scene-card.active .fx-scene-name { color: rgba(255,255,255,0.95); }
+      .fx-util-btn.active { color: rgba(255,255,255,0.95); }
+    }
+
+  </style>
+</head>
+<body>
+<!-- SVG grain filter — referenced by body::after via url(#grain) -->
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute">
+  <filter id="grain" x="0%" y="0%" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+</svg>
+<canvas id="canvas"></canvas>
+<canvas id="overlay"></canvas>
+<div id="grain-overlay"></div>
+
+<!-- HUD panel -->
+<div id="hud">
+  <div class="hud-title">Fabric</div>
+  <div class="hud-subtitle">interactive cloth simulation</div>
+
+  <div class="hud-controls">
+    <!-- Cloth group -->
+    <div class="hud-group">
+      <div class="hud-group-label">Cloth</div>
+      <div class="hud-row"><span class="row-icon"><i class="ph ph-hand"></i></span><span class="key">Drag</span><span id="hudLabelDrag">pull the cloth</span></div>
+      <div class="hud-row hud-act" data-hud-key="T" id="hudRowTear" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-scissors" aria-hidden="true"></i></span><span class="key">T</span><span id="hudLabelTear">tear mode</span></div>
+      <div class="hud-row hud-act" data-hud-key="O" id="hudRowCollider" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-sphere" aria-hidden="true"></i></span><span class="key">O</span><span id="hudLabelCollider">add collider</span></div>
+    </div>
+    <!-- Effects group -->
+    <div class="hud-group">
+      <div class="hud-group-label">Effects</div>
+      <div class="hud-row hud-act" data-hud-key="D" id="hudRowDirt" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-circle" aria-hidden="true"></i></span><span class="key">D</span><span id="hudLabelDirt">throw dirt</span></div>
+      <div class="hud-row hud-act" data-hud-key="C" id="hudRowWater" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-drop" aria-hidden="true"></i></span><span class="key">C</span><span id="hudLabelWater">splash water</span></div>
+      <div class="hud-row hud-act" data-hud-key="W" id="hudRowWind" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-wind" aria-hidden="true"></i></span><span class="key">W</span><span id="hudLabelWind">toggle wind</span></div>
+      <div class="hud-row hud-act" data-hud-key="G" id="hudRowGrain" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-dots-six" aria-hidden="true"></i></span><span class="key">G</span><span id="hudLabelGrain">grain overlay</span></div>
+    </div>
+    <!-- Utility group -->
+    <div class="hud-group">
+      <div class="hud-group-label">Utility</div>
+      <div class="hud-row hud-act" data-hud-key="R" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i></span><span class="key">R</span><span id="hudLabelReset">reset cloth</span></div>
+      <div class="hud-row hud-act" data-hud-key="S" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-floppy-disk" aria-hidden="true"></i></span><span class="key">S</span><span id="hudLabelSave">save image</span></div>
+      <div class="hud-row hud-act" data-hud-key="H" role="button" tabindex="0"><span class="row-icon"><i class="ph ph-eye-slash" aria-hidden="true"></i></span><span class="key">H</span><span id="hudLabelHide">hide HUD</span></div>
+    </div>
+
+    <div class="hud-modes">
+      <span id="modeWind"  class="mode-badge">WIND ON</span>
+      <span id="modeTear"  class="mode-badge">TEAR MODE</span>
+      <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
+      <span id="modeGrain" class="mode-badge">GRAIN</span>
+      <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
+      <span id="modeWater" class="mode-badge">WATER MODE</span>
+      <span id="modeCollider" class="mode-badge">BALL</span>
+    </div>
+  </div>
+
+  <div id="hud-texture">
+    <div class="hud-group-label" id="hudLabelMaterial" style="margin-bottom:6px;opacity:1">Material</div>
+    <input type="file" id="texFile" accept="image/*" />
+    <button class="tex-btn" id="texUploadBtn"><i class="ph ph-upload-simple"></i> Upload texture</button>
+    <div id="texClear">✕&nbsp;&nbsp;clear texture</div>
+    <div id="hud-presets">
+      <button class="tex-btn preset-btn" data-preset="SILK"><span class="preset-swatch" style="background:#ccc8c3"></span>SILK</button>
+      <button class="tex-btn preset-btn" data-preset="DENIM"><span class="preset-swatch" style="background:#6b84a0"></span>DENIM</button>
+      <button class="tex-btn preset-btn" data-preset="LINEN"><span class="preset-swatch" style="background:#c8b99a"></span>LINEN</button>
+    </div>
+    <div id="presetReset">↩&nbsp;&nbsp;default</div>
+
+  </div>
+</div>
+
+
+<!-- Mobile top header (≤768px only) -->
+<header id="mob-header">
+  <span class="mob-title">Fabric</span>
+  <span class="mob-subtitle">Interactive Cloth Simulation</span>
+</header>
+
+<!-- Mobile bottom nav (≤768px only) -->
+<nav id="mob-nav">
+  <button class="mob-btn" id="mobTear" aria-pressed="false">
+    <span class="mob-dot"></span>
+    <i class="ph ph-scissors" aria-hidden="true"></i>
+    <span class="mob-label">Tear</span>
+  </button>
+  <button class="mob-btn" id="mobDirt" aria-pressed="false">
+    <span class="mob-dot"></span>
+    <i class="ph ph-hand-grabbing" aria-hidden="true"></i>
+    <span class="mob-label">Dirt</span>
+  </button>
+  <button class="mob-btn" id="mobWater" aria-pressed="false">
+    <span class="mob-dot"></span>
+    <i class="ph ph-drop" aria-hidden="true"></i>
+    <span class="mob-label">Water</span>
+  </button>
+  <button class="mob-btn" id="mobWind" aria-pressed="false">
+    <span class="mob-dot"></span>
+    <i class="ph ph-wind" aria-hidden="true"></i>
+    <span class="mob-label">Wind</span>
+  </button>
+  <button class="mob-btn" id="mobMore" aria-haspopup="dialog" aria-expanded="false">
+    <span class="mob-dot"></span>
+    <i class="ph ph-dots-three" aria-hidden="true"></i>
+    <span class="mob-label">More</span>
+  </button>
+</nav>
+
+<!-- More bottom sheet (mobile only) -->
+<div id="fx-backdrop" aria-hidden="true"></div>
+<div id="fx-sheet" role="dialog" aria-modal="true" aria-label="More">
+  <div class="fx-handle"></div>
+
+  <div class="fx-title" id="fxTitleEffects">More Effects</div>
+  <button class="fx-row" id="fxGrain">
+    <i class="ph ph-dots-six"></i>
+    <span class="fx-label">Grain</span>
+    <span class="fx-indicator"></span>
+  </button>
+  <button class="fx-row" id="fxCollider">
+    <i class="ph ph-circle-dashed"></i>
+    <span class="fx-label">Collider</span>
+    <span class="fx-indicator"></span>
+  </button>
+
+  <div class="fx-title" id="fxTitleMaterial">Material</div>
+  <div class="fx-pill-row">
+    <button class="fx-pill-btn" id="fxSilk" data-fx-preset="SILK">
+      <span class="fx-swatch" style="background:#d8d4d0"></span>
+      <span class="fx-pill-label">Silk</span>
+    </button>
+    <button class="fx-pill-btn" id="fxDenim" data-fx-preset="DENIM">
+      <span class="fx-swatch" style="background:#4a5f85"></span>
+      <span class="fx-pill-label">Denim</span>
+    </button>
+    <button class="fx-pill-btn" id="fxLinen" data-fx-preset="LINEN">
+      <span class="fx-swatch" style="background:#ccc8bc"></span>
+      <span class="fx-pill-label">Linen</span>
+    </button>
+  </div>
+  <button class="fx-row fx-reset-row" id="fxDefault">
+    <span class="fx-label">↩&nbsp;&nbsp;default texture</span>
+  </button>
+
+
+
+  <div class="fx-title" id="fxTitleActions">Actions</div>
+  <div class="fx-util-row">
+    <button class="fx-util-btn" id="fxReset">
+      <i class="ph ph-arrow-counter-clockwise"></i>
+      <span class="fx-util-label">Reset</span>
+    </button>
+    <button class="fx-util-btn" id="fxSave">
+      <i class="ph ph-download-simple"></i>
+      <span class="fx-util-label">Save</span>
+    </button>
+    <button class="fx-util-btn" id="fxUpload">
+      <i class="ph ph-upload-simple"></i>
+      <span class="fx-util-label">Upload</span>
+    </button>
+    <button class="fx-util-btn" id="fxMic">
+      <i class="ph ph-microphone"></i>
+      <span class="fx-util-label">Mic</span>
+    </button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   CONFIG
+   ============================================================ */
+function isMobile()  { return window.innerWidth <= 768; }
+const IS_MOBILE     = isMobile();   // boot-time snapshot — used for physics grid only
+const PREFERS_DARK  = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const COLS          = IS_MOBILE ? 20 : 30;
+const ROWS          = IS_MOBILE ? 28 : 30;
+const SPACING       = 18;      // px between adjacent points at rest
+let   gravity       = 0.5;
+let   damping       = 0.99;    // velocity retention per frame (per-preset)
+let   iterations    = 8;       // constraint relaxation passes / frame
+let   tearDist      = 60;      // auto-tear threshold (× rest length, per-preset)
+let   windResponse  = 1.0;     // wind sensitivity multiplier (per-preset)
+let   stickiness    = 0.22;   // dirt particle adhesion 0–1 (per-preset)
+let   dryRate       = 0.012;  // wetness decay per frame (per-preset)
+const MOUSE_RADIUS  = 36;
+const WIND_STRENGTH = 1.2;
+const WIND_SPEED    = 0.03;
+
+/* ============================================================
+   Point
+   ============================================================ */
+class Point {
+  constructor(x, y, pinned = false) {
+    this.x = x;  this.y = y;  this.z = 0;
+    this.prevX = x;  this.prevY = y;  this.prevZ = 0;
+    this.pinned = pinned;
+    this.initX = x;  this.initY = y;  this.initZ = 0;
+  }
+
+  update(ax, ay, az) {
+    if (this.pinned) return;
+    const vx = (this.x - this.prevX) * damping;
+    const vy = (this.y - this.prevY) * damping;
+    const vz = (this.z - this.prevZ) * damping;
+    this.prevX = this.x;  this.prevY = this.y;  this.prevZ = this.z;
+    this.x += vx + ax;
+    this.y += vy + ay;
+    this.z += vz + az - (this.z - this.initZ) * 0.0002; // gentle restoring force toward rest tilt
+  }
+
+  reset() {
+    this.x = this.initX;  this.y = this.initY;  this.z = this.initZ;
+    this.prevX = this.initX;  this.prevY = this.initY;  this.prevZ = this.initZ;
+  }
+}
+
+/* ============================================================
+   Constraint
+   ============================================================ */
+class Constraint {
+  constructor(p1, p2) {
+    this.p1 = p1;
+    this.p2 = p2;
+    const dx = p2.x - p1.x, dy = p2.y - p1.y, dz = p2.z - p1.z;
+    this.restLength = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    this.active = true;
+  }
+
+  satisfy() {
+    if (!this.active) return;
+    const dx   = this.p2.x - this.p1.x;
+    const dy   = this.p2.y - this.p1.y;
+    const dz   = this.p2.z - this.p1.z;
+    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz) || 0.0001;
+    const diff = (dist - this.restLength) / dist;
+
+    if (dist > this.restLength * tearDist) { this.active = false; return; }
+
+    const ox = dx * diff, oy = dy * diff, oz = dz * diff;
+
+    if (!this.p1.pinned && !this.p2.pinned) {
+      this.p1.x += ox * 0.5;  this.p1.y += oy * 0.5;  this.p1.z += oz * 0.5;
+      this.p2.x -= ox * 0.5;  this.p2.y -= oy * 0.5;  this.p2.z -= oz * 0.5;
+    } else if (!this.p1.pinned) {
+      this.p1.x += ox;  this.p1.y += oy;  this.p1.z += oz;
+    } else if (!this.p2.pinned) {
+      this.p2.x -= ox;  this.p2.y -= oy;  this.p2.z -= oz;
+    }
+  }
+}
+
+/* ============================================================
+   Cloth
+   ============================================================ */
+class Cloth {
+  /* pinCfg: 'top-row' | 'left-col' | 'top-corners' | other — controls initial Z tilt axis */
+  constructor(originX, originY, pinCfg = 'top-row') {
+    this.originX = originX;
+    this.originY = originY;
+    this.points      = [];
+    this.constraints = [];
+    /* Constraint lookup maps: used by the quad renderer.
+       hLinks[row][col] = horizontal constraint at (row,col)→(row,col+1)
+       vLinks[row][col] = vertical   constraint at (row,col)→(row+1,col) */
+    this.hLinks = [];
+    this.vLinks = [];
+    this._build(pinCfg);
+  }
+
+  _build(pinCfg) {
+    this.points      = [];
+    this.constraints = [];
+    this.hLinks      = [];
+    this.vLinks      = [];
+
+    /* Points */
+    /* INIT_Z_TILT: total depth range across one axis.
+       For top-row: vertical gradient (top=−18 behind, bottom=+18 toward viewer)
+         → the hanging cloth shows perspective foreshortening at rest.
+       For left-col (Sail): horizontal gradient (mast col0=−18 behind, free edge=+18 toward viewer)
+         → the sail naturally extends away from the mast into the scene.
+       For other configs (top-corners etc.): no gradient, just symmetry-breaking jitter. */
+    const INIT_Z_TILT = 36;
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const pt = new Point(
+          this.originX + col * SPACING,
+          this.originY + row * SPACING,
+          row === 0
+        );
+        let zGrad;
+        if (pinCfg === 'left-col') {
+          zGrad = (col / (COLS - 1) - 0.5) * INIT_Z_TILT; // −18 at mast, +18 at free edge
+        } else if (pinCfg === 'top-row') {
+          zGrad = (row / (ROWS - 1) - 0.5) * INIT_Z_TILT; // −18 at top, +18 at bottom
+        } else {
+          zGrad = 0; // no gradient for other configs
+        }
+        const jit = (Math.random() - 0.5) * (pt.pinned ? 0 : 2);
+        pt.z = zGrad + jit;  pt.prevZ = zGrad + jit;  pt.initZ = zGrad + jit;
+        this.points.push(pt);
+      }
+    }
+
+    /* Constraints + lookup tables */
+    for (let row = 0; row < ROWS; row++) {
+      this.hLinks.push([]);
+      this.vLinks.push([]);
+      for (let col = 0; col < COLS; col++) {
+        const idx = row * COLS + col;
+
+        if (col < COLS - 1) {
+          const c = new Constraint(this.points[idx], this.points[idx + 1]);
+          this.constraints.push(c);
+          this.hLinks[row].push(c);
+        } else {
+          this.hLinks[row].push(null);
+        }
+
+        if (row < ROWS - 1) {
+          const c = new Constraint(this.points[idx], this.points[idx + COLS]);
+          this.constraints.push(c);
+          this.vLinks[row].push(c);
+        } else {
+          this.vLinks[row].push(null);
+        }
+      }
+    }
+  }
+
+  update(windX, windZ) {
+    for (const pt of this.points) pt.update(windX, gravity, windZ);
+    for (let i = 0; i < iterations; i++)
+      for (const c of this.constraints) c.satisfy();
+  }
+
+  reset() {
+    for (const pt of this.points)      pt.reset();
+    for (const c  of this.constraints) c.active = true;
+  }
+
+  nearestPoint(mx, my) {
+    let best = null, bestDist = MOUSE_RADIUS;
+    for (const pt of this.points) {
+      const dx = pt.x - mx, dy = pt.y - my;
+      const d  = Math.sqrt(dx * dx + dy * dy);
+      if (d < bestDist) { bestDist = d; best = pt; }
+    }
+    return best;
+  }
+
+  tearNear(mx, my) {
+    const r2 = MOUSE_RADIUS * MOUSE_RADIUS;
+    for (const c of this.constraints) {
+      if (!c.active) continue;
+      const midX = (c.p1.x + c.p2.x) * 0.5;
+      const midY = (c.p1.y + c.p2.y) * 0.5;
+      const dx   = midX - mx, dy = midY - my;
+      if (dx * dx + dy * dy < r2) c.active = false;
+    }
+  }
+}
+
+/* ============================================================
+   Main
+   ============================================================ */
+(function main() {
+  /* ── Canvas setup ── */
+  const canvas  = document.getElementById('canvas');
+  const gl      = canvas.getContext('webgl', { preserveDrawingBuffer: true });
+  const overlay = document.getElementById('overlay');
+  const ctx2d   = overlay.getContext('2d');
+
+  if (!gl) {
+    document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;font-family:'Pretendard',sans-serif;background:#f5f5f5"><div style="font-size:28px;font-weight:200;letter-spacing:8px;color:#111;text-transform:uppercase">Fabric</div><div style="font-size:12px;letter-spacing:3px;color:#767676;text-transform:lowercase">WebGL not supported in this browser</div><div style="font-size:11px;letter-spacing:1px;color:#aaa">Try Chrome, Firefox, or Safari 15+</div></div>`;
+    return;
+  }
+
+  const elWind      = document.getElementById('modeWind');
+  const elTear      = document.getElementById('modeTear');
+  const elMic       = document.getElementById('modeMic');
+  const elMicMeter  = document.getElementById('micMeter');
+  const elGrain     = document.getElementById('modeGrain');
+  const elDirt      = document.getElementById('modeDirt');
+  const elWater     = document.getElementById('modeWater');
+  const hud         = document.getElementById('hud');
+  const texFile     = document.getElementById('texFile');
+  const texUploadBtn= document.getElementById('texUploadBtn');
+  const texClear    = document.getElementById('texClear');
+
+  /* ── Mobile nav button refs ── */
+  const mobHeader  = document.getElementById('mob-header');
+  const mobNav     = document.getElementById('mob-nav');
+  const mobTear    = document.getElementById('mobTear');
+  const mobDirt    = document.getElementById('mobDirt');
+  const mobWater   = document.getElementById('mobWater');
+  const mobWind    = document.getElementById('mobWind');
+  const mobMore    = document.getElementById('mobMore');
+
+  /* ── More bottom sheet refs ── */
+  const fxBackdrop = document.getElementById('fx-backdrop');
+  const fxSheet    = document.getElementById('fx-sheet');
+  const fxGrain    = document.getElementById('fxGrain');
+  const fxCollider    = document.getElementById('fxCollider');
+  const fxSilk        = document.getElementById('fxSilk');
+  const fxDenim       = document.getElementById('fxDenim');
+  const fxLinen       = document.getElementById('fxLinen');
+  const fxDefault     = document.getElementById('fxDefault');
+  const fxCurtain     = document.getElementById('fxCurtain');
+  const fxSail        = document.getElementById('fxSail');
+  const fxJeans       = document.getElementById('fxJeans');
+  const fxScenReset   = document.getElementById('fxScenarioReset');
+  const fxReset       = document.getElementById('fxReset');
+  const fxSaveBtn     = document.getElementById('fxSave');
+  const fxUploadBtn2  = document.getElementById('fxUpload');
+  const fxMicBtn      = document.getElementById('fxMic');
+
+  /* ── Language localisation — Korean if system lang starts with 'ko' ── */
+  if (navigator.language && navigator.language.toLowerCase().startsWith('ko')) {
+    isKorean = true;
+    /* Mark document language for screen readers */
+    document.documentElement.lang = 'ko';
+
+    /* Switch entire page to Noto Sans KR */
+    document.body.style.fontFamily = "'Noto Sans KR', sans-serif";
+
+    /* HUD — subtitle */
+    document.querySelector('.hud-subtitle').textContent = '인터랙티브 천 시뮬레이션';
+
+    /* Mobile header */
+    mobHeader.querySelector('.mob-subtitle').textContent = '인터랙티브 천 시뮬레이션';
+
+    /* HUD — control labels (addressed by ID, order-independent) */
+    const labelMap = {
+      hudLabelDrag:     '천을 당기세요',
+      hudLabelTear:     '찢기 모드',
+      hudLabelCollider: '장애물 추가',
+      hudLabelDirt:     '흙 던지기',
+      hudLabelWater:    '물 뿌리기',
+      hudLabelWind:     '바람 켜기',
+      hudLabelGrain:    '입자',
+      hudLabelReset:    '천 초기화',
+      hudLabelSave:     '이미지 저장',
+      hudLabelHide:     'HUD 숨기기',
+    };
+    Object.entries(labelMap).forEach(([id, text]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    });
+    /* Also translate group section headers */
+    const groupLabels = document.querySelectorAll('#hud .hud-group-label');
+    const groupNames  = ['천', '효과', '기타'];
+    groupLabels.forEach((el, i) => { if (groupNames[i]) el.textContent = groupNames[i]; });
+
+    /* HUD — mode badges */
+    document.getElementById('modeWind').textContent  = '바람 켜짐';
+    document.getElementById('modeTear').textContent  = '찢기 모드';
+    document.getElementById('modeGrain').textContent = '입자';
+    document.getElementById('modeDirt').textContent     = '흙 모드';
+    document.getElementById('modeWater').textContent    = '물 모드';
+    document.getElementById('modeCollider').textContent = '장애물';
+    /* modeMic has a child .mic-meter span — only update the leading text node */
+    elMic.firstChild.textContent = '🎤 마이크 ';
+
+    /* HUD — material section header + texture controls */
+    const matLabel = document.getElementById('hudLabelMaterial');
+    if (matLabel) matLabel.textContent = '질감';
+    document.getElementById('texUploadBtn').innerHTML = '<i class="ph ph-upload-simple"></i> 텍스처 업로드';
+    document.getElementById('texClear').innerHTML       = '✕&nbsp;&nbsp;텍스처 지우기';
+    document.getElementById('presetReset').innerHTML    = '↩&nbsp;&nbsp;기본값';
+
+    /* Mobile nav labels */
+    if (isMobile()) {
+      mobTear .querySelector('.mob-label').textContent = '찢기';
+      mobDirt .querySelector('.mob-label').textContent = '흙';
+      mobWater.querySelector('.mob-label').textContent = '물';
+      mobWind .querySelector('.mob-label').textContent = '바람';
+      mobMore .querySelector('.mob-label').textContent = '더 보기';
+
+    }
+  }
+
+  /* ── WebGL — shaders ── */
+  const VS_SRC = `
+    attribute vec3  aPosition;
+    attribute vec2  aUV;
+    attribute float aShade;
+    attribute vec3  aNormal;
+    attribute float aDirt;
+    attribute float aWetness;
+    uniform mat4    uMVP;
+    varying vec2    vUV;
+    varying float   vShade;
+    varying vec3    vNormal;
+    varying float   vDirt;
+    varying float   vWetness;
+    void main() {
+      gl_Position = uMVP * vec4(aPosition, 1.0);
+      vUV      = aUV;
+      vShade   = aShade;
+      vNormal  = aNormal;
+      vDirt    = aDirt;
+      vWetness = aWetness;
+    }
+  `;
+
+  const FS_SRC = `
+    precision mediump float;
+    varying vec2  vUV;
+    varying float vShade;
+    varying vec3  vNormal;
+    varying float vDirt;
+    varying float vWetness;
+    uniform int   uHasTexture;
+    uniform int   uIsLine;
+    uniform sampler2D uTexture;
+    uniform vec3  uClothColor;
+    uniform float uLineAlpha;
+
+    /* Simple hash for pseudo-random noise */
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+    }
+
+    void main() {
+      vec3 lightDir = vec3(0.196, -0.784, 0.588);
+      vec3 halfVec  = vec3(0.110, -0.440, 0.891);
+      vec3 N = normalize(gl_FrontFacing ? vNormal : -vNormal);
+      float diffuse  = max(0.0, dot(N, lightDir));
+      float specPow  = gl_FrontFacing ? 48.0 : 12.0;
+      float specAmt  = gl_FrontFacing ? 0.35 : 0.10;
+      
+      float glisten = 0.0;
+      float wetMask = 0.0;
+
+      /* Apply wetness logic to lighting parameters */
+      if (vWetness > 0.01) {
+        float h1 = hash(vUV * 900.0);
+        float h2 = hash(vUV * 400.0);
+        wetMask = smoothstep(0.1, 0.5, vWetness * (0.75 + h2 * 0.5));
+        glisten = pow(h1, 15.0) * vWetness * 1.8;
+        specAmt += vWetness * 0.48 * (0.8 + h2 * 0.4);
+        specPow -= vWetness * 18.0;
+      }
+
+      float specular = pow(max(0.0, dot(N, halfVec)), max(1.0, specPow)) * specAmt + glisten;
+      float light    = 0.35 + diffuse * 0.6 + specular;
+      float finalShade = light * clamp(vShade, 0.5, 1.1);
+      float backFactor = gl_FrontFacing ? 1.0 : 0.85;
+
+      vec3 baseColor = uClothColor;
+      if (uHasTexture == 1) {
+        baseColor = texture2D(uTexture, vUV).rgb;
+      }
+
+      /* Apply wetness darkening to baseColor */
+      if (vWetness > 0.01) {
+        baseColor *= (1.0 - wetMask * 0.45);
+      }
+
+      /* Apply rich dirt logic */
+      if (vDirt > 0.01) {
+        // High frequency noise for "grain" and irregular edges
+        float grain = hash(vUV * 1200.0);
+        // Multi-frequency noise for the "spot" shapes
+        float shape = hash(vUV * 600.0) * 0.7 + hash(vUV * 250.0) * 0.3;
+        
+        // Threshold the noise based on vDirt. Higher vDirt = larger/more spots.
+        // This breaks the vertex-circular look by using UV-space noise as a threshold.
+        float threshold = clamp(1.0 - vDirt * 1.4, 0.0, 1.0);
+        float splat = smoothstep(threshold - 0.08, threshold + 0.08, shape + grain * 0.15);
+        
+        // Darken the center of the splat for a "stain" look
+        float core = smoothstep(threshold + 0.1, threshold + 0.3, shape + vDirt * 0.5);
+        
+        // Deep earth tones with variation
+        vec3 col1 = vec3(0.24, 0.16, 0.08); // dark mud
+        vec3 col2 = vec3(0.35, 0.28, 0.18); // dried dirt
+        vec3 dirtColor = mix(col1, col2, grain) * (1.0 - core * 0.2) * 1.3;
+        
+        baseColor = mix(baseColor, dirtColor * light, splat * 0.9);
+      }
+
+      if (uIsLine == 1) {
+        float stress    = clamp((1.0 - vShade) * 2.5, 0.0, 1.0);
+        vec3  lineColor = mix(vec3(0.58, 0.58, 0.60), vec3(0.72, 0.30, 0.22), stress);
+        gl_FragColor = vec4(lineColor * clamp(light, 0.5, 1.0), uLineAlpha);
+      } else {
+        gl_FragColor = vec4(baseColor * clamp(finalShade, 0.0, 1.5) * backFactor, 1.0);
+      }
+    }
+  `;
+
+  /* ── Background gradient shaders ── */
+  const BG_VS_SRC = `
+    attribute vec2 aBGPos;
+    varying vec2   vBGUV;
+    void main() {
+      gl_Position = vec4(aBGPos, 0.0, 1.0);
+      vBGUV = aBGPos * 0.5 + 0.5; /* clip (-1..1) → UV (0..1) */
+    }
+  `;
+  const BG_FS_SRC = `
+    precision mediump float;
+    varying vec2  vBGUV;
+    uniform vec3  uBGTop;
+    uniform vec3  uBGBot;
+    uniform float uBGTime;
+    uniform float uBGWind;
+    void main() {
+      /* Midpoint breathes ±5% on an 8-second sine cycle */
+      float mid = 0.5 + sin(uBGTime * 0.7854) * 0.05;
+      /* Wind slightly brightens the top colour */
+      vec3 top = clamp(uBGTop * (1.0 + uBGWind * 0.07), 0.0, 1.0);
+      /* Two-stop gradient through animated midpoint */
+      float t = vBGUV.y;
+      float blend = t < mid ? (t / mid) * 0.45 : 0.45 + ((t - mid) / (1.0 - mid)) * 0.55;
+      vec3 color = mix(top, uBGBot, blend);
+      /* Radial edge vignette — ~12% darkening at corners */
+      vec2 uv = vBGUV * 2.0 - 1.0;
+      float vig = smoothstep(1.0, 0.25, length(uv * vec2(1.4, 1.0)));
+      color *= (0.88 + 0.12 * vig);
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+
+  function compileShader(type, src) {
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src);
+    gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+      console.error('Shader compile error:', gl.getShaderInfoLog(sh));
+      gl.deleteShader(sh);
+      return null;
+    }
+    return sh;
+  }
+
+  const vs   = compileShader(gl.VERTEX_SHADER,   VS_SRC);
+  const fs   = compileShader(gl.FRAGMENT_SHADER, FS_SRC);
+  if (!vs || !fs) return;    // shader compile failed — already logged
+  const prog = gl.createProgram();
+  gl.attachShader(prog, vs);
+  gl.attachShader(prog, fs);
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    console.error('Program link error:', gl.getProgramInfoLog(prog));
+    return;
+  }
+  gl.useProgram(prog);
+
+  /* ── Attribute / uniform locations ── */
+  const aPositionLoc   = gl.getAttribLocation(prog,  'aPosition');
+  const aUVLoc         = gl.getAttribLocation(prog,  'aUV');
+  const aShadeLoc      = gl.getAttribLocation(prog,  'aShade');
+  const aNormalLoc     = gl.getAttribLocation(prog,  'aNormal');
+  const aDirtLoc       = gl.getAttribLocation(prog,  'aDirt');
+  const aWetnessLoc    = gl.getAttribLocation(prog,  'aWetness');
+  const uMVPLoc         = gl.getUniformLocation(prog, 'uMVP');
+  const uHasTextureLoc  = gl.getUniformLocation(prog, 'uHasTexture');
+  const uIsLineLoc      = gl.getUniformLocation(prog, 'uIsLine');
+  const uTextureLoc     = gl.getUniformLocation(prog, 'uTexture');
+  const uClothColorLoc  = gl.getUniformLocation(prog, 'uClothColor');
+  const uLineAlphaLoc   = gl.getUniformLocation(prog, 'uLineAlpha');
+
+  console.info('WebGL Initialized:', { aPositionLoc, aDirtLoc, aWetnessLoc, uMVPLoc });
+
+  /* ── Background gradient program ── */
+  const bgVS = compileShader(gl.VERTEX_SHADER,   BG_VS_SRC);
+  const bgFS = compileShader(gl.FRAGMENT_SHADER, BG_FS_SRC);
+  const bgProg = gl.createProgram();
+  gl.attachShader(bgProg, bgVS); gl.attachShader(bgProg, bgFS);
+  gl.linkProgram(bgProg);
+  if (!gl.getProgramParameter(bgProg, gl.LINK_STATUS)) {
+    console.error('BG program link error:', gl.getProgramInfoLog(bgProg));
+  }
+  /* Fullscreen triangle (3 vertices cover all of clip space) */
+  const bgVBO = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgVBO);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  const aBGPosLoc   = gl.getAttribLocation(bgProg,  'aBGPos');
+  const uBGTopLoc   = gl.getUniformLocation(bgProg, 'uBGTop');
+  const uBGBotLoc   = gl.getUniformLocation(bgProg, 'uBGBot');
+  const uBGTimeLoc  = gl.getUniformLocation(bgProg, 'uBGTime');
+  const uBGWindLoc  = gl.getUniformLocation(bgProg, 'uBGWind');
+
+  /* Per-scenario palette: [lightTop, lightBot, darkTop, darkBot] (normalized RGB) */
+  const BG_PALETTES = {
+    DEFAULT:  [[.937,.937,.937], [.878,.878,.878], [.133,.133,.133], [.086,.086,.086]],
+    CURTAIN:  [[.937,.937,.937], [.878,.878,.878], [.133,.133,.133], [.086,.086,.086]],
+    JEANS:    [[.851,.871,.898], [.800,.827,.863], [.110,.133,.157], [.078,.102,.125]],
+    SAIL:     [[.839,.918,.961], [.769,.859,.918], [.102,.165,.224], [.071,.122,.173]],
+    SILK:     [[.941,.929,.910], [.902,.886,.855], [.157,.133,.118], [.118,.102,.086]],
+    HAMMOCK:  [[.898,.922,.898], [.847,.878,.847], [.118,.137,.118], [.082,.102,.082]],
+    TABLECLOTH:[[.961,.945,.945],[.922,.902,.902], [.149,.118,.118], [.110,.086,.086]],
+  };
+  let bgTopCurrent = BG_PALETTES.DEFAULT[0].slice();
+  let bgBotCurrent = BG_PALETTES.DEFAULT[1].slice();
+
+  function setBgPalette(scenarioKey) {
+    const key   = scenarioKey.toUpperCase().replace(/-/g,'').replace(/ /g,'');
+    const entry = BG_PALETTES[key] || BG_PALETTES.DEFAULT;
+    bgTopCurrent = PREFERS_DARK ? entry[2].slice() : entry[0].slice();
+    bgBotCurrent = PREFERS_DARK ? entry[3].slice() : entry[1].slice();
+  }
+
+  /* ── Preset state ── */
+  const PRESETS = {
+    // Silk: ultra-light, slippery, very wind-sensitive, snaps under slight overstretch
+    SILK: {
+      iterations: 4,  gravity: 0.25,
+      tearDist: 3,    damping: 0.998,  windResponse: 2.8,  stickiness: 0.08,  dryRate: 0.025,
+      color:     [0.85, 0.82, 0.80], lineAlpha:     0.25,
+      colorDark: [0.45, 0.42, 0.40], lineAlphaDark: 0.18,
+    },
+    // Denim: heavy, rigid, wind-resistant, nearly impossible to auto-tear by stretch
+    DENIM: {
+      iterations: 18, gravity: 0.65,
+      tearDist: 100,  damping: 0.983,  windResponse: 0.25,  stickiness: 0.90,  dryRate: 0.005,
+      color:     [0.25, 0.35, 0.52], lineAlpha:     0.60,
+      colorDark: [0.14, 0.20, 0.38], lineAlphaDark: 0.52,
+    },
+    // Linen: natural fibre — medium weight, moderate tear resistance, normal wind
+    LINEN: {
+      iterations: 10, gravity: 0.5,
+      tearDist: 15,   damping: 0.992,  windResponse: 1.0,   stickiness: 0.45,  dryRate: 0.008,
+      color:     [0.80, 0.78, 0.72], lineAlpha:     0.45,
+      colorDark: [0.28, 0.26, 0.22], lineAlphaDark: 0.36,
+    },
+  };
+
+
+  const DEFAULT_COLOR         = PREFERS_DARK ? [0.18, 0.18, 0.20] : [0.76, 0.76, 0.78];
+  const DEFAULT_LINE_ALPHA    = PREFERS_DARK ? 0.40 : 0.50;
+  const DEFAULT_GRAVITY       = gravity;
+  const DEFAULT_ITERATIONS    = iterations;
+  const DEFAULT_DAMPING       = damping;
+  const DEFAULT_TEAR_DIST     = tearDist;
+  const DEFAULT_WIND_RESPONSE = windResponse;
+  const DEFAULT_STICKINESS    = stickiness;
+  const DEFAULT_DRY_RATE      = dryRate;
+  let clothColor   = DEFAULT_COLOR.slice();
+  let lineAlpha    = DEFAULT_LINE_ALPHA;
+  let activePreset = null;
+
+  /* Set initial uniform values immediately after program is linked */
+  gl.uniform3f(uClothColorLoc, ...clothColor);
+  gl.uniform1f(uLineAlphaLoc,   lineAlpha);
+
+  /* ── Buffers ── */
+  const posBuffer     = gl.createBuffer();
+  const uvBuffer      = gl.createBuffer();
+  const shadeBuffer   = gl.createBuffer();
+  const normalBuffer  = gl.createBuffer();
+  const dirtBuffer    = gl.createBuffer();
+  const wetnessBuffer = gl.createBuffer();
+  const idxBuffer     = gl.createBuffer();
+  const lineIdxBuffer = gl.createBuffer();
+
+  /* Build and upload the UV buffer (normalized 0→1, static per cloth instance).
+     UNPACK_FLIP_Y_WEBGL is set on texture upload so that UV (0,0) = top-left. */
+  function buildUVBuffer() {
+    const uvs = new Float32Array(ROWS * COLS * 2);
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const i = (row * COLS + col) * 2;
+        uvs[i]     = col / (COLS - 1);   // u: 0→1 left→right
+        uvs[i + 1] = row / (ROWS - 1);   // v: 0→1 top→bottom
+      }
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, uvs, gl.STATIC_DRAW);
+  }
+
+  /* Upload current cloth point positions (x,y,z — called every frame). */
+  function uploadPositions(cloth) {
+    const pos = new Float32Array(cloth.points.length * 3);
+    for (let i = 0; i < cloth.points.length; i++) {
+      pos[i * 3]     = cloth.points[i].x;
+      pos[i * 3 + 1] = cloth.points[i].y;
+      pos[i * 3 + 2] = cloth.points[i].z;
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, pos, gl.DYNAMIC_DRAW);
+  }
+
+  /* Compute per-vertex deformation shade from constraint stress (called every frame).
+     shade = avg(currentLength / restLength) for each connected active constraint.
+     < 1 → compressed (bunched/folded) → darker  |  ≈ 1 → rest → neutral  |  > 1 → stretched → slight highlight */
+  function buildAndUploadShade(cloth) {
+    const shades = new Float32Array(cloth.points.length);
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        let total = 0, count = 0;
+        const accum = (c) => {
+          if (!c || !c.active) return;
+          const dx = c.p2.x - c.p1.x, dy = c.p2.y - c.p1.y, dz = c.p2.z - c.p1.z;
+          const ratio = Math.sqrt(dx * dx + dy * dy + dz * dz) / c.restLength;
+          /* Compressed folds → darker (min 0.55); taut fabric → slight highlight (max 1.08) */
+          total += Math.min(1.08, Math.max(0.55, ratio));
+          count++;
+        };
+        if (col > 0)       accum(cloth.hLinks[row][col - 1]);
+        if (col < COLS - 1) accum(cloth.hLinks[row][col]);
+        if (row > 0)       accum(cloth.vLinks[row - 1][col]);
+        if (row < ROWS - 1) accum(cloth.vLinks[row][col]);
+        shades[row * COLS + col] = count > 0 ? total / count : 1.0;
+      }
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, shadeBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, shades, gl.DYNAMIC_DRAW);
+  }
+
+  /* Compute per-vertex world-space normals via face cross-products, then upload. */
+  function buildAndUploadNormals(cloth) {
+    const n  = cloth.points.length;
+    const ns = new Float32Array(n * 3);  // accumulated normals (xyz per vertex)
+    const ct = new Uint16Array(n);       // face contribution count per vertex
+
+    for (let row = 0; row < ROWS - 1; row++) {
+      for (let col = 0; col < COLS - 1; col++) {
+        const top    = cloth.hLinks[row][col];
+        const bottom = cloth.hLinks[row + 1][col];
+        const left   = cloth.vLinks[row][col];
+        const right  = cloth.vLinks[row][col + 1];
+        if (!top || !bottom || !left || !right) continue;
+        if (!top.active || !bottom.active || !left.active || !right.active) continue;
+
+        const iTL = row * COLS + col;
+        const iTR = row * COLS + col + 1;
+        const iBL = (row + 1) * COLS + col;
+        const iBR = (row + 1) * COLS + col + 1;
+        const pTL = cloth.points[iTL], pTR = cloth.points[iTR];
+        const pBL = cloth.points[iBL], pBR = cloth.points[iBR];
+
+        /* Triangle 1: TL → TR → BL */
+        let e1x = pTR.x - pTL.x, e1y = pTR.y - pTL.y, e1z = pTR.z - pTL.z;
+        let e2x = pBL.x - pTL.x, e2y = pBL.y - pTL.y, e2z = pBL.z - pTL.z;
+        let nx1 = e1y * e2z - e1z * e2y;
+        let ny1 = e1z * e2x - e1x * e2z;
+        let nz1 = e1x * e2y - e1y * e2x;
+        for (const vi of [iTL, iTR, iBL]) {
+          ns[vi * 3] += nx1;  ns[vi * 3 + 1] += ny1;  ns[vi * 3 + 2] += nz1;  ct[vi]++;
+        }
+
+        /* Triangle 2: TR → BR → BL */
+        let e3x = pBR.x - pTR.x, e3y = pBR.y - pTR.y, e3z = pBR.z - pTR.z;
+        let e4x = pBL.x - pTR.x, e4y = pBL.y - pTR.y, e4z = pBL.z - pTR.z;
+        let nx2 = e3y * e4z - e3z * e4y;
+        let ny2 = e3z * e4x - e3x * e4z;
+        let nz2 = e3x * e4y - e3y * e4x;
+        for (const vi of [iTR, iBR, iBL]) {
+          ns[vi * 3] += nx2;  ns[vi * 3 + 1] += ny2;  ns[vi * 3 + 2] += nz2;  ct[vi]++;
+        }
+      }
+    }
+
+    /* Normalize accumulated normals; default to (0,0,1) for isolated/pinned verts */
+    for (let i = 0; i < n; i++) {
+      if (ct[i] === 0) { ns[i * 3 + 2] = 1; continue; }
+      const nx = ns[i * 3], ny = ns[i * 3 + 1], nz = ns[i * 3 + 2];
+      const len = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
+      ns[i * 3] = nx / len;  ns[i * 3 + 1] = ny / len;  ns[i * 3 + 2] = nz / len;
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, ns, gl.DYNAMIC_DRAW);
+  }
+
+  /* Build index list for active quads only (skips torn constraints).
+     Returns the number of indices uploaded. */
+  function buildAndUploadIndices(cloth) {
+    const idx = [];
+    for (let row = 0; row < ROWS - 1; row++) {
+      for (let col = 0; col < COLS - 1; col++) {
+        const top    = cloth.hLinks[row][col];
+        const bottom = cloth.hLinks[row + 1][col];
+        const left   = cloth.vLinks[row][col];
+        const right  = cloth.vLinks[row][col + 1];
+        if (!top || !bottom || !left || !right) continue;
+        if (!top.active || !bottom.active || !left.active || !right.active) continue;
+        const tl = row * COLS + col;
+        const tr = row * COLS + col + 1;
+        const br = (row + 1) * COLS + col + 1;
+        const bl = (row + 1) * COLS + col;
+        idx.push(tl, tr, bl);   // triangle 1
+        idx.push(tr, br, bl);   // triangle 2
+      }
+    }
+    const arr = new Uint16Array(idx);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, arr, gl.DYNAMIC_DRAW);
+    return arr.length;
+  }
+
+  /* Build line index pairs from all active constraints (for gl.LINES grid pass).
+     Returns the number of indices uploaded. */
+  function buildAndUploadLineIndices(cloth) {
+    const idx = [];
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        if (col < COLS - 1) {
+          const c = cloth.hLinks[row][col];
+          if (c && c.active) idx.push(row * COLS + col, row * COLS + col + 1);
+        }
+        if (row < ROWS - 1) {
+          const c = cloth.vLinks[row][col];
+          if (c && c.active) idx.push(row * COLS + col, (row + 1) * COLS + col);
+        }
+      }
+    }
+    const arr = new Uint16Array(idx);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineIdxBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, arr, gl.DYNAMIC_DRAW);
+    return arr.length;
+  }
+
+  /* Upload per-vertex dirt intensity (0→1) */
+  function buildAndUploadDirt(cloth) {
+    const dirt = new Float32Array(cloth.points.length);
+    const pts = cloth.points;
+    for (let i = 0; i < dirtParticles.length; i++) {
+      const p = dirtParticles[i];
+      if (p.attached) {
+        const idx = pts.indexOf(p.attached);
+        if (idx !== -1) {
+          // Increase primary vertex intensity
+          dirt[idx] = Math.min(1.0, dirt[idx] + 0.85);
+          
+          // Spread to neighbors to break the "single dot" vertex look
+          const r = Math.floor(idx / COLS);
+          const c = idx % COLS;
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr === 0 && dc === 0) continue;
+              const nr = r + dr, nc = c + dc;
+              if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                const nIdx = nr * COLS + nc;
+                dirt[nIdx] = Math.min(1.0, dirt[nIdx] + 0.42);
+              }
+            }
+          }
+        }
+      }
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, dirtBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, dirt, gl.DYNAMIC_DRAW);
+  }
+
+  /* Upload per-vertex wetness intensity (0→1) */
+  function buildAndUploadWetness(cloth) {
+    const wet = new Float32Array(cloth.points.length);
+    const pts = cloth.points;
+    for (let i = 0; i < pts.length; i++) {
+      wet[i] = pointWetness.get(pts[i]) || 0;
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, wetnessBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, wet, gl.DYNAMIC_DRAW);
+  }
+
+  /* ── Texture state ── */
+  let glTexture  = null;
+  let hasTexture = false;
+  let texObjURL  = null;
+
+  function loadGLTexture(img) {
+    if (!glTexture) glTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, glTexture);
+    /* Flip image so UV (0,0) = top-left matches our row=0 origin */
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    hasTexture = true;
+  }
+
+  texUploadBtn.addEventListener('click', () => texFile.click());
+
+  texFile.addEventListener('change', () => {
+    const file = texFile.files[0];
+    if (!file) return;
+    if (texObjURL) { URL.revokeObjectURL(texObjURL); texObjURL = null; }
+    const url = URL.createObjectURL(file);
+    texObjURL = url;
+    const img = new Image();
+    img.onload = () => {
+      loadGLTexture(img);
+      cloth    = makeCloth();
+      buildUVBuffer();
+      tearMode = false;
+      dirtMode = false;
+      waterMode = false;
+      dirtParticles.length  = 0;
+      waterParticles.length = 0;
+      pointWetness.clear();
+      updateHUD();
+      texClear.classList.add('visible');
+    };
+    img.src = url;
+  });
+
+  texClear.addEventListener('click', () => {
+    hasTexture = false;
+    if (glTexture) { gl.deleteTexture(glTexture); glTexture = null; }
+    texFile.value = '';
+    texClear.classList.remove('visible');
+    if (texObjURL) { URL.revokeObjectURL(texObjURL); texObjURL = null; }
+    cloth    = makeCloth();
+    buildUVBuffer();
+    tearMode  = false;
+    dirtMode  = false;
+    waterMode = false;
+    dirtParticles.length  = 0;
+    waterParticles.length = 0;
+    pointWetness.clear();
+    updateHUD();
+  });
+
+  /* ── Perspective MVP matrix (column-major Float32Array for gl.uniformMatrix4fv) ──
+     Camera at (cx, cy, -d) looking in +Z, Y-down world, FOV 60°.
+     MV transform: cam_x = wx-cx, cam_y = cy-wy (flip Y), cam_z = wz-d
+     Combined P*MV is precomputed here each resize.                          */
+  function buildMVP(cw, ch) {
+    const cx = cw * 0.5, cy = ch * 0.5;
+    const fovY = Math.PI / 3;          // 60 degrees
+    const tHalf = Math.tan(fovY * 0.5);
+    const d  = cy / tHalf;             // camera distance — canvas fills the view at z=0
+    const f  = 1.0 / tHalf;
+    const fa = f * ch / cw;            // f / aspect
+    const np = d * 0.01, fp = d * 20;
+    const nf = 1.0 / (np - fp);
+    const z33   = (fp + np) * nf;      // (fp+np)/(np-fp)
+    const z34   = 2 * fp * np * nf;    // 2*fp*np/(np-fp)
+    const col3z = z33 * (-d) + z34;    // z clip value for the cloth plane at world-z=0
+    return new Float32Array([
+      fa,        0,      0,  0,
+       0,       -f,      0,  0,
+       0,        0,    z33, -1,
+      -fa * cx, f * cy, col3z, d
+    ]);
+  }
+
+  /* ── Resize ── */
+  function resize() {
+    let cw, ch;
+    if (isMobile()) {
+      const headerH = mobHeader.offsetHeight;
+      const navH    = mobNav.offsetHeight;
+      cw = window.innerWidth;
+      ch = window.innerHeight - headerH - navH;
+      canvas.style.cssText  = `position:fixed;top:${headerH}px;left:0;width:${cw}px;height:${ch}px;z-index:1`;
+      overlay.style.cssText = `position:fixed;top:${headerH}px;left:0;width:${cw}px;height:${ch}px;z-index:2;pointer-events:none`;
+      document.body.style.overflow = 'hidden';
+    } else {
+      const panelW = 280;
+      cw = window.innerWidth - panelW;
+      ch = window.innerHeight;
+      canvas.style.cssText  = `position:fixed;top:0;left:${panelW}px;width:${cw}px;height:${ch}px;`;
+      overlay.style.cssText = `position:fixed;top:0;left:${panelW}px;width:${cw}px;height:${ch}px;pointer-events:none;display:block`;
+      document.body.style.overflow = '';
+    }
+    canvas.width   = cw;
+    canvas.height  = ch;
+    overlay.width  = cw;
+    overlay.height = ch;
+    gl.viewport(0, 0, cw, ch);
+    gl.useProgram(prog);
+    gl.uniformMatrix4fv(uMVPLoc, false, buildMVP(cw, ch));
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  /* ── Cloth init ── */
+  function makeCloth() {
+    const clothWidth = (COLS - 1) * SPACING;
+    const originX    = Math.round((canvas.width  - clothWidth) / 2);
+    const originY    = Math.round(canvas.height  * 0.08);
+    return new Cloth(originX, originY, pinConfig); // pass current pinConfig so Z gradient matches pin axis
+  }
+
+  /* ── Scenario state — must be declared before makeCloth() which reads pinConfig ── */
+  let pinConfig      = 'top-row'; // 'top-row' | 'left-col' | 'top-corners'
+
+
+  let cloth = makeCloth();
+  buildUVBuffer();
+
+  /* ── Microphone audio analysis ── */
+  let micAnalyser = null;
+  let micData     = null;
+  /* Mic is NOT auto-started — only activated when the user taps the Mic button */
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let windEnabled   = false; // stays off by default — satisfies prefers-reduced-motion
+  let tearMode      = false;
+  let dirtMode      = false;
+  let waterMode     = false;
+  const dirtParticles  = [];  // { x,y,vx,vy,r,hue,lightness,attached:Point|null,opacity }
+  const waterParticles = [];  // { x,y,vx,vy,r,opacity } — splash, fade, vanish
+  const pointWetness   = new Map(); // Point → wetness 0–1 (cleared on reset)
+  let windPhase     = 0;
+  let windMult      = 1.0;   // wind strength multiplier (1.0 = default, set by scenario)
+  let mouse         = { x: 0, y: 0, down: false };
+  let draggedPoint  = null;
+  let grainOn       = false;
+  let isKorean      = false; // set true in i18n block; used for dynamic badge text
+
+  /* ── Collider state ── */
+  const COLLIDER_NONE = 0, COLLIDER_BALL = 1, COLLIDER_ROD = 2;
+  let colliderType    = COLLIDER_NONE;
+  let ballCollider    = { x: 0, y: 0, r: 55 };
+  let rodCollider     = { x: 0, y: 0, angle: 0, len: 150, r: 16 };
+  let draggedCollider = null; // 'ball' | 'rod-body' | 'rod-e1' | 'rod-e2'
+
+  /* Emit a burst of dirt particles from canvas-local position (px, py) */
+  function emitDirt(px, py) {
+    const count = 14 + Math.floor(Math.random() * 8);
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1.5 + Math.random() * 3.5;
+      dirtParticles.push({
+        x:        px + (Math.random() - 0.5) * 12,
+        y:        py + (Math.random() - 0.5) * 12,
+        vx:       Math.cos(angle) * speed,
+        vy:       Math.sin(angle) * speed - 2.0,  // bias slightly upward for arc
+        r:        1.8 + Math.random() * 3.5,      // varied sizes
+        rot:      Math.random() * Math.PI * 2,    // random rotation for 'spots'
+        ecc:      0.6 + Math.random() * 0.4,      // eccentricity for non-circularity
+        hue:      25 + Math.floor(Math.random() * 25),   // 25–50 = earthy brown/tan
+        lightness:18 + Math.floor(Math.random() * 22),   // 18–40 %
+        attached: null,
+        opacity:  1.0,
+      });
+    }
+  }
+
+  /* Emit a burst of water droplets from canvas-local position (px, py) */
+  function emitWater(px, py) {
+    const count = 12 + Math.floor(Math.random() * 7);
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 2.0 + Math.random() * 4.5;  // faster than dirt — water is lighter
+      waterParticles.push({
+        x:      px + (Math.random() - 0.5) * 10,
+        y:      py + (Math.random() - 0.5) * 10,
+        vx:     Math.cos(angle) * speed,
+        vy:     Math.sin(angle) * speed - 2.5,
+        r:      1.5 + Math.random() * 2.5,
+        rot:    angle + Math.PI * 0.5,
+        ecc:    0.5 + Math.random() * 0.3,
+        opacity: 0.85 + Math.random() * 0.15,
+        absorbed: false,
+      });
+    }
+  }
+
+  let hudHidden    = false;
+  let hudPeekTimer = null;
+  let glowPos      = null;
+  let glowAt       = 0;
+
+  /* Convert a viewport-relative clientX/Y into canvas-local coordinates.
+     The canvas starts at x=280px on desktop and is offset by the header on mobile,
+     so we always subtract its bounding rect to get the correct local position. */
+  function canvasPos(clientX, clientY) {
+    const r = canvas.getBoundingClientRect();
+    return { x: clientX - r.left, y: clientY - r.top };
+  }
+
+  /* ── Mouse ── */
+  /* Helper: test whether (mx,my) hits a collider; sets draggedCollider; returns true if hit */
+  function tryGrabCollider(mx, my) {
+    if (colliderType === COLLIDER_BALL) {
+      const dx = mx - ballCollider.x, dy = my - ballCollider.y;
+      if (dx*dx + dy*dy < (ballCollider.r + 14) * (ballCollider.r + 14)) {
+        draggedCollider = 'ball';
+        return true;
+      }
+    } else if (colliderType === COLLIDER_ROD) {
+      const cos = Math.cos(rodCollider.angle), sin = Math.sin(rodCollider.angle);
+      const hlen = rodCollider.len * 0.5;
+      /* Check endpoints first (for rotation drag) */
+      const e1x = rodCollider.x + cos * hlen, e1y = rodCollider.y + sin * hlen;
+      const e2x = rodCollider.x - cos * hlen, e2y = rodCollider.y - sin * hlen;
+      const d1 = (mx-e1x)*(mx-e1x)+(my-e1y)*(my-e1y);
+      const d2 = (mx-e2x)*(mx-e2x)+(my-e2y)*(my-e2y);
+      const endR2 = (rodCollider.r + 18) * (rodCollider.r + 18);
+      if (d1 < endR2) { draggedCollider = 'rod-e1'; return true; }
+      if (d2 < endR2) { draggedCollider = 'rod-e2'; return true; }
+      /* Check body (capsule hit) */
+      const dx = mx - rodCollider.x, dy = my - rodCollider.y;
+      const t  = Math.max(-hlen, Math.min(hlen, dx*cos + dy*sin));
+      const cx = rodCollider.x + t*cos, cy = rodCollider.y + t*sin;
+      const bodyR = rodCollider.r + 14;
+      if ((mx-cx)*(mx-cx)+(my-cy)*(my-cy) < bodyR*bodyR) {
+        draggedCollider = 'rod-body';
+        return true;
+      }
+    }
+    return false;
+  }
+
+  canvas.addEventListener('mousedown', e => {
+    mouse.down = true;
+    const pos  = canvasPos(e.clientX, e.clientY);
+    mouse.x = pos.x;
+    mouse.y = pos.y;
+    if (dirtMode)        emitDirt(mouse.x, mouse.y);
+    else if (waterMode)  emitWater(mouse.x, mouse.y);
+    else if (colliderType !== COLLIDER_NONE && tryGrabCollider(mouse.x, mouse.y)) { /* collider drag */ }
+    else if (!tearMode)  draggedPoint = cloth.nearestPoint(mouse.x, mouse.y);
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    const pos = canvasPos(e.clientX, e.clientY);
+    const prevMX = mouse.x, prevMY = mouse.y;
+    mouse.x = pos.x;
+    mouse.y = pos.y;
+    if (tearMode) cloth.tearNear(mouse.x, mouse.y);
+    if (mouse.down && waterMode) emitWater(mouse.x, mouse.y);
+    if (mouse.down && dirtMode)  emitDirt(mouse.x, mouse.y);
+    if (mouse.down && draggedPoint && !tearMode) {
+      draggedPoint.x     = mouse.x;
+      draggedPoint.y     = mouse.y;
+      draggedPoint.prevX = mouse.x;
+      draggedPoint.prevY = mouse.y;
+    }
+    /* Collider drag */
+    if (mouse.down && draggedCollider) {
+      if (draggedCollider === 'ball') {
+        ballCollider.x = mouse.x;
+        ballCollider.y = mouse.y;
+      } else if (draggedCollider === 'rod-body') {
+        rodCollider.x += mouse.x - prevMX;
+        rodCollider.y += mouse.y - prevMY;
+      } else if (draggedCollider === 'rod-e1' || draggedCollider === 'rod-e2') {
+        /* Rotate: compute new angle from rod center to dragged endpoint */
+        const dx = mouse.x - rodCollider.x, dy = mouse.y - rodCollider.y;
+        rodCollider.angle = Math.atan2(dy, dx);
+        if (draggedCollider === 'rod-e2') rodCollider.angle += Math.PI;
+        rodCollider.len = Math.max(60, Math.min(300, Math.sqrt(dx*dx+dy*dy) * 2));
+      }
+    }
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    if (draggedPoint) { glowPos = { x: draggedPoint.x, y: draggedPoint.y }; glowAt = performance.now(); }
+    mouse.down = false; draggedPoint = null; draggedCollider = null;
+  });
+  canvas.addEventListener('mouseleave', () => {
+    if (draggedPoint) { glowPos = { x: draggedPoint.x, y: draggedPoint.y }; glowAt = performance.now(); }
+    mouse.down = false; draggedPoint = null; draggedCollider = null;
+  });
+
+  /* ── Touch ── */
+  function touchPos(e) {
+    return e.touches.length
+      ? { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }
+      : { clientX: mouse.x, clientY: mouse.y };
+  }
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousedown', touchPos(e))); }, { passive: false });
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousemove', touchPos(e))); }, { passive: false });
+  canvas.addEventListener('touchend',   e => { e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mouseup')); },               { passive: false });
+
+  /* ── Keyboard ── */
+  window.addEventListener('keydown', e => {
+    switch (e.key.toUpperCase()) {
+      case 'T':
+        tearMode = !tearMode;
+        if (tearMode) { dirtMode = false; waterMode = false; cloth.tearNear(mouse.x, mouse.y); }
+        updateHUD();
+        break;
+      case 'D':
+        dirtMode = !dirtMode;
+        if (dirtMode) { tearMode = false; waterMode = false; }
+        updateHUD();
+        break;
+      case 'C':
+        waterMode = !waterMode;
+        if (waterMode) { tearMode = false; dirtMode = false; }
+        updateHUD();
+        break;
+      case 'O':
+        colliderType = (colliderType + 1) % 3;
+        if (colliderType === COLLIDER_BALL) {
+          ballCollider.x = overlay.width / 2;
+          ballCollider.y = overlay.height / 2;
+        } else if (colliderType === COLLIDER_ROD) {
+          rodCollider.x = overlay.width / 2;
+          rodCollider.y = overlay.height / 2;
+          rodCollider.angle = 0;
+          rodCollider.len   = 150;
+        }
+        updateHUD();
+        break;
+      case 'R':
+        pinConfig    = 'top-row';
+        windMult     = 1.0;
+
+        cloth        = makeCloth();
+        buildUVBuffer();
+        windEnabled  = false;
+        tearMode     = false;
+        dirtMode     = false;
+        waterMode    = false;
+        dirtParticles.length  = 0;
+        waterParticles.length = 0;
+        pointWetness.clear();
+        syncScenarioUI(null);
+        updateHUD();
+        break;
+      case 'W':
+        windEnabled = !windEnabled;
+        updateHUD();
+        break;
+      case 'S': saveImage(); break;
+      case 'G':
+        grainOn = !grainOn;
+        document.getElementById('grain-overlay').classList.toggle('active', grainOn);
+        updateHUD();
+        break;
+      case 'H':
+        if (!isMobile()) {
+          hudHidden = !hudHidden;
+          hud.classList.toggle('hud-hidden', hudHidden);
+        }
+        break;
+    }
+  });
+
+  /* ── HUD proximity reveal — hover near left edge while hidden ── */
+  if (!isMobile()) {
+    window.addEventListener('mousemove', e => {
+      if (hudHidden && e.clientX < 80) {
+        hud.classList.remove('hud-hidden');
+        clearTimeout(hudPeekTimer);
+        hudPeekTimer = setTimeout(() => {
+          if (hudHidden) hud.classList.add('hud-hidden');
+        }, 2000);
+      }
+    });
+  }
+
+  /* ── Save image — shared by keyboard shortcut + mobile button ── */
+  function saveImage() {
+    const off    = document.createElement('canvas');
+    off.width    = canvas.width;
+    off.height   = canvas.height;
+    const offCtx = off.getContext('2d');
+    offCtx.drawImage(canvas,  0, 0);
+    offCtx.drawImage(overlay, 0, 0);
+    const dataURL = off.toDataURL('image/png');
+    const link    = document.createElement('a');
+    link.href     = dataURL;
+    link.download = `fabric-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  const elCollider = document.getElementById('modeCollider');
+
+  /* ── HUD badges + mobile button active states ── */
+  function updateHUD() {
+    elWind    .classList.toggle('visible', windEnabled);
+    elTear    .classList.toggle('visible', tearMode);
+    elMic     .classList.toggle('visible', windEnabled && micAnalyser !== null);
+    elGrain   .classList.toggle('visible', grainOn);
+    elDirt    .classList.toggle('visible', dirtMode);
+    elWater   .classList.toggle('visible', waterMode);
+    elCollider.classList.toggle('visible', colliderType !== COLLIDER_NONE);
+    if (colliderType !== COLLIDER_NONE) {
+      elCollider.textContent = colliderType === COLLIDER_BALL
+        ? (isKorean ? '공' : 'BALL')
+        : (isKorean ? '막대' : 'ROD');
+    }
+    if (isMobile()) {
+      /* Nav direct-mode buttons */
+      mobTear .classList.toggle('mode-on', tearMode);
+      mobDirt .classList.toggle('mode-on', dirtMode);
+      mobWater.classList.toggle('mode-on', waterMode);
+      mobWind .classList.toggle('mode-on', windEnabled);
+      mobTear .setAttribute('aria-pressed', String(tearMode));
+      mobDirt .setAttribute('aria-pressed', String(dirtMode));
+      mobWater.setAttribute('aria-pressed', String(waterMode));
+      mobWind .setAttribute('aria-pressed', String(windEnabled));
+      /* More button dot — on when Grain, Collider or Mic is active */
+      mobMore .classList.toggle('mode-on', grainOn || colliderType !== COLLIDER_NONE || micAnalyser !== null);
+      /* More sheet toggles */
+      fxGrain   .classList.toggle('active', grainOn);
+      fxCollider.classList.toggle('active', colliderType !== COLLIDER_NONE);
+      fxMicBtn  .classList.toggle('active', micAnalyser !== null);
+      fxGrain   .setAttribute('aria-pressed', String(grainOn));
+      fxCollider.setAttribute('aria-pressed', String(colliderType !== COLLIDER_NONE));
+    } else {
+      /* Desktop HUD shortcut rows — inline active state + aria-pressed */
+      const rowTear     = document.getElementById('hudRowTear');
+      const rowDirt     = document.getElementById('hudRowDirt');
+      const rowWater    = document.getElementById('hudRowWater');
+      const rowCollider = document.getElementById('hudRowCollider');
+      const rowWind     = document.getElementById('hudRowWind');
+      const rowGrain    = document.getElementById('hudRowGrain');
+      rowTear    .classList.toggle('row-on', tearMode);
+      rowDirt    .classList.toggle('row-on', dirtMode);
+      rowWater   .classList.toggle('row-on', waterMode);
+      rowCollider.classList.toggle('row-on', colliderType !== COLLIDER_NONE);
+      rowWind    .classList.toggle('row-on', windEnabled);
+      rowGrain   .classList.toggle('row-on', grainOn);
+      rowTear    .setAttribute('aria-pressed', String(tearMode));
+      rowDirt    .setAttribute('aria-pressed', String(dirtMode));
+      rowWater   .setAttribute('aria-pressed', String(waterMode));
+      rowCollider.setAttribute('aria-pressed', String(colliderType !== COLLIDER_NONE));
+      rowWind    .setAttribute('aria-pressed', String(windEnabled));
+      rowGrain   .setAttribute('aria-pressed', String(grainOn));
+    }
+  }
+
+  /* ── Mobile button handlers ── */
+  if (isMobile()) {
+    /* Sheet open / close */
+    function openFxSheet() {
+      fxSheet   .classList.add('open');
+      fxBackdrop.classList.add('open');
+      fxBackdrop.removeAttribute('aria-hidden');
+      fxSheet.setAttribute('aria-hidden', 'false');
+      mobMore.setAttribute('aria-expanded', 'true');
+      const first = fxSheet.querySelector('button, [tabindex="0"]');
+      if (first) first.focus();
+    }
+    function closeFxSheet() {
+      fxSheet   .classList.remove('open');
+      fxBackdrop.classList.remove('open');
+      fxBackdrop.setAttribute('aria-hidden', 'true');
+      fxSheet.setAttribute('aria-hidden', 'true');
+      mobMore.setAttribute('aria-expanded', 'false');
+      mobMore.focus();
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && fxSheet.classList.contains('open')) closeFxSheet();
+    });
+
+    /* Nav direct toggles */
+    mobTear .addEventListener('click', () => { tearMode  = !tearMode;  if (tearMode)  { dirtMode = false; waterMode = false; } updateHUD(); });
+    mobDirt .addEventListener('click', () => { dirtMode  = !dirtMode;  if (dirtMode)  { tearMode = false; waterMode = false; } updateHUD(); });
+    mobWater.addEventListener('click', () => { waterMode = !waterMode; if (waterMode) { tearMode = false; dirtMode  = false; } updateHUD(); });
+    mobWind .addEventListener('click', () => { windEnabled = !windEnabled; updateHUD(); });
+    mobMore .addEventListener('click', openFxSheet);
+    fxBackdrop.addEventListener('click', closeFxSheet);
+
+    /* Sheet: more effect toggles */
+    fxGrain.addEventListener('click', () => {
+      grainOn = !grainOn;
+      document.getElementById('grain-overlay').classList.toggle('active', grainOn);
+      updateHUD();
+    });
+
+    /* Sheet: utility actions */
+    fxReset.addEventListener('click', () => {
+      closeFxSheet();
+      pinConfig      = 'top-row';
+      windMult       = 1.0;
+
+      cloth          = makeCloth();
+      buildUVBuffer();
+      windEnabled = false;
+      tearMode    = false;
+      dirtMode    = false;
+      waterMode   = false;
+      dirtParticles.length  = 0;
+      waterParticles.length = 0;
+      pointWetness.clear();
+      syncScenarioUI(null);
+      updateHUD();
+    });
+    fxSaveBtn  .addEventListener('click', () => { closeFxSheet(); saveImage(); });
+    fxUploadBtn2.addEventListener('click', () => { closeFxSheet(); texFile.click(); });
+    fxMicBtn   .addEventListener('click', () => {
+      if (micAnalyser) return;
+      navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then(stream => {
+          const audioCtx  = new AudioContext();
+          const source    = audioCtx.createMediaStreamSource(stream);
+          micAnalyser     = audioCtx.createAnalyser();
+          micAnalyser.fftSize = 256;
+          micData         = new Uint8Array(micAnalyser.frequencyBinCount);
+          source.connect(micAnalyser);
+          if (!windEnabled) { windEnabled = true; }
+          updateHUD();
+        })
+        .catch(() => { /* permission denied */ });
+    });
+  }
+
+  /* ── Desktop HUD — clickable shortcut rows ── */
+  if (!isMobile()) {
+    document.querySelectorAll('#hud .hud-act').forEach(row => {
+      const trigger = () => {
+        const key = row.dataset.hudKey;
+        if (key) window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+      };
+      row.addEventListener('click', trigger);
+      row.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trigger(); }
+      });
+    });
+  }
+
+  /* ── Fabric preset buttons ── */
+  const presetBtns  = document.querySelectorAll('.preset-btn');
+  const presetReset = document.getElementById('presetReset');
+
+  /* Sync all preset UI (desktop buttons + mobile sheet rows) for a given key (null = default) */
+  function syncPresetUI(key) {
+    presetBtns.forEach(b => b.classList.toggle('active', b.dataset.preset === key));
+    presetReset.classList.toggle('visible', key !== null);
+    /* Mobile bottom sheet texture rows */
+    fxSilk   .classList.toggle('active', key === 'SILK');
+    fxDenim  .classList.toggle('active', key === 'DENIM');
+    fxLinen  .classList.toggle('active', key === 'LINEN');
+    fxDefault.classList.toggle('visible', key !== null);
+  }
+
+  /* Apply a named preset (shared by desktop and mobile) */
+  function applyPreset(key) {
+    const preset = PRESETS[key];
+    if (!preset) return;
+    gravity      = preset.gravity;
+    iterations   = preset.iterations;
+    tearDist     = preset.tearDist;
+    damping      = preset.damping;
+    windResponse = preset.windResponse;
+    stickiness   = preset.stickiness;
+    dryRate      = preset.dryRate;
+    dirtParticles.length  = 0;
+    waterParticles.length = 0;
+    pointWetness.clear();
+    clothColor = (PREFERS_DARK && preset.colorDark)
+      ? preset.colorDark.slice()
+      : preset.color.slice();
+    lineAlpha  = (PREFERS_DARK && preset.lineAlphaDark != null)
+      ? preset.lineAlphaDark
+      : preset.lineAlpha;
+    cloth.reset();
+    activePreset = key;
+    syncPresetUI(key);
+  }
+
+  function applyDefaultCloth() {
+    gravity      = DEFAULT_GRAVITY;
+    iterations   = DEFAULT_ITERATIONS;
+    tearDist     = DEFAULT_TEAR_DIST;
+    damping      = DEFAULT_DAMPING;
+    windResponse = DEFAULT_WIND_RESPONSE;
+    stickiness   = DEFAULT_STICKINESS;
+    dryRate      = DEFAULT_DRY_RATE;
+    dirtParticles.length  = 0;
+    waterParticles.length = 0;
+    pointWetness.clear();
+    clothColor   = DEFAULT_COLOR.slice();
+    lineAlpha    = DEFAULT_LINE_ALPHA;
+    cloth.reset();
+    activePreset = null;
+    syncPresetUI(null);
+  }
+
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+  });
+
+  presetReset.addEventListener('click', applyDefaultCloth);
+
+  /* Mobile bottom sheet texture handlers */
+  [fxSilk, fxDenim, fxLinen].forEach(btn => {
+    btn.addEventListener('click', () => applyPreset(btn.dataset.fxPreset));
+  });
+  fxDefault.addEventListener('click', applyDefaultCloth);
+
+  /* ── Pin config ── */
+  function applyPinConfig(c, config) {
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const pt = c.points[row * COLS + col];
+        switch (config) {
+          case 'left-col':    pt.pinned = (col === 0); break;
+          case 'top-corners': pt.pinned = (row === 0 && (col === 0 || col === COLS - 1)); break;
+          case 'corners':     pt.pinned = ((row === 0 || row === ROWS - 1) && (col === 0 || col === COLS - 1)); break;
+          default:            pt.pinned = (row === 0); break;
+        }
+        if (pt.pinned) { pt.initX = pt.x; pt.initY = pt.y; pt.initZ = pt.z; }
+      }
+    }
+  }
+
+
+  fxCollider.addEventListener('click', () => {
+    colliderType = (colliderType + 1) % 3;
+    if (colliderType === COLLIDER_BALL) {
+      ballCollider.x = overlay.width / 2;
+      ballCollider.y = overlay.height / 2;
+    } else if (colliderType === COLLIDER_ROD) {
+      rodCollider.x = overlay.width / 2;
+      rodCollider.y = overlay.height / 2;
+      rodCollider.angle = 0; rodCollider.len = 150;
+    }
+    updateHUD();
+  });
+
+  /* ── WebGL GL state setup ── */
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.DEPTH_TEST);   // correct self-overlap occlusion on folded cloth
+  gl.depthFunc(gl.LEQUAL);
+  /* Our MVP matrix flips Y (world Y-down → clip Y-up), which reverses triangle winding.
+     Triangles that are CW in world space become CW in clip space after the flip, so we must
+     tell WebGL that CW = front-face (default is CCW).  Without this, gl_FrontFacing is
+     inverted: the visible cloth face tests as back-facing, making it darker via Task #27. */
+  gl.frontFace(gl.CW);
+  setBgPalette('DEFAULT');          // prime gradient before first frame
+
+  /* ── Main loop ── */
+  function loop() {
+    requestAnimationFrame(loop);
+
+    /* Wind */
+    let windX = 0, windZ = 0;
+    if (windEnabled) {
+      if (micAnalyser) {
+        micAnalyser.getByteFrequencyData(micData);
+        let sum = 0;
+        for (let i = 0; i < micData.length; i++) sum += micData[i];
+        const avg = sum / micData.length;
+        windX = (avg / 255) * 3 * windMult;
+        windZ = windX * 0.55; // microphone wind also billows cloth toward viewer
+        elMicMeter.style.width = Math.round((avg / 255) * 40) + 'px';
+      } else {
+        windPhase += WIND_SPEED;
+        windX = Math.sin(windPhase) * WIND_STRENGTH * windMult;
+        windZ = Math.cos(windPhase) * WIND_STRENGTH * windMult * 0.6; // Z slightly behind X phase
+      }
+    }
+
+    /* Physics */
+    cloth.update(windX * windResponse, windZ * windResponse);
+
+    /* ── Collider resolution — push cloth points outside each collider ── */
+    if (colliderType !== COLLIDER_NONE) {
+      const pts = cloth.points;
+      for (let i = 0; i < pts.length; i++) {
+        const pt = pts[i];
+        if (pt.pinned) continue;
+        if (colliderType === COLLIDER_BALL) {
+          /* Full 3D sphere collision — ball lives at Z=0 in world space */
+          const bz = 0;
+          const dx = pt.x - ballCollider.x, dy = pt.y - ballCollider.y, dz = pt.z - bz;
+          const d2 = dx * dx + dy * dy + dz * dz;
+          if (d2 < ballCollider.r * ballCollider.r) {
+            const dist = Math.sqrt(d2) || 0.001;
+            const nx = dx / dist, ny = dy / dist, nz = dz / dist;
+            pt.x = ballCollider.x + nx * ballCollider.r;
+            pt.y = ballCollider.y + ny * ballCollider.r;
+            pt.z = bz           + nz * ballCollider.r;
+            const vx = pt.x - pt.prevX, vy = pt.y - pt.prevY, vz = pt.z - pt.prevZ;
+            const vn = vx * nx + vy * ny + vz * nz;
+            if (vn < 0) {
+              pt.prevX = pt.x - (vx - vn * nx) * 0.82;
+              pt.prevY = pt.y - (vy - vn * ny) * 0.82;
+              pt.prevZ = pt.z - (vz - vn * nz) * 0.82;
+            }
+          }
+        } else { /* ROD — 2D capsule, extended along Z (cylinder) */
+          const cos = Math.cos(rodCollider.angle), sin = Math.sin(rodCollider.angle);
+          const hlen = rodCollider.len * 0.5;
+          const dx = pt.x - rodCollider.x, dy = pt.y - rodCollider.y;
+          const t  = Math.max(-hlen, Math.min(hlen, dx * cos + dy * sin));
+          const cx = rodCollider.x + t * cos, cy = rodCollider.y + t * sin;
+          const ex = pt.x - cx, ey = pt.y - cy;
+          const d2 = ex * ex + ey * ey;
+          if (d2 < rodCollider.r * rodCollider.r) {
+            const dist = Math.sqrt(d2) || 0.001;
+            const nx = ex / dist, ny = ey / dist;
+            pt.x = cx + nx * rodCollider.r;
+            pt.y = cy + ny * rodCollider.r;
+            /* Dampen Z velocity on rod contact (rod is infinite in Z) */
+            pt.z    *= 0.9;
+            pt.prevZ = pt.z - (pt.z - pt.prevZ) * 0.82;
+            const vx = pt.x - pt.prevX, vy = pt.y - pt.prevY;
+            const vn = vx * nx + vy * ny;
+            if (vn < 0) { pt.prevX = pt.x - (vx - vn * nx) * 0.82; pt.prevY = pt.y - (vy - vn * ny) * 0.82; }
+          }
+        }
+      }
+    }
+
+    /* ── Dirt particle physics ── */
+    if (dirtParticles.length > 0) {
+      const snapRadius = 14;
+      const pts        = cloth.points;
+      for (let i = dirtParticles.length - 1; i >= 0; i--) {
+        const p = dirtParticles[i];
+        if (p.attached) {
+          /* Follow the cloth point */
+          p.x = p.attached.x;
+          p.y = p.attached.y;
+          /* Water loosens stuck dirt proportional to local wetness */
+          const wet = pointWetness.get(p.attached) || 0;
+          if (wet > 0 && Math.random() < Math.min(0.95, wet * (1 - stickiness) * 0.9)) {
+            p.vx = (Math.random() - 0.5) * 2.5;
+            p.vy = 1.5 + Math.random() * 3.0;   // strong downward kick — escape snap zone
+            p.attached = null;
+            p.noAttach = 90;                      // 90-frame cooldown before re-stick allowed
+          }
+          /* Wind can shake loose low-stickiness particles */
+          if (p.attached && windEnabled && Math.abs(windX) > 0.3) {
+            if (Math.random() < Math.abs(windX) * (1 - stickiness) * 0.06) {
+              p.vx = windX * 2 + (Math.random() - 0.5);
+              p.vy = -1 - Math.random();
+              p.attached = null;
+            }
+          }
+        } else {
+          /* Airborne — apply gravity + light air drag */
+          if (p.noAttach > 0) p.noAttach--;
+          p.vy += 0.28;
+          p.vx *= 0.97;
+          p.vy *= 0.97;
+          p.x  += p.vx;
+          p.y  += p.vy;
+
+          /* Remove if off canvas */
+          if (p.y > overlay.height + 20 || p.x < -20 || p.x > overlay.width + 20) {
+            dirtParticles.splice(i, 1);
+            continue;
+          }
+
+          /* Only try to re-stick when the water-release cooldown has expired */
+          if (!p.noAttach) {
+            let nearest = null, nearestDist = snapRadius;
+            for (let j = 0; j < pts.length; j++) {
+              const pt = pts[j];
+              const dx = p.x - pt.x, dy = p.y - pt.y;
+              const d  = Math.sqrt(dx * dx + dy * dy);
+              if (d < nearestDist) { nearestDist = d; nearest = pt; }
+            }
+            if (nearest) {
+              if (Math.random() < stickiness) {
+                p.attached = nearest;
+                p.vx = 0; p.vy = 0;
+              } else {
+                p.vy *= -0.35;
+                p.vx *= 0.5;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* ── Water particle physics + wetness decay ── */
+    {
+      const snapRadius = 18;
+      const pts        = cloth.points;
+      const windExtra  = windEnabled ? Math.abs(windX) * 0.004 : 0;
+
+      /* Decay all wetness (wind accelerates drying) */
+      for (const [pt, w] of pointWetness) {
+        const next = w - dryRate - windExtra;
+        if (next <= 0.001) pointWetness.delete(pt);
+        else               pointWetness.set(pt, next);
+      }
+
+      /* Advance water particles */
+      for (let i = waterParticles.length - 1; i >= 0; i--) {
+        const p = waterParticles[i];
+
+        if (p.absorbed) {
+          /* Fade out after absorption */
+          p.opacity -= 0.055;
+          if (p.opacity <= 0) { waterParticles.splice(i, 1); }
+          continue;
+        }
+
+        /* Airborne — lighter gravity, stronger wind carry */
+        p.vy += 0.18;
+        p.vx += windEnabled ? windX * 0.04 : 0;
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+        p.x  += p.vx;
+        p.y  += p.vy;
+
+        /* Remove if off canvas bottom/sides */
+        if (p.y > overlay.height + 20 || p.x < -20 || p.x > overlay.width + 20) {
+          waterParticles.splice(i, 1);
+          continue;
+        }
+
+        /* Check proximity to cloth points — absorb and add wetness */
+        for (let j = 0; j < pts.length; j++) {
+          const pt = pts[j];
+          const dx = p.x - pt.x, dy = p.y - pt.y;
+          if (dx * dx + dy * dy < snapRadius * snapRadius) {
+            p.absorbed = true;
+
+            /* Spread wetness to this point AND all cloth points within ~54px
+               so the per-frame loosening also fires on nearby dirty points */
+            const wetSpreadR2 = 54 * 54;
+            for (let j2 = 0; j2 < pts.length; j2++) {
+              const nb = pts[j2];
+              const nx = nb.x - pt.x, ny = nb.y - pt.y;
+              if (nx * nx + ny * ny < wetSpreadR2) {
+                pointWetness.set(nb, Math.min(1, (pointWetness.get(nb) || 0) + 0.9));
+              }
+            }
+
+            /* Instant burst: knock off dirt in a wide area around impact.
+               Water cleans dirt regardless of material stickiness — chance is high. */
+            const burstR2 = 85 * 85; // Wider cleaning area
+            for (let k = dirtParticles.length - 1; k >= 0; k--) {
+              const dp = dirtParticles[k];
+              if (!dp.attached) continue;
+              const bx = dp.attached.x - pt.x, by = dp.attached.y - pt.y;
+              if (bx * bx + by * by < burstR2) {
+                /* 1-2 sprays logic: high removal chance per droplet */
+                if (Math.random() < 0.99) { 
+                  dp.vx = (Math.random() - 0.5) * 4.0;
+                  dp.vy = 2.0 + Math.random() * 4.0;
+                  dp.attached = null;
+                  dp.noAttach = 120;
+                }
+              }
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    /* ── WebGL render ── */
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    if (!isMobile()) {
+      /* Draw animated gradient background */
+      const bgTime  = performance.now() / 1000;
+      const bgWind  = windEnabled ? Math.abs(Math.sin(windPhase)) : 0;
+      gl.disable(gl.DEPTH_TEST);
+      gl.useProgram(bgProg);
+      gl.bindBuffer(gl.ARRAY_BUFFER, bgVBO);
+      gl.enableVertexAttribArray(aBGPosLoc);
+      gl.vertexAttribPointer(aBGPosLoc, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform3f(uBGTopLoc,  bgTopCurrent[0], bgTopCurrent[1], bgTopCurrent[2]);
+      gl.uniform3f(uBGBotLoc,  bgBotCurrent[0], bgBotCurrent[1], bgBotCurrent[2]);
+      gl.uniform1f(uBGTimeLoc, bgTime);
+      gl.uniform1f(uBGWindLoc, bgWind);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.disableVertexAttribArray(aBGPosLoc);
+      gl.enable(gl.DEPTH_TEST);
+      /* Clear only depth so cloth renders over gradient */
+      gl.clear(gl.DEPTH_BUFFER_BIT);
+    }
+
+    gl.useProgram(prog);
+    gl.uniform1i(uHasTextureLoc, hasTexture ? 1 : 0);
+    gl.uniform3f(uClothColorLoc, ...clothColor);
+    gl.uniform1f(uLineAlphaLoc,   lineAlpha);
+
+    if (hasTexture && glTexture) {
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, glTexture);
+      gl.uniform1i(uTextureLoc, 0);
+    }
+
+    /* Upload positions (xyz — 3 floats per vertex) */
+    uploadPositions(cloth);
+    gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+    gl.enableVertexAttribArray(aPositionLoc);
+    gl.vertexAttribPointer(aPositionLoc, 3, gl.FLOAT, false, 0, 0);
+
+    /* Bind UV buffer */
+    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+    gl.enableVertexAttribArray(aUVLoc);
+    gl.vertexAttribPointer(aUVLoc, 2, gl.FLOAT, false, 0, 0);
+
+    /* Build and bind deformation shade buffer */
+    buildAndUploadShade(cloth);
+    gl.bindBuffer(gl.ARRAY_BUFFER, shadeBuffer);
+    gl.enableVertexAttribArray(aShadeLoc);
+    gl.vertexAttribPointer(aShadeLoc, 1, gl.FLOAT, false, 0, 0);
+
+    /* Build and bind world-space normals */
+    buildAndUploadNormals(cloth);
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    gl.enableVertexAttribArray(aNormalLoc);
+    gl.vertexAttribPointer(aNormalLoc, 3, gl.FLOAT, false, 0, 0);
+
+    /* Build and bind dirt/wetness buffers */
+    buildAndUploadDirt(cloth);
+    gl.bindBuffer(gl.ARRAY_BUFFER, dirtBuffer);
+    gl.enableVertexAttribArray(aDirtLoc);
+    gl.vertexAttribPointer(aDirtLoc, 1, gl.FLOAT, false, 0, 0);
+
+    buildAndUploadWetness(cloth);
+    gl.bindBuffer(gl.ARRAY_BUFFER, wetnessBuffer);
+    gl.enableVertexAttribArray(aWetnessLoc);
+    gl.vertexAttribPointer(aWetnessLoc, 1, gl.FLOAT, false, 0, 0);
+
+    /* Build index buffer (skips torn quads) and draw filled quads */
+    gl.uniform1i(uIsLineLoc, 0);
+    const indexCount = buildAndUploadIndices(cloth);
+    if (!window.hasLoggedDraw) {
+      console.info('First draw call indexCount:', indexCount);
+      window.hasLoggedDraw = true;
+    }
+    if (indexCount > 0) {
+      gl.drawElements(gl.TRIANGLES, indexCount, gl.UNSIGNED_SHORT, 0);
+    }
+
+    /* Grid lines — second pass, no-texture mode only */
+    if (!hasTexture) {
+      gl.uniform1i(uIsLineLoc, 1);
+      const lineCount = buildAndUploadLineIndices(cloth);
+      if (lineCount > 0) {
+        gl.drawElements(gl.LINES, lineCount, gl.UNSIGNED_SHORT, 0);
+      }
+      gl.uniform1i(uIsLineLoc, 0);
+    }
+
+    /* ── Overlay: 2D decorations ── */
+    ctx2d.clearRect(0, 0, overlay.width, overlay.height);
+
+    /* ── Water particles (airborne droplets only) ── */
+    if (waterParticles.length > 0) {
+      ctx2d.save();
+      for (let i = 0; i < waterParticles.length; i++) {
+        const p = waterParticles[i];
+        if (p.absorbed) continue; // Now handled by WebGL
+        ctx2d.globalAlpha = p.opacity * 0.80;
+        ctx2d.fillStyle   = PREFERS_DARK ? 'rgba(180,225,255,1)' : 'rgba(100,180,255,1)';
+        ctx2d.beginPath();
+        const rx = p.r;
+        const ry = p.r * (p.ecc || 0.7);
+        ctx2d.ellipse(p.x, p.y, rx, ry, p.rot || 0, 0, Math.PI * 2);
+        ctx2d.fill();
+      }
+      ctx2d.restore();
+    }
+
+    /* ── Dirt particles (airborne only) ── */
+    if (dirtParticles.length > 0) {
+      ctx2d.save();
+      for (let i = 0; i < dirtParticles.length; i++) {
+        const p = dirtParticles[i];
+        if (p.attached) continue; // Attached dirt is handled by WebGL on the cloth
+        
+        ctx2d.globalAlpha = p.opacity * 0.95;
+        ctx2d.fillStyle   = `hsl(${p.hue}, 35%, ${p.lightness}%)`;
+        
+        // Draw as an irregular "spot" using an ellipse with eccentricity
+        ctx2d.beginPath();
+        const rx = p.r;
+        const ry = p.r * (p.ecc || 0.8);
+        ctx2d.ellipse(p.x, p.y, rx, ry, p.rot || 0, 0, Math.PI * 2);
+        ctx2d.fill();
+      }
+      ctx2d.restore();
+    }
+
+    /* ── Hanger ── only for top-row pin config (not curtain/sail) */
+    if (pinConfig === 'top-row') (function drawHanger() {
+      const ptL  = cloth.points[0];
+      const ptR  = cloth.points[COLS - 1];
+      const bL   = ptL.x, bR = ptR.x, bY = ptL.y;
+      const mx   = (bL + bR) / 2;
+      const archH = Math.min(52, bY * 0.9);
+      const peakY = bY - archH;
+      
+      ctx2d.save();
+      
+      /* Rich Wooden Gradient */
+      const woodGrd = ctx2d.createLinearGradient(bL, bY, bR, bY);
+      if (PREFERS_DARK) {
+        woodGrd.addColorStop(0,   '#3a281b');
+        woodGrd.addColorStop(0.2, '#5a3e2b');
+        woodGrd.addColorStop(0.5, '#7a543a');
+        woodGrd.addColorStop(0.8, '#5a3e2b');
+        woodGrd.addColorStop(1,   '#3a281b');
+      } else {
+        woodGrd.addColorStop(0,   '#5d4037');
+        woodGrd.addColorStop(0.3, '#8d6e63');
+        woodGrd.addColorStop(0.5, '#a1887f');
+        woodGrd.addColorStop(0.7, '#8d6e63');
+        woodGrd.addColorStop(1,   '#5d4037');
+      }
+
+      /* Volumetric Shadow */
+      ctx2d.shadowColor = 'rgba(0,0,0,0.4)';
+      ctx2d.shadowBlur  = 12;
+      ctx2d.shadowOffsetY = 6;
+
+      ctx2d.strokeStyle = woodGrd;
+      ctx2d.lineWidth   = 12;
+      ctx2d.lineCap     = 'round';
+      ctx2d.lineJoin    = 'round';
+
+      /* Main wooden body */
+      ctx2d.beginPath();
+      ctx2d.moveTo(bL, bY);
+      ctx2d.quadraticCurveTo(bL + (mx - bL) * 0.25, bY - archH * 0.35, mx, peakY);
+      ctx2d.quadraticCurveTo(bR - (bR - mx) * 0.25, bY - archH * 0.35, bR, bY);
+      ctx2d.stroke();
+
+      /* Wood grain detail pass */
+      ctx2d.shadowBlur = 0; ctx2d.shadowOffsetY = 0;
+      ctx2d.lineWidth = 1.2;
+      ctx2d.strokeStyle = 'rgba(0,0,0,0.12)';
+      for (let i = -4; i <= 4; i += 2) {
+        ctx2d.beginPath();
+        ctx2d.moveTo(bL, bY + i);
+        ctx2d.quadraticCurveTo(bL + (mx-bL)*0.25, bY - archH*0.35 + i, mx, peakY + i);
+        ctx2d.quadraticCurveTo(bR - (bR-mx)*0.25, bY - archH*0.35 + i, bR, bY + i);
+        ctx2d.stroke();
+      }
+
+      /* Metallic Brass Hook */
+      const hookGrd = ctx2d.createLinearGradient(mx - 10, peakY - 30, mx + 10, peakY);
+      if (PREFERS_DARK) {
+        hookGrd.addColorStop(0, '#d4af37'); // Gold/Brass
+        hookGrd.addColorStop(0.5, '#f9e79f'); // Highlight
+        hookGrd.addColorStop(1, '#9a7d0a'); // Shadow
+      } else {
+        hookGrd.addColorStop(0, '#b8860b');
+        hookGrd.addColorStop(0.5, '#ffd700');
+        hookGrd.addColorStop(1, '#8b6508');
+      }
+
+      ctx2d.strokeStyle = hookGrd;
+      ctx2d.lineWidth   = 3.5;
+      ctx2d.lineCap     = 'round';
+      
+      /* Hook Stem */
+      ctx2d.beginPath();
+      ctx2d.moveTo(mx, peakY);
+      ctx2d.lineTo(mx, peakY - 18);
+      ctx2d.stroke();
+
+      /* Hook Arc */
+      ctx2d.beginPath();
+      ctx2d.arc(mx + 7, peakY - 24, 9, Math.PI * 0.7, -Math.PI * 1.15, true);
+      ctx2d.stroke();
+
+      ctx2d.restore();
+    })();
+
+
+
+    /* ── Collider rendering ── */
+    if (colliderType !== COLLIDER_NONE) {
+      ctx2d.save();
+      const cFill   = PREFERS_DARK ? 'rgba(55,58,68,0.88)'  : 'rgba(45,48,55,0.82)';
+      const cStroke = PREFERS_DARK ? 'rgba(255,255,255,0.22)': 'rgba(255,255,255,0.38)';
+      ctx2d.shadowColor = PREFERS_DARK ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.35)';
+      ctx2d.shadowBlur  = 14;
+      if (colliderType === COLLIDER_BALL) {
+        ctx2d.beginPath();
+        ctx2d.arc(ballCollider.x, ballCollider.y, ballCollider.r, 0, Math.PI * 2);
+        ctx2d.fillStyle = cFill;
+        ctx2d.fill();
+        ctx2d.strokeStyle = cStroke;
+        ctx2d.lineWidth   = 1.5;
+        ctx2d.stroke();
+        /* Specular highlight */
+        ctx2d.shadowBlur = 0;
+        const hlGrd = ctx2d.createRadialGradient(
+          ballCollider.x - ballCollider.r * 0.3, ballCollider.y - ballCollider.r * 0.3, 0,
+          ballCollider.x, ballCollider.y, ballCollider.r
+        );
+        hlGrd.addColorStop(0, 'rgba(255,255,255,0.18)');
+        hlGrd.addColorStop(0.5, 'rgba(255,255,255,0)');
+        ctx2d.fillStyle = hlGrd;
+        ctx2d.beginPath();
+        ctx2d.arc(ballCollider.x, ballCollider.y, ballCollider.r, 0, Math.PI * 2);
+        ctx2d.fill();
+      } else { /* ROD */
+        const cos = Math.cos(rodCollider.angle), sin = Math.sin(rodCollider.angle);
+        const hlen = rodCollider.len * 0.5, r = rodCollider.r;
+        ctx2d.translate(rodCollider.x, rodCollider.y);
+        ctx2d.rotate(rodCollider.angle);
+        ctx2d.beginPath();
+        ctx2d.arc(-hlen, 0, r, Math.PI / 2, -Math.PI / 2);
+        ctx2d.lineTo(hlen, -r);
+        ctx2d.arc(hlen, 0, r, -Math.PI / 2, Math.PI / 2);
+        ctx2d.closePath();
+        ctx2d.fillStyle = cFill;
+        ctx2d.fill();
+        ctx2d.strokeStyle = cStroke;
+        ctx2d.lineWidth   = 1.5;
+        ctx2d.stroke();
+        /* Endpoint grip rings */
+        ctx2d.shadowBlur = 0;
+        ctx2d.strokeStyle = PREFERS_DARK ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.25)';
+        ctx2d.lineWidth = 1;
+        [-hlen, hlen].forEach(ex => {
+          ctx2d.beginPath();
+          ctx2d.arc(ex, 0, r - 4, 0, Math.PI * 2);
+          ctx2d.stroke();
+        });
+      }
+      ctx2d.restore();
+    }
+
+    /* Cursor glow — skip entirely when user prefers reduced motion */
+    if (!prefersReducedMotion) {
+      /* Active drag radial gradient */
+      if (mouse.down && draggedPoint) {
+        const grdA = ctx2d.createRadialGradient(
+          draggedPoint.x, draggedPoint.y, 0,
+          draggedPoint.x, draggedPoint.y, 52
+        );
+        grdA.addColorStop(0, 'rgba(255,255,255,0.28)');
+        grdA.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx2d.save();
+        ctx2d.fillStyle = grdA;
+        ctx2d.beginPath();
+        ctx2d.arc(draggedPoint.x, draggedPoint.y, 52, 0, Math.PI * 2);
+        ctx2d.fill();
+        ctx2d.restore();
+      }
+
+      /* Fade-out afterglow (400 ms) */
+      if (glowPos && glowAt) {
+        const elapsed = performance.now() - glowAt;
+        if (elapsed < 400) {
+          const alpha = 0.28 * (1 - elapsed / 400);
+          const grdB = ctx2d.createRadialGradient(
+            glowPos.x, glowPos.y, 0,
+            glowPos.x, glowPos.y, 52
+          );
+          grdB.addColorStop(0, `rgba(255,255,255,${alpha.toFixed(3)})`);
+          grdB.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx2d.save();
+          ctx2d.fillStyle = grdB;
+          ctx2d.beginPath();
+          ctx2d.arc(glowPos.x, glowPos.y, 52, 0, Math.PI * 2);
+          ctx2d.fill();
+          ctx2d.restore();
+        }
+      }
+    }
+
+    /* Drag highlight dot */
+    if (mouse.down && draggedPoint) {
+      ctx2d.save();
+      ctx2d.beginPath();
+      ctx2d.arc(draggedPoint.x, draggedPoint.y, 5, 0, Math.PI * 2);
+      ctx2d.fillStyle   = 'white';
+      ctx2d.shadowColor = 'white';
+      ctx2d.shadowBlur  = 15;
+      ctx2d.fill();
+      ctx2d.restore();
+    }
+
+    /* Tear cursor ring */
+    if (tearMode) {
+      ctx2d.save();
+      ctx2d.beginPath();
+      ctx2d.arc(mouse.x, mouse.y, MOUSE_RADIUS, 0, Math.PI * 2);
+      ctx2d.strokeStyle = 'rgba(255, 80, 60, 0.50)';
+      ctx2d.lineWidth   = 1.5;
+      ctx2d.shadowColor = 'rgba(255, 60, 40, 0.40)';
+      ctx2d.shadowBlur  = 8;
+      ctx2d.stroke();
+      ctx2d.restore();
+    }
+  }
+
+  loop();
+})();
+</script>
+</body>
+</html>
