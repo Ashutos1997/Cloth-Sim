@@ -3694,7 +3694,11 @@ class Cloth {
         .catch(() => { /* permission denied */ });
     });
     const fxRecordBtn = document.getElementById('fxRecord');
-    if (fxRecordBtn) fxRecordBtn.addEventListener('click', () => { closeFxSheet(); toggleRecording(); });
+    if (fxRecordBtn) fxRecordBtn.addEventListener('click', (e) => { 
+      e.stopPropagation();
+      closeFxSheet(); 
+      toggleRecording(); 
+    });
   }
 
   /* ── Desktop HUD — clickable shortcut rows ── */
@@ -4634,26 +4638,6 @@ class Cloth {
 
   window.startIndicator = startIndicator;
   window.stopIndicator  = stopIndicator;
-})();
-</script>
-
-<script>
-(function() {
-  const mobRecBtn = document.getElementById('fxRecord') || 
-                    document.getElementById('mob-record') || 
-                    document.querySelector('[data-action="record"]');
-  
-  const sheet = document.getElementById('fx-sheet');
-
-  if (mobRecBtn && sheet) {
-    mobRecBtn.addEventListener('click', function() {
-      // Close the sheet
-      sheet.classList.remove('open', 'active', 'visible', 'sheet-open');
-      sheet.style.transform = 'translateY(100%)';
-      const backdrop = document.getElementById('fx-backdrop');
-      if (backdrop) backdrop.classList.remove('open');
-    });
-  }
 })();
 </script>
 </body>
