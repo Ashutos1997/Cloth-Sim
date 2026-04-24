@@ -88,15 +88,19 @@
       flex-direction: column;
       padding: 32px 28px;
       box-sizing: border-box;
+      background: var(--surface-frosted);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
       border-right: 1px solid var(--border-subtle);
       font-family: 'Pretendard', sans-serif;
       color: var(--text-muted);
       pointer-events: none;
       user-select: none;
-      transition: opacity 0.4s ease;
-      z-index: 5;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
+      z-index: 50;
     }
     .hud-hidden {
+      transform: translateX(-100%);
       opacity: 0 !important;
       pointer-events: none !important;
     }
@@ -2096,6 +2100,44 @@ class Cloth {
   const mobWind    = document.getElementById('mobWind');
   const mobMore    = document.getElementById('mobMore');
 
+  /* ── Persistent Settings ── */
+  const SettingsManager = {
+    save() {
+      const settings = {
+        lang: currentLang,
+        wind: windEnabled,
+        grain: grainEnabled,
+        preset: activePreset,
+        light: lightSourceEnabled,
+        hudVisible: !hud.classList.contains('hud-hidden')
+      };
+      localStorage.setItem('fabric_settings', JSON.stringify(settings));
+    },
+    load() {
+      const saved = localStorage.getItem('fabric_settings');
+      if (saved) {
+        try {
+          const settings = JSON.parse(saved);
+          if (settings.lang) updateLanguage(settings.lang);
+          if (settings.wind !== undefined) windEnabled = settings.wind;
+          if (settings.grain !== undefined) {
+            grainEnabled = settings.grain;
+            document.getElementById('grain-overlay').classList.toggle('active', grainEnabled);
+          }
+          if (settings.light !== undefined) lightSourceEnabled = settings.light;
+          if (settings.preset) applyPreset(settings.preset);
+          if (settings.hudVisible === false) hud.classList.add('hud-hidden');
+          
+          updateHUDVisuals();
+        } catch (e) { console.error('Failed to load settings', e); }
+      }
+    }
+  };
+
+  /* ── Enhanced Tear Logic State ── */
+  let tearTrail = [];
+  const MAX_TRAIL = 12;
+
   /* ── More bottom sheet refs ── */
   const fxBackdrop = document.getElementById('fx-backdrop');
   const fxSheet    = document.getElementById('fx-sheet');
@@ -2965,7 +3007,18 @@ class Cloth {
     const prevMX = mouse.x, prevMY = mouse.y;
     mouse.x = pos.x;
     mouse.y = pos.y;
-    if (tearMode) cloth.tearNear(mouse.x, mouse.y);
+    
+    if (tearMode) {
+      cloth.tearNear(mouse.x, mouse.y);
+      // Capture trail for visual feedback
+      if (mouse.down) {
+        tearTrail.push({ x: mouse.x, y: mouse.y, t: performance.now() });
+        if (tearTrail.length > MAX_TRAIL) tearTrail.shift();
+      }
+    } else {
+      tearTrail = [];
+    }
+
     if (mouse.down && waterMode) emitWater(mouse.x, mouse.y);
     if (mouse.down && dirtMode)  emitDirt(mouse.x, mouse.y);
     if (mouse.down && draggedLight) {
@@ -3175,6 +3228,7 @@ class Cloth {
       rowGrain   .setAttribute('aria-pressed', String(grainOn));
       rowLight   .setAttribute('aria-pressed', String(lightSourceEnabled));
     }
+    if (typeof SettingsManager !== 'undefined') SettingsManager.save();
   }
 
   /* ── Mobile button handlers ── */
@@ -3531,6 +3585,8 @@ class Cloth {
     document.querySelectorAll('.lang-btn, .lang-pill').forEach(btn => {
       btn.classList.toggle('active', btn.id.toLowerCase().includes(lang.toLowerCase()));
     });
+    
+    if (typeof SettingsManager !== 'undefined') SettingsManager.save();
   }
 
   /* Language Switcher Listeners */
@@ -3544,6 +3600,9 @@ class Cloth {
       });
     }
   });
+
+  // Initialize Settings
+  SettingsManager.load();
 
   /* ── Main loop ── */
   function loop() {
@@ -4037,9 +4096,24 @@ class Cloth {
       ctx2d.restore();
     }
 
-    /* Tear cursor ring */
+    /* Tear cursor ring & trail highlight */
     if (tearMode) {
       ctx2d.save();
+      
+      // Draw trail if dragging
+      if (tearTrail.length > 1) {
+        ctx2d.beginPath();
+        ctx2d.moveTo(tearTrail[0].x, tearTrail[0].y);
+        for (let i = 1; i < tearTrail.length; i++) {
+          ctx2d.lineTo(tearTrail[i].x, tearTrail[i].y);
+        }
+        ctx2d.strokeStyle = 'rgba(255, 60, 40, 0.25)';
+        ctx2d.lineWidth   = MOUSE_RADIUS * 2;
+        ctx2d.lineCap     = 'round';
+        ctx2d.lineJoin    = 'round';
+        ctx2d.stroke();
+      }
+
       ctx2d.beginPath();
       ctx2d.arc(mouse.x, mouse.y, MOUSE_RADIUS, 0, Math.PI * 2);
       ctx2d.strokeStyle = 'rgba(255, 80, 60, 0.50)';
@@ -4049,6 +4123,11 @@ class Cloth {
       ctx2d.stroke();
       ctx2d.restore();
     }
+  }
+
+  function updateHUDVisuals() {
+    updateHUD();
+    if (typeof SettingsManager !== 'undefined') SettingsManager.save();
   }
 
   loop();
