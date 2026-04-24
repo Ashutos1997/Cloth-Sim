@@ -1497,21 +1497,31 @@
       /* Split Row Model */
       .hud-row-split {
         display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
         border-bottom: 1px solid var(--color-border-subtle) !important;
         padding: 0 !important;
         margin: 0 !important;
+        width: 100% !important;
       }
       .hud-row-split > .hud-act, 
       .hud-row-split > .hud-row {
         flex: 1 !important;
+        min-width: 0 !important; /* Allow shrinking */
         border-bottom: none !important;
         border-right: 1px solid var(--color-border-subtle) !important;
-        padding: 6px 10px !important;
+        padding: 6px 4px !important; /* Tightened */
         justify-content: center !important;
-        gap: 8px !important;
+        gap: 6px !important; /* Tightened */
+        white-space: nowrap !important;
+        font-size: 11px !important; /* Slightly smaller for 3-col */
       }
       .hud-row-split > :last-child {
         border-right: none !important;
+      }
+      .hud-row-split span {
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
       }
 
       /* No top spacing for the very first section */
