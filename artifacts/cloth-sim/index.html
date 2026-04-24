@@ -917,9 +917,29 @@
 
 
 <!-- Mobile top header (≤768px only) -->
-<header id="mob-header">
-  <span class="mob-title">Fabric</span>
-  <span class="mob-subtitle">Interactive Cloth Simulation</span>
+<header id="mob-header" style="display: flex; align-items: center; justify-content: space-between;">
+  <div style="display: flex; flex-direction: column;">
+    <span class="mob-title">Fabric</span>
+    <span class="mob-subtitle">Interactive Cloth Simulation</span>
+  </div>
+  <div class="fx-util-row" style="display: flex; gap: 4px; padding: 0; pointer-events: all;">
+    <button class="fx-util-btn" id="fxReset" style="border:none; padding: 8px; flex:none;">
+      <i class="ph ph-arrow-counter-clockwise"></i>
+      <span class="fx-util-label" style="display:none;">Reset</span>
+    </button>
+    <button class="fx-util-btn" id="fxSave" style="border:none; padding: 8px; flex:none;">
+      <i class="ph ph-download-simple"></i>
+      <span class="fx-util-label" style="display:none;">Save</span>
+    </button>
+    <button class="fx-util-btn" id="fxUpload" style="border:none; padding: 8px; flex:none;">
+      <i class="ph ph-upload-simple"></i>
+      <span class="fx-util-label" style="display:none;">Upload</span>
+    </button>
+    <button class="fx-util-btn" id="fxMic" style="border:none; padding: 8px; flex:none;">
+      <i class="ph ph-microphone"></i>
+      <span class="fx-util-label" style="display:none;">Mic</span>
+    </button>
+  </div>
 </header>
 
 <!-- Mobile bottom nav (≤768px only) -->
@@ -946,14 +966,14 @@
   </button>
   <button class="mob-btn" id="mobMore" aria-haspopup="dialog" aria-expanded="false">
     <span class="mob-dot"></span>
-    <i class="ph ph-dots-three" aria-hidden="true"></i>
-    <span class="mob-label">More</span>
+    <i class="ph ph-sliders-horizontal" aria-hidden="true"></i>
+    <span class="mob-label">Style</span>
   </button>
 </nav>
 
 <!-- More bottom sheet (mobile only) -->
 <div id="fx-backdrop" aria-hidden="true"></div>
-<div id="fx-sheet" role="dialog" aria-modal="true" aria-label="More">
+<div id="fx-sheet" role="dialog" aria-modal="true" aria-label="Style">
   <div class="fx-handle"></div>
 
   <div class="fx-title" id="fxTitleEffects">More Effects</div>
@@ -986,28 +1006,6 @@
   <button class="fx-row fx-reset-row" id="fxDefault">
     <span class="fx-label">↩&nbsp;&nbsp;default texture</span>
   </button>
-
-
-
-  <div class="fx-title" id="fxTitleActions">Actions</div>
-  <div class="fx-util-row">
-    <button class="fx-util-btn" id="fxReset">
-      <i class="ph ph-arrow-counter-clockwise"></i>
-      <span class="fx-util-label">Reset</span>
-    </button>
-    <button class="fx-util-btn" id="fxSave">
-      <i class="ph ph-download-simple"></i>
-      <span class="fx-util-label">Save</span>
-    </button>
-    <button class="fx-util-btn" id="fxUpload">
-      <i class="ph ph-upload-simple"></i>
-      <span class="fx-util-label">Upload</span>
-    </button>
-    <button class="fx-util-btn" id="fxMic">
-      <i class="ph ph-microphone"></i>
-      <span class="fx-util-label">Mic</span>
-    </button>
-  </div>
 </div>
 
 <script>
