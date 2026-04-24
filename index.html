@@ -12,14 +12,14 @@
   <style>
     /* ── Design tokens ── */
     :root {
-      --surface-bg:      #f5f5f5;
-      --surface-frosted: rgba(248, 248, 248, 0.97);
-      --border-subtle:   rgba(0, 0, 0, 0.07);
-      --border-mid:      rgba(0, 0, 0, 0.15);
-      --border-strong:   rgba(0, 0, 0, 0.20);
-      --text-primary:    #111111;
-      --text-secondary:  #666666;
-      --text-muted:      #6b6b6b;
+      --surface-bg:      #1a1a1a;
+      --surface-frosted: rgba(28, 28, 28, 0.97);
+      --border-subtle:   rgba(255, 255, 255, 0.07);
+      --border-mid:      rgba(255, 255, 255, 0.15);
+      --border-strong:   rgba(255, 255, 255, 0.20);
+      --text-primary:    rgba(255, 255, 255, 0.98);
+      --text-secondary:  rgba(255, 255, 255, 0.65);
+      --text-muted:      rgba(255, 255, 255, 0.58);
       --focus-ring:      #0066cc;
     }
 
@@ -792,60 +792,47 @@
       outline-offset: -2px;
     }
 
-    /* ── Dark mode ── */
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --surface-bg:      #1a1a1a;
-        --surface-frosted: rgba(28, 28, 28, 0.97);
-        --border-subtle:   rgba(255, 255, 255, 0.07);
-        --border-mid:      rgba(255, 255, 255, 0.15);
-        --border-strong:   rgba(255, 255, 255, 0.20);
-        --text-primary:    rgba(255, 255, 255, 0.98);
-        --text-secondary:  rgba(255, 255, 255, 0.65);
-        --text-muted:      rgba(255, 255, 255, 0.58);
-      }
-      #hud .hud-row > span:not(.key) { color: var(--text-secondary); }
-      #hud .key        { color: rgba(255,255,255,0.90); }
-      #hud .hud-title  { color: var(--text-primary); }
-      #hud .hud-group-label { color: rgba(255,255,255,0.55); }
-      #hud .hud-group { border-top-color: rgba(255,255,255,0.07); }
-      #hud .row-icon   { color: rgba(255,255,255,0.50); }
-      #hud .hud-act:hover { background: rgba(255,255,255,0.04); }
-      #hud .hud-act.row-on .key {
-        background: rgba(255,255,255,0.10);
-        border-color: rgba(255,255,255,0.35);
-        color: rgba(255,255,255,0.95);
-      }
-      #hud .hud-act.row-on > span:not(.key) { color: var(--text-primary); }
-      .mode-badge      { color: rgba(255,255,255,0.90); }
-      #hud .tex-btn    { color: rgba(255,255,255,0.75); }
-      #hud .tex-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.98); }
-      #hud-texture     { border-top-color: rgba(255, 255, 255, 0.08); }
-      #texClear        { color: rgba(255,255,255,0.50); }
-      #texClear:hover  { color: rgba(255,255,255,0.75); }
-      #presetReset     { color: rgba(255,255,255,0.50); }
-      #presetReset:hover { color: rgba(255,255,255,0.75); }
-      .preset-btn.active {
-        background: rgba(255,255,255,0.08);
-        border-color: rgba(255,255,255,0.30);
-      }
-      .scenario-btn { color: rgba(255,255,255,0.75); }
-      .scenario-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.98); border-color: rgba(255,255,255,0.4); }
-      .scenario-btn.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.30); }
-      #scenarioReset { color: rgba(255,255,255,0.50); }
-      #scenarioReset:hover { color: rgba(255,255,255,0.75); }
-      #hud-scenarios { border-top-color: rgba(255,255,255,0.08); }
-      .fx-row.active .fx-indicator { background: rgba(255,255,255,0.90); }
-      .fx-indicator { background: rgba(255,255,255,0.20); }
-      .fx-pill-btn.active {
-        background: rgba(255,255,255,0.10);
-        border-color: rgba(255,255,255,0.30);
-        color: rgba(255,255,255,0.95);
-      }
-      .fx-scene-card.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.28); }
-      .fx-scene-card.active .fx-scene-name { color: rgba(255,255,255,0.98); }
-      .fx-util-btn.active { color: rgba(255,255,255,0.98); }
+    #hud .hud-row > span:not(.key) { color: var(--text-secondary); }
+    #hud .key        { color: rgba(255,255,255,0.90); }
+    #hud .hud-title  { color: var(--text-primary); }
+    #hud .hud-group-label { color: rgba(255,255,255,0.55); }
+    #hud .hud-group { border-top-color: rgba(255,255,255,0.07); }
+    #hud .row-icon   { color: rgba(255,255,255,0.50); }
+    #hud .hud-act:hover { background: rgba(255,255,255,0.04); }
+    #hud .hud-act.row-on .key {
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.35);
+      color: rgba(255,255,255,0.98);
     }
+    #hud .hud-act.row-on > span:not(.key) { color: var(--text-primary); }
+    .mode-badge      { color: rgba(255,255,255,0.90); }
+    #hud .tex-btn    { color: rgba(255,255,255,0.75); }
+    #hud .tex-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.98); }
+    #hud-texture     { border-top-color: rgba(255, 255, 255, 0.08); }
+    #texClear        { color: rgba(255,255,255,0.50); }
+    #texClear:hover  { color: rgba(255,255,255,0.75); }
+    #presetReset     { color: rgba(255,255,255,0.50); }
+    #presetReset:hover { color: rgba(255,255,255,0.75); }
+    .preset-btn.active {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.30);
+    }
+    .scenario-btn { color: rgba(255,255,255,0.75); }
+    .scenario-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.98); border-color: rgba(255,255,255,0.4); }
+    .scenario-btn.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.30); }
+    #scenarioReset { color: rgba(255,255,255,0.50); }
+    #scenarioReset:hover { color: rgba(255,255,255,0.75); }
+    #hud-scenarios { border-top-color: rgba(255,255,255,0.08); }
+    .fx-row.active .fx-indicator { background: rgba(255,255,255,0.90); }
+    .fx-indicator { background: rgba(255,255,255,0.20); }
+    .fx-pill-btn.active {
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.30);
+      color: rgba(255,255,255,0.98);
+    }
+    .fx-scene-card.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.28); }
+    .fx-scene-card.active .fx-scene-name { color: rgba(255,255,255,0.98); }
+    .fx-util-btn.active { color: rgba(255,255,255,0.98); }
 
     /* Section headers */
     .fx-sheet-section-title, .fx-title {
@@ -1772,7 +1759,7 @@
    ============================================================ */
 function isMobile()  { return window.innerWidth <= 768; }
 const IS_MOBILE     = isMobile();   // boot-time snapshot — used for physics grid only
-const PREFERS_DARK  = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const PREFERS_DARK  = true;
 const COLS          = IS_MOBILE ? 20 : 30;
 const ROWS          = IS_MOBILE ? 28 : 30;
 const SPACING       = 18;      // px between adjacent points at rest
@@ -1973,7 +1960,7 @@ class Cloth {
   const ctx2d   = overlay.getContext('2d');
 
   if (!gl) {
-    document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;font-family:'Pretendard',sans-serif;background:#f5f5f5"><div style="font-size:28px;font-weight:200;letter-spacing:8px;color:#111;text-transform:uppercase">Fabric</div><div style="font-size:12px;letter-spacing:3px;color:#767676;text-transform:lowercase">WebGL not supported in this browser</div><div style="font-size:11px;letter-spacing:1px;color:#aaa">Try Chrome, Firefox, or Safari 15+</div></div>`;
+    document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;font-family:'Pretendard',sans-serif;background:#1a1a1a"><div style="font-size:28px;font-weight:200;letter-spacing:8px;color:rgba(255,255,255,0.98);text-transform:uppercase">Fabric</div><div style="font-size:12px;letter-spacing:3px;color:rgba(255,255,255,0.58);text-transform:lowercase">WebGL not supported in this browser</div><div style="font-size:11px;letter-spacing:1px;color:rgba(255,255,255,0.4)">Try Chrome, Firefox, or Safari 15+</div></div>`;
     return;
   }
 
