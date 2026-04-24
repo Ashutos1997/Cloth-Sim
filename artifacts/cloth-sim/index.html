@@ -2655,7 +2655,6 @@ class Cloth {
     if (mediaRecorder && isRecording) {
       mediaRecorder.stop();
       isRecording = false;
-      if (window.stopIndicator) window.stopIndicator();
       updateHUD();
     }
   }
@@ -2676,13 +2675,17 @@ class Cloth {
       mediaRecorder = new MediaRecorder(combinedStream);
     }
     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-    mediaRecorder.onstop = downloadRecording;
+    mediaRecorder.onstop = () => {
+      if (window.stopIndicator) window.stopIndicator();
+      downloadRecording();
+    };
+    
+    if (window.startIndicator) window.startIndicator();
     mediaRecorder.start();
     isRecording = true;
-    if (window.startIndicator) window.startIndicator();
     updateHUD();
     
-    // Auto stop after 10s
+    // Auto stop after exactly 10s
     setTimeout(() => { if (isRecording) stopRecording(); }, 10000);
   }
 
@@ -4585,7 +4588,6 @@ class Cloth {
     recInterval = setInterval(() => {
       recSeconds++;
       timer.textContent = formatTime(recSeconds);
-      if (recSeconds >= 10) stopIndicator();
     }, 1000);
   }
 
@@ -4594,31 +4596,6 @@ class Cloth {
     indicator.style.display = 'none';
     dot.classList.remove('pulsing');
     recSeconds = 0;
-  }
-
-  // Hook into V key to sync with existing record toggle
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'v' || e.key === 'V') {
-      if (indicator.style.display === 'none') {
-        startIndicator();
-      } else {
-        stopIndicator();
-      }
-    }
-  });
-
-  // Hook into mobile record button if it exists
-  const mobRecBtn = document.getElementById('fxRecord') || 
-                    document.getElementById('mob-record') || 
-                    document.querySelector('[data-action="record"]');
-  if (mobRecBtn) {
-    mobRecBtn.addEventListener('click', function() {
-      if (indicator.style.display === 'none') {
-        startIndicator();
-      } else {
-        stopIndicator();
-      }
-    });
   }
 
   window.startIndicator = startIndicator;
