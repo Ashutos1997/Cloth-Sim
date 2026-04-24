@@ -1478,32 +1478,54 @@
         opacity: 1 !important;
       }
 
-      /* Consistent Material and Row Layout */
-      #hud-texture {
-        margin-top: 0 !important;
-        padding-top: 0 !important;
-        border-top: none !important;
-      }
-
-      #hud hr {
-        display: none !important;
-      }
-
-      #hud .hud-act, #hud .hud-row {
+      /* Consistent Row and Preset Layout */
+      #hud .hud-act, #hud .hud-row, #hud-presets-row {
         padding: 6px 0 !important;
         border-bottom: 1px solid var(--color-border-subtle) !important;
         background: transparent !important;
         margin: 0 !important;
         border-top: none !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
       }
 
-      #hud .hud-act:last-child, #hud .hud-row:last-child {
+      #hud .hud-act:last-child, #hud .hud-row:last-child, #hud-presets-row:last-child {
         border-bottom: none !important;
       }
 
-      /* Last row in each group — no border */
-      #hud .hud-row:last-of-type {
-        border-bottom: none !important;
+      /* Horizontal Material Presets */
+      #hud-presets-row {
+        justify-content: space-between !important;
+        gap: 4px !important;
+      }
+      .preset-pill {
+        flex: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        padding: 4px 2px !important;
+        cursor: pointer !important;
+        opacity: 0.7 !important;
+        font-size: 10px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        transition: opacity 150ms ease-out !important;
+      }
+      .preset-pill:hover, .preset-pill.active {
+        opacity: 1 !important;
+      }
+      .preset-pill.active .swatch-square {
+        box-shadow: 0 0 0 1.5px white !important;
+      }
+
+      /* No top spacing for the very first section */
+      #hud .hud-controls .hud-group:first-child .hud-group-label,
+      #hud .hud-section-title:first-child,
+      #hud .hud-group-label:first-of-type {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        border-top: none !important;
       }
 
       /* Icon — force visible and fixed width */
@@ -1914,6 +1936,7 @@
     <div class="hud-group">
       <div class="hud-group-label" id="hudLabelMaterial" data-i18n="material">Material</div>
       <input type="file" id="texFile" accept="image/*" />
+      <div id="texClear" style="display:none;"></div>
       
       <div class="hud-row hud-act" id="texUploadBtn">
         <span class="row-icon"><i class="ph ph-upload-simple"></i></span>
@@ -1921,20 +1944,19 @@
         <span data-i18n="upload">upload texture</span>
       </div>
 
-      <div class="hud-row hud-act preset-btn" data-preset="SILK">
-        <span class="row-icon"><span class="swatch-square" style="background:#ccc8c3"></span></span>
-        <span class="key">1</span>
-        <span>silk</span>
-      </div>
-      <div class="hud-row hud-act preset-btn" data-preset="DENIM">
-        <span class="row-icon"><span class="swatch-square" style="background:#6b84a0"></span></span>
-        <span class="key">2</span>
-        <span>denim</span>
-      </div>
-      <div class="hud-row hud-act preset-btn" data-preset="LINEN">
-        <span class="row-icon"><span class="swatch-square" style="background:#c8b99a"></span></span>
-        <span class="key">3</span>
-        <span>linen</span>
+      <div id="hud-presets-row">
+        <div class="preset-pill preset-btn" data-preset="SILK">
+          <span class="swatch-square" style="background:#ccc8c3"></span>
+          <span>silk</span>
+        </div>
+        <div class="preset-pill preset-btn" data-preset="DENIM">
+          <span class="swatch-square" style="background:#6b84a0"></span>
+          <span>denim</span>
+        </div>
+        <div class="preset-pill preset-btn" data-preset="LINEN">
+          <span class="swatch-square" style="background:#c8b99a"></span>
+          <span>linen</span>
+        </div>
       </div>
 
       <div class="hud-row hud-act" id="presetReset">
@@ -1952,6 +1974,7 @@
       </div>
     </div>
   </div>
+</div>
 
 <div class="hud-modes">
   <span id="modeWind"  class="mode-badge" data-i18n="modeWind">WIND ON</span>
