@@ -1439,20 +1439,16 @@
         font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif !important;
       }
 
-      /* Consistent Row and Preset Layout */
-      #hud .hud-act, #hud .hud-row, #hud-presets {
-        padding: 6px 0 !important;
-        border-bottom: 1px solid var(--color-border-subtle) !important;
-        background: transparent !important;
-        margin: 0 !important;
-        border-top: none !important;
-        display: flex !important;
-        align-items: center !important;
-        gap: 10px !important;
+      /* Tighten Material sub-elements */
+      #texUploadBtn {
+        margin-top: 2px !important;
+        margin-bottom: 6px !important;
       }
-
-      #hud .hud-act:last-child, #hud .hud-row:last-child, #hud-presets:last-child {
-        border-bottom: none !important;
+      #hud-presets {
+        margin-top: 2px !important;
+        margin-bottom: 6px !important;
+        display: flex !important;
+        gap: 6px !important;
       }
 
       /* No top spacing for the very first section */
@@ -1464,17 +1460,27 @@
         border-top: none !important;
       }
 
-      /* Consistent Typography for Material Actions */
-      #texUploadBtn, #presetReset {
-        cursor: pointer !important;
-        user-select: none !important;
-        color: var(--color-text-primary) !important;
-        font-size: 13px !important;
-        opacity: 0.75 !important;
-        transition: opacity 150ms ease-out !important;
+      /* Consistent Material and Row Layout */
+      #hud-texture {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        border-top: none !important;
       }
-      #texUploadBtn:hover, #presetReset:hover {
-        opacity: 1 !important;
+
+      #hud hr {
+        display: none !important;
+      }
+
+      #hud .hud-act, #hud .hud-row {
+        padding: 6px 0 !important;
+        border-bottom: 1px solid var(--color-border-subtle) !important;
+        background: transparent !important;
+        margin: 0 !important;
+        border-top: none !important;
+      }
+
+      #hud .hud-act:last-child, #hud .hud-row:last-child {
+        border-bottom: none !important;
       }
 
       /* Last row in each group — no border */
@@ -1890,22 +1896,14 @@
     <div class="hud-group">
       <div class="hud-group-label" id="hudLabelMaterial" data-i18n="material">Material</div>
       <input type="file" id="texFile" accept="image/*" />
-      
-      <div class="hud-row hud-act" id="texUploadBtn">
-        <span class="row-icon"><i class="ph ph-upload-simple"></i></span>
-        <span data-i18n="upload">upload texture</span>
-      </div>
-
+      <button class="tex-btn" id="texUploadBtn"><i class="ph ph-upload-simple"></i> <span data-i18n="upload">Upload texture</span></button>
+      <div id="texClear"><span data-i18n="clear">✕&nbsp;&nbsp;clear texture</span></div>
       <div id="hud-presets">
         <button class="tex-btn preset-btn" data-preset="SILK"><span class="preset-swatch" style="background:#ccc8c3"></span>SILK</button>
         <button class="tex-btn preset-btn" data-preset="DENIM"><span class="preset-swatch" style="background:#6b84a0"></span>DENIM</button>
         <button class="tex-btn preset-btn" data-preset="LINEN"><span class="preset-swatch" style="background:#c8b99a"></span>LINEN</button>
       </div>
-
-      <div class="hud-row hud-act" id="presetReset">
-        <span class="row-icon">↩</span>
-        <span data-i18n="default">default texture</span>
-      </div>
+      <div id="presetReset" style="border:none !important; margin-top: 4px;"><span data-i18n="default">↩&nbsp;&nbsp;default</span></div>
 
       <!-- Language Switch -->
       <div style="margin-top: 14px; padding-top: 0; border-top: none; pointer-events: all; display: flex; align-items: center; gap: var(--space-md);">
