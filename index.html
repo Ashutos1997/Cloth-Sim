@@ -864,8 +864,14 @@
 <!-- Original HUD panel — Hidden per Step 1 -->
 <div id="hud" style="display: none !important;"></div>
 
-<!-- CARD 1: CONTROLS — Floating Panel (Step 2) -->
-<div id="card-controls" style="background: rgba(12,12,12,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; position: fixed; top: 20px; left: 20px; width: fit-content; min-width: 160px; z-index: 100; box-sizing: border-box; display: flex; flex-direction: column; font-family: 'Pretendard', sans-serif;">
+<!-- BRAND TITLE (Step 2) -->
+<div style="position: fixed; top: 20px; left: 20px; z-index: 100; color: white; font-family: 'Pretendard', sans-serif;">
+  <div style="font-size: 22px; letter-spacing: 0.15em; font-weight: normal; text-transform: uppercase;">Fabric</div>
+  <div style="font-size: 11px; opacity: 0.45; letter-spacing: 0.1em; margin-top: 2px; text-transform: lowercase;">interactive cloth simulation</div>
+</div>
+
+<!-- CARD 1: CONTROLS — Floating Panel (Step 3) -->
+<div id="card-controls" style="background: rgba(12,12,12,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; position: fixed; top: 90px; left: 20px; width: fit-content; min-width: 160px; z-index: 100; box-sizing: border-box; display: flex; flex-direction: column; font-family: 'Pretendard', sans-serif;">
   <!-- Cloth group -->
   <div style="display: flex; flex-direction: column; gap: 0;">
     <div style="display: flex; align-items: center; gap: 8px; padding: 4px 0;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 13px; opacity: 0.5; font-size: 13px; color: white;"><i class="ph ph-hand"></i></span><span style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 5px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; color: white; opacity: 0.7; letter-spacing: 1px;">Drag</span><span style="font-size: 12px; opacity: 0.75; color: white; white-space: nowrap;">pull the cloth</span></div>
@@ -889,8 +895,8 @@
   </div>
 </div>
 
-<!-- CARD 2: MATERIAL — Floating Panel (Step 2) -->
-<div id="card-style" style="background: rgba(12,12,12,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; position: fixed; top: 20px; left: 196px; width: fit-content; min-width: 160px; z-index: 100; box-sizing: border-box; display: flex; flex-direction: column; font-family: 'Pretendard', sans-serif;">
+<!-- CARD 2: MATERIAL — Floating Panel (Step 4) -->
+<div id="card-style" style="background: rgba(12,12,12,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; position: fixed; top: 370px; left: 20px; width: fit-content; min-width: 160px; z-index: 100; box-sizing: border-box; display: flex; flex-direction: column; font-family: 'Pretendard', sans-serif;">
   <div id="hud-texture" style="margin-top: 0;">
     <input type="file" id="texFile" accept="image/*" style="display: none;" />
     <button id="texUploadBtn" style="display: block; width: 100%; margin-bottom: 6px; font-size: 11px; padding: 5px; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; background: transparent; color: white; cursor: pointer; font-family: 'Pretendard', sans-serif; text-transform: uppercase; letter-spacing: 1px;"><i class="ph ph-upload-simple"></i> Upload texture</button>
