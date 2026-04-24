@@ -1430,6 +1430,11 @@
         margin: 0 !important;
         width: 100% !important;
       }
+
+      /* Fix cutting at the bottom */
+      #hud .hud-controls {
+        padding-bottom: 48px !important;
+      }
       .hud-row-split > .hud-act, 
       .hud-row-split > .hud-row {
         flex: 1 !important;
@@ -1834,8 +1839,17 @@
 
 <!-- HUD panel -->
 <div id="hud">
-  <div class="hud-title" id="hudTitle">Fabric</div>
-  <div class="hud-subtitle" id="hudSubtitle" data-i18n="subtitle">interactive cloth simulation</div>
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+    <div>
+      <div class="hud-title" id="hudTitle">Fabric</div>
+      <div class="hud-subtitle" id="hudSubtitle" data-i18n="subtitle">interactive cloth simulation</div>
+    </div>
+    <!-- Language Switch (Desktop Header) -->
+    <div style="display: flex; gap: var(--space-xs); margin-top: 4px; pointer-events: all;">
+      <span class="lang-btn active" id="btnLangEng">ENG</span>
+      <span class="lang-btn" id="btnLangKor">한글</span>
+    </div>
+  </div>
 
   <div class="hud-controls">
     <!-- Cloth group -->
@@ -1894,15 +1908,6 @@
       <div class="hud-row hud-act" id="presetReset">
         <span class="row-icon">↩</span>
         <span data-i18n="default">default texture</span>
-      </div>
-
-      <!-- Language Switch -->
-      <div style="margin-top: 14px; padding-top: 0; border-top: none; pointer-events: all; display: flex; align-items: center; gap: var(--space-md);">
-        <span style="opacity:0.4; font-size:12px; display:flex;"><i class="ph ph-globe"></i></span>
-        <div style="display: flex; gap: var(--space-xs);">
-          <span class="lang-btn active" id="btnLangEng">ENG</span>
-          <span class="lang-btn" id="btnLangKor">한글</span>
-        </div>
       </div>
     </div>
   </div>
