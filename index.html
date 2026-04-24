@@ -911,21 +911,7 @@
       <button class="tex-btn preset-btn" data-preset="LINEN"><span class="preset-swatch" style="background:#c8b99a"></span>LINEN</button>
     </div>
     <div id="presetReset">↩&nbsp;&nbsp;default</div>
-    <div id="hud-scenarios">
-      <div class="hud-scen-label">Scenes</div>
-      <div id="hud-scenario-btns">
-        <button class="scenario-btn" data-scenario="CURTAIN">
-          <span class="scen-dot" style="background:#9fb0c0"></span>Curtain in breeze
-        </button>
-        <button class="scenario-btn" data-scenario="SAIL">
-          <span class="scen-dot" style="background:#e8e2d4"></span>Sail
-        </button>
-        <button class="scenario-btn" data-scenario="JEANS">
-          <span class="scen-dot" style="background:#3a4775"></span>Worn jeans
-        </button>
-      </div>
-      <div id="scenarioReset">↩&nbsp;&nbsp;clear scene</div>
-    </div>
+
   </div>
 </div>
 
@@ -1001,24 +987,7 @@
     <span class="fx-label">↩&nbsp;&nbsp;default texture</span>
   </button>
 
-  <div class="fx-title" id="fxTitleScenes">Scenes</div>
-  <div class="fx-scene-cards">
-    <button class="fx-scene-card" id="fxCurtain">
-      <span class="fx-swatch" style="background:#9fb0c0"></span>
-      <span class="fx-scene-name">Curtain</span>
-    </button>
-    <button class="fx-scene-card" id="fxSail">
-      <span class="fx-swatch" style="background:#e8e2d4"></span>
-      <span class="fx-scene-name">Sail</span>
-    </button>
-    <button class="fx-scene-card" id="fxJeans">
-      <span class="fx-swatch" style="background:#3a4775"></span>
-      <span class="fx-scene-name">Jeans</span>
-    </button>
-  </div>
-  <button class="fx-row fx-reset-row" id="fxScenarioReset" style="display:none">
-    <span class="fx-label">↩&nbsp;&nbsp;clear scene</span>
-  </button>
+
 
   <div class="fx-title" id="fxTitleActions">Actions</div>
   <div class="fx-util-row">
@@ -1354,27 +1323,7 @@ class Cloth {
       mobWater.querySelector('.mob-label').textContent = '물';
       mobWind .querySelector('.mob-label').textContent = '바람';
       mobMore .querySelector('.mob-label').textContent = '더 보기';
-      /* More sheet section titles */
-      document.getElementById('fxTitleEffects').textContent = '추가 효과';
-      document.getElementById('fxTitleMaterial').textContent = '질감';
-      document.getElementById('fxTitleScenes').textContent  = '장면';
-      document.getElementById('fxTitleActions').textContent = '액션';
-      /* Sheet rows */
-      fxGrain.querySelector('.fx-label').textContent         = '입자';
-      fxCollider.querySelector('.fx-label').textContent      = '장애물';
-      fxCurtain.querySelector('.fx-scene-name').textContent  = '커튼';
-      fxSail.querySelector('.fx-scene-name').textContent     = '돛';
-      fxJeans.querySelector('.fx-scene-name').textContent    = '청바지';
-      fxSilk.querySelector('.fx-pill-label').textContent     = '실크';
-      fxDenim.querySelector('.fx-pill-label').textContent    = '데님';
-      fxLinen.querySelector('.fx-pill-label').textContent    = '리넨';
-      fxDefault.querySelector('.fx-label').innerHTML         = '↩&nbsp;&nbsp;기본 질감';
-      fxReset    .querySelector('.fx-util-label').textContent = '초기화';
-      fxSaveBtn  .querySelector('.fx-util-label').textContent = '저장';
-      fxUploadBtn2.querySelector('.fx-util-label').textContent= '업로드';
-      fxMicBtn   .querySelector('.fx-util-label').textContent = '마이크';
-      /* Scenario section titles on desktop HUD */
-      document.querySelectorAll('.hud-scen-label').forEach(el => { el.textContent = '장면'; });
+
     }
   }
 
@@ -1626,30 +1575,7 @@ class Cloth {
       colorDark: [0.28, 0.26, 0.22], lineAlphaDark: 0.36,
     },
   };
-  /* ── Scenario definitions ── */
-  const SCENARIOS = {
-    CURTAIN: {
-      label: 'Curtain in breeze', labelKo: '바람의 커튼',
-      material: 'LINEN', pinConfig: 'top-row',   // top row pinned = curtain rod
-      windEnabled: true,  windMult: 0.45,          // gentle breeze, cloth billows below
-      color: [0.68, 0.72, 0.77], colorDark: [0.20, 0.23, 0.28],
-      lineAlpha: 0.40, lineAlphaDark: 0.32,
-    },
-    SAIL: {
-      label: 'Sail', labelKo: '돛',
-      material: 'SILK', pinConfig: 'left-col',   // left column = mast, cloth billows right
-      windEnabled: true,  windMult: 0.9,           // solid wind but cloth stays in frame
-      color: [0.94, 0.92, 0.87], colorDark: [0.58, 0.56, 0.50],
-      lineAlpha: 0.18, lineAlphaDark: 0.14,
-    },
-    JEANS: {
-      label: 'Worn jeans', labelKo: '낡은 청바지',
-      material: 'DENIM', pinConfig: 'top-row',
-      windEnabled: false, windMult: 1.0,
-      color: [0.21, 0.27, 0.46], colorDark: [0.10, 0.14, 0.28],
-      lineAlpha: 0.65, lineAlphaDark: 0.55,
-    },
-  };
+
 
   const DEFAULT_COLOR         = PREFERS_DARK ? [0.18, 0.18, 0.20] : [0.76, 0.76, 0.78];
   const DEFAULT_LINE_ALPHA    = PREFERS_DARK ? 0.40 : 0.50;
@@ -2003,7 +1929,7 @@ class Cloth {
 
   /* ── Scenario state — must be declared before makeCloth() which reads pinConfig ── */
   let pinConfig      = 'top-row'; // 'top-row' | 'left-col' | 'top-corners'
-  let activeScenario = null;
+
 
   let cloth = makeCloth();
   buildUVBuffer();
@@ -2219,7 +2145,7 @@ class Cloth {
       case 'R':
         pinConfig    = 'top-row';
         windMult     = 1.0;
-        activeScenario = null;
+
         cloth        = makeCloth();
         buildUVBuffer();
         windEnabled  = false;
@@ -2382,7 +2308,7 @@ class Cloth {
       closeFxSheet();
       pinConfig      = 'top-row';
       windMult       = 1.0;
-      activeScenario = null;
+
       cloth          = makeCloth();
       buildUVBuffer();
       windEnabled = false;
@@ -2514,76 +2440,7 @@ class Cloth {
     }
   }
 
-  /* ── Scenario UI sync ── */
-  function syncScenarioUI(key) {
-    document.querySelectorAll('.scenario-btn').forEach(b =>
-      b.classList.toggle('active', b.dataset.scenario === key)
-    );
-    const scenReset = document.getElementById('scenarioReset');
-    if (scenReset) scenReset.classList.toggle('visible', key !== null);
-    if (isMobile()) {
-      fxCurtain .classList.toggle('active', key === 'CURTAIN');
-      fxSail    .classList.toggle('active', key === 'SAIL');
-      fxJeans   .classList.toggle('active', key === 'JEANS');
-      fxScenReset.style.display = key ? 'flex' : 'none';
-    }
-  }
 
-  /* ── Apply a scenario ── */
-  function applyScenario(key) {
-    const s = SCENARIOS[key];
-    if (!s) return;
-    activeScenario = key;
-    /* Physics from material preset */
-    if (s.material) applyPreset(s.material);
-    /* Override color to scenario-specific shade */
-    clothColor = (PREFERS_DARK ? s.colorDark : s.color).slice();
-    lineAlpha  = PREFERS_DARK ? s.lineAlphaDark : s.lineAlpha;
-    gl.uniform3f(uClothColorLoc, ...clothColor);
-    /* Background palette for this scenario */
-    setBgPalette(key);
-    /* Rebuild cloth with new pin config */
-    pinConfig = s.pinConfig || 'top-row';
-    cloth = makeCloth();
-    buildUVBuffer();
-    applyPinConfig(cloth, pinConfig);
-    /* Clear interactions */
-    dirtParticles.length = 0;
-    waterParticles.length = 0;
-    pointWetness.clear();
-    tearMode = false; dirtMode = false; waterMode = false;
-    /* Wind */
-    windEnabled = s.windEnabled || false;
-    windMult    = s.windMult    || 1.0;
-    updateHUD();
-    syncPresetUI(s.material || null);
-    syncScenarioUI(key);
-  }
-
-  /* Desktop scenario buttons */
-  document.querySelectorAll('.scenario-btn').forEach(btn => {
-    btn.addEventListener('click', () => applyScenario(btn.dataset.scenario));
-  });
-  document.getElementById('scenarioReset').addEventListener('click', () => {
-    activeScenario = null;
-    pinConfig = 'top-row';
-    windMult  = 1.0;
-    applyDefaultCloth();
-    cloth = makeCloth();
-    buildUVBuffer();
-    syncScenarioUI(null);
-    updateHUD();
-  });
-
-  /* Mobile scenario buttons + fxCollider */
-  fxCurtain.addEventListener('click', () => { applyScenario('CURTAIN'); });
-  fxSail   .addEventListener('click', () => { applyScenario('SAIL');    });
-  fxJeans  .addEventListener('click', () => { applyScenario('JEANS');   });
-  fxScenReset.addEventListener('click', () => {
-    activeScenario = null; pinConfig = 'top-row'; windMult = 1.0;
-    applyDefaultCloth(); cloth = makeCloth(); buildUVBuffer();
-    syncScenarioUI(null); updateHUD();
-  });
   fxCollider.addEventListener('click', () => {
     colliderType = (colliderType + 1) % 3;
     if (colliderType === COLLIDER_BALL) {
