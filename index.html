@@ -1637,7 +1637,7 @@
     <input type="file" id="texFile" accept="image/*" />
     <button class="tex-btn" id="texUploadBtn"><i class="ph ph-upload-simple"></i> <span data-i18n="upload">Upload texture</span></button>
     <div id="texClear"><span data-i18n="clear">✕&nbsp;&nbsp;clear texture</span></div>
-    <div id="hud-presets">
+    <div id="hud-presets" style="margin-bottom: 16px;">
       <button class="tex-btn preset-btn" data-preset="SILK"><span class="preset-swatch" style="background:#ccc8c3"></span>SILK</button>
       <button class="tex-btn preset-btn" data-preset="DENIM"><span class="preset-swatch" style="background:#6b84a0"></span>DENIM</button>
       <button class="tex-btn preset-btn" data-preset="LINEN"><span class="preset-swatch" style="background:#c8b99a"></span>LINEN</button>
@@ -1645,7 +1645,7 @@
     <div id="presetReset"><span data-i18n="default">↩&nbsp;&nbsp;default</span></div>
 
     <!-- Language Switch -->
-    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); pointer-events: all; display: flex; align-items: center; gap: 10px;">
+    <div style="margin-top: 0; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); pointer-events: all; display: flex; align-items: center; gap: 10px;">
       <span style="opacity:0.4; font-size:12px; display:flex;"><i class="ph ph-globe"></i></span>
       <div style="display: flex; gap: 4px;">
         <span class="lang-btn active" id="btnLangEng">ENG</span>
@@ -1766,7 +1766,7 @@
   <!-- SECTION 4: MANAGE -->
   <div id="secManage" style="display:none;">
     <div class="fx-title" data-i18n="sessTitle">Session Management</div>
-    <div class="fx-util-row" style="display: flex; gap: 8px; padding: 0 16px 12px;">
+    <div class="fx-util-row" style="display: flex; gap: 8px; padding: 0 16px 20px;">
       <button class="fx-util-btn" id="fxReset" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 6px; border-radius:10px; background:transparent; border:1px solid var(--border-mid);">
         <i class="ph ph-arrow-counter-clockwise"></i>
         <span class="fx-util-label" data-i18n="mobReset">Reset</span>
@@ -1782,7 +1782,7 @@
     </div>
     
     <!-- Mobile Language -->
-    <div class="fx-row" style="border-top: 1px solid rgba(255,255,255,0.05); margin-top: 12px; padding: 16px 20px;">
+    <div class="fx-row" style="border-top: 1px solid rgba(255,255,255,0.06); margin-top: 0; padding: 20px 20px;">
       <i class="ph ph-globe" style="font-size:16px; opacity:0.55;"></i>
       <span class="fx-label" style="flex:1; font-size:14px; opacity:0.8;" data-i18n="language">Language</span>
       <div style="display:flex; gap:6px;">
