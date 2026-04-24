@@ -146,7 +146,16 @@
     }
 
     /* Micro section header */
-    #hud .hud-group-label { display: none; }
+    /* Micro section header */
+    #hud .hud-group-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      opacity: 0.5;
+      margin-top: 24px;
+      margin-bottom: 10px;
+      color: white;
+      text-transform: uppercase;
+    }
 
     /* Middle controls container — fills available space */
     #hud .hud-controls {
@@ -861,52 +870,61 @@
 <canvas id="overlay"></canvas>
 <div id="grain-overlay"></div>
 
-<!-- Original HUD panel — Hidden per Step 1 -->
-<div id="hud" style="display: none !important;"></div>
+<!-- HUD panel -->
+<div id="hud" style="position: fixed; top: 0; left: 0; width: 260px; height: 100vh; background: #0f0f0f; padding: 20px; display: flex; flex-direction: column; z-index: 100; pointer-events: auto; font-family: 'Pretendard', sans-serif; color: white;">
+  <div style="font-size: 26px; font-weight: 200; letter-spacing: 8px; text-transform: uppercase; margin-bottom: 4px;">Fabric</div>
+  <div style="white-space: nowrap; font-size: 11px; margin-bottom: 20px; opacity: 0.45; letter-spacing: 0.1em; text-transform: lowercase;">interactive cloth simulation</div>
 
-<!-- BRAND TITLE (Step 2) -->
-<div style="position: fixed; top: 20px; left: 20px; z-index: 100; color: white; font-family: 'Pretendard', sans-serif;">
-  <div style="font-size: 22px; letter-spacing: 0.15em; font-weight: normal; text-transform: uppercase;">Fabric</div>
-  <div style="font-size: 11px; opacity: 0.45; letter-spacing: 0.1em; margin-top: 2px; text-transform: lowercase;">interactive cloth simulation</div>
-</div>
+  <div class="hud-tabs" style="display: flex; width: 100%; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px;">
+    <div class="hud-tab active" style="flex: 1; text-align: center; padding-bottom: 8px; font-size: 11px; letter-spacing: 0.08em; cursor: pointer; border-bottom: 2px solid white; opacity: 1;">Controls</div>
+    <div class="hud-tab" style="flex: 1; text-align: center; padding-bottom: 8px; font-size: 11px; letter-spacing: 0.08em; cursor: pointer; border-bottom: 2px solid transparent; opacity: 0.35;">Style</div>
+  </div>
 
-<!-- CARD 1: CONTROLS — Floating Panel (Step 3) -->
-<div id="card-controls" style="background: rgba(12,12,12,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; position: fixed; top: 90px; left: 20px; width: fit-content; min-width: 160px; z-index: 100; box-sizing: border-box; display: flex; flex-direction: column; font-family: 'Pretendard', sans-serif;">
-  <!-- Cloth group -->
-  <div style="display: flex; flex-direction: column; gap: 0;">
-    <div style="display: flex; align-items: center; gap: 8px; padding: 4px 0;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 13px; opacity: 0.5; font-size: 13px; color: white;"><i class="ph ph-hand"></i></span><span style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 5px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; color: white; opacity: 0.7; letter-spacing: 1px;">Drag</span><span style="font-size: 12px; opacity: 0.75; color: white; white-space: nowrap;">pull the cloth</span></div>
-    <div class="hud-act" data-hud-key="T" id="hudRowTear" style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 13px; opacity: 0.5; font-size: 13px; color: white;"><i class="ph ph-scissors"></i></span><span class="key" style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 5px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; color: white; opacity: 0.7; letter-spacing: 1px;">T</span><span style="font-size: 12px; opacity: 0.75; color: white; white-space: nowrap;">tear mode</span></div>
-    <div class="hud-act" data-hud-key="O" id="hudRowCollider" style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 13px; opacity: 0.5; font-size: 13px; color: white;"><i class="ph ph-sphere"></i></span><span class="key" style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 5px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; color: white; opacity: 0.7; letter-spacing: 1px;">O</span><span style="font-size: 12px; opacity: 0.75; color: white; white-space: nowrap;">add collider</span></div>
-  </div>
-  <div style="border-top: 1px solid rgba(255,255,255,0.06); margin: 6px 0;"></div>
-  <!-- Effects group -->
-  <div style="display: flex; flex-direction: column; gap: 0;">
-    <div class="hud-act" data-hud-key="D" id="hudRowDirt" style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 13px; opacity: 0.5; font-size: 13px; color: white;"><i class="ph ph-circle"></i></span><span class="key" style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 5px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; color: white; opacity: 0.7; letter-spacing: 1px;">D</span><span style="font-size: 12px; opacity: 0.75; color: white; white-space: nowrap;">throw dirt</span></div>
-    <div class="hud-act" data-hud-key="C" id="hudRowWater" style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 13px; opacity: 0.5; font-size: 13px; color: white;"><i class="ph ph-drop"></i></span><span class="key" style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 5px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; color: white; opacity: 0.7; letter-spacing: 1px;">C</span><span style="font-size: 12px; opacity: 0.75; color: white; white-space: nowrap;">splash water</span></div>
-    <div class="hud-act" data-hud-key="W" id="hudRowWind" style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 13px; opacity: 0.5; font-size: 13px; color: white;"><i class="ph ph-wind"></i></span><span class="key" style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 5px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; color: white; opacity: 0.7; letter-spacing: 1px;">W</span><span style="font-size: 12px; opacity: 0.75; color: white; white-space: nowrap;">toggle wind</span></div>
-    <div class="hud-act" data-hud-key="G" id="hudRowGrain" style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 13px; opacity: 0.5; font-size: 13px; color: white;"><i class="ph ph-dots-six"></i></span><span class="key" style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 5px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; color: white; opacity: 0.7; letter-spacing: 1px;">G</span><span style="font-size: 12px; opacity: 0.75; color: white; white-space: nowrap;">grain overlay</span></div>
-  </div>
-  <div style="border-top: 1px solid rgba(255,255,255,0.06); margin: 6px 0;"></div>
-  <!-- Utility group -->
-  <div style="display: flex; flex-direction: column; gap: 0;">
-    <div class="hud-act" data-hud-key="R" style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 13px; opacity: 0.5; font-size: 13px; color: white;"><i class="ph ph-arrow-counter-clockwise"></i></span><span class="key" style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 5px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; color: white; opacity: 0.7; letter-spacing: 1px;">R</span><span style="font-size: 12px; opacity: 0.75; color: white; white-space: nowrap;">reset cloth</span></div>
-    <div class="hud-act" data-hud-key="S" style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 13px; opacity: 0.5; font-size: 13px; color: white;"><i class="ph ph-floppy-disk"></i></span><span class="key" style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 5px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; color: white; opacity: 0.7; letter-spacing: 1px;">S</span><span style="font-size: 12px; opacity: 0.75; color: white; white-space: nowrap;">save image</span></div>
-    <div class="hud-act" data-hud-key="H" style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 13px; opacity: 0.5; font-size: 13px; color: white;"><i class="ph ph-eye-slash"></i></span><span class="key" style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 1px 5px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; font-size: 10px; color: white; opacity: 0.7; letter-spacing: 1px;">H</span><span style="font-size: 12px; opacity: 0.75; color: white; white-space: nowrap;">hide HUD</span></div>
-  </div>
-</div>
-
-<!-- CARD 2: MATERIAL — Floating Panel (Step 4) -->
-<div id="card-style" style="background: rgba(12,12,12,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; position: fixed; top: 370px; left: 20px; width: fit-content; min-width: 160px; z-index: 100; box-sizing: border-box; display: flex; flex-direction: column; font-family: 'Pretendard', sans-serif;">
-  <div id="hud-texture" style="margin-top: 0;">
-    <input type="file" id="texFile" accept="image/*" style="display: none;" />
-    <button id="texUploadBtn" style="display: block; width: 100%; margin-bottom: 6px; font-size: 11px; padding: 5px; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; background: transparent; color: white; cursor: pointer; font-family: 'Pretendard', sans-serif; text-transform: uppercase; letter-spacing: 1px;"><i class="ph ph-upload-simple"></i> Upload texture</button>
-    <div id="texClear" style="font-size: 10px; color: rgba(255,255,255,0.35); cursor: pointer; margin-bottom: 8px;">✕&nbsp;&nbsp;clear texture</div>
-    <div id="hud-presets" style="display: flex; gap: 4px;">
-      <button class="preset-btn" data-preset="SILK" style="font-size: 11px; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: white; cursor: pointer; font-family: 'Pretendard', sans-serif; display: inline-flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 2px; background:#ccc8c3"></span>SILK</button>
-      <button class="preset-btn" data-preset="DENIM" style="font-size: 11px; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: white; cursor: pointer; font-family: 'Pretendard', sans-serif; display: inline-flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 2px; background:#6b84a0"></span>DENIM</button>
-      <button class="preset-btn" data-preset="LINEN" style="font-size: 11px; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: white; cursor: pointer; font-family: 'Pretendard', sans-serif; display: inline-flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 2px; background:#c8b99a"></span>LINEN</button>
+  <div class="hud-controls">
+    <!-- Cloth group -->
+    <div class="hud-group">
+      <div class="hud-group-label">Cloth</div>
+      <div style="display: flex; align-items: center; padding: 7px 0; gap: 10px; font-size: 13px; opacity: 0.8;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-hand"></i></span><span style="font-size: 11px; padding: 1px 6px; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; background: transparent; color: white;">Drag</span><span>pull the cloth</span></div>
+      <div class="hud-act" data-hud-key="T" id="hudRowTear" style="display: flex; align-items: center; padding: 7px 0; gap: 10px; font-size: 13px; opacity: 0.8; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-scissors"></i></span><span class="key" style="font-size: 11px; padding: 1px 6px; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; background: transparent; color: white;">T</span><span>tear mode</span></div>
+      <div class="hud-act" data-hud-key="O" id="hudRowCollider" style="display: flex; align-items: center; padding: 7px 0; gap: 10px; font-size: 13px; opacity: 0.8; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-sphere"></i></span><span class="key" style="font-size: 11px; padding: 1px 6px; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; background: transparent; color: white;">O</span><span>add collider</span></div>
     </div>
-    <div id="presetReset" style="font-size: 10px; color: rgba(255,255,255,0.35); cursor: pointer; margin-top: 8px;">↩&nbsp;&nbsp;default</div>
+    <!-- Effects group -->
+    <div class="hud-group">
+      <div class="hud-group-label">Effects</div>
+      <div class="hud-act" data-hud-key="D" id="hudRowDirt" style="display: flex; align-items: center; padding: 7px 0; gap: 10px; font-size: 13px; opacity: 0.8; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-circle"></i></span><span class="key" style="font-size: 11px; padding: 1px 6px; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; background: transparent; color: white;">D</span><span>throw dirt</span></div>
+      <div class="hud-act" data-hud-key="C" id="hudRowWater" style="display: flex; align-items: center; padding: 7px 0; gap: 10px; font-size: 13px; opacity: 0.8; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-drop"></i></span><span class="key" style="font-size: 11px; padding: 1px 6px; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; background: transparent; color: white;">C</span><span>splash water</span></div>
+      <div class="hud-act" data-hud-key="W" id="hudRowWind" style="display: flex; align-items: center; padding: 7px 0; gap: 10px; font-size: 13px; opacity: 0.8; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-wind"></i></span><span class="key" style="font-size: 11px; padding: 1px 6px; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; background: transparent; color: white;">W</span><span>toggle wind</span></div>
+      <div class="hud-act" data-hud-key="G" id="hudRowGrain" style="display: flex; align-items: center; padding: 7px 0; gap: 10px; font-size: 13px; opacity: 0.8; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-dots-six"></i></span><span class="key" style="font-size: 11px; padding: 1px 6px; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; background: transparent; color: white;">G</span><span>grain overlay</span></div>
+    </div>
+    <!-- Utility group -->
+    <div class="hud-group">
+      <div class="hud-group-label">Utility</div>
+      <div class="hud-act" data-hud-key="R" style="display: flex; align-items: center; padding: 7px 0; gap: 10px; font-size: 13px; opacity: 0.8; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-arrow-counter-clockwise"></i></span><span class="key" style="font-size: 11px; padding: 1px 6px; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; background: transparent; color: white;">R</span><span>reset cloth</span></div>
+      <div class="hud-act" data-hud-key="S" style="display: flex; align-items: center; padding: 7px 0; gap: 10px; font-size: 13px; opacity: 0.8; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-floppy-disk"></i></span><span class="key" style="font-size: 11px; padding: 1px 6px; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; background: transparent; color: white;">S</span><span>save image</span></div>
+      <div class="hud-act" data-hud-key="H" style="display: flex; align-items: center; padding: 7px 0; gap: 10px; font-size: 13px; opacity: 0.8; cursor: pointer;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; font-size: 14px; opacity: 0.5;"><i class="ph ph-eye-slash"></i></span><span class="key" style="font-size: 11px; padding: 1px 6px; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; background: transparent; color: white;">H</span><span>hide HUD</span></div>
+    </div>
+  </div>
+
+  <div id="hud-texture" style="margin-top: 28px; padding-bottom: 20px;">
+    <input type="file" id="texFile" accept="image/*" style="display: none;" />
+    <button id="texUploadBtn" style="width: 100%; margin-bottom: 10px; padding: 7px; font-size: 11px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; border-radius: 4px;"><i class="ph ph-upload-simple"></i> Upload texture</button>
+    <div id="texClear" style="font-size: 10px; opacity: 0.5; cursor: pointer; margin-bottom: 8px;">✕&nbsp;&nbsp;clear texture</div>
+    <div id="hud-presets" style="display: inline-flex; gap: 8px;">
+      <button class="preset-btn" data-preset="SILK" style="border: 1px solid rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 4px; font-size: 12px; background: transparent; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px;"><span class="preset-swatch" style="background:#ccc8c3; width: 10px; height: 10px; border-radius: 2px;"></span>SILK</button>
+      <button class="preset-btn" data-preset="DENIM" style="border: 1px solid rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 4px; font-size: 12px; background: transparent; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px;"><span class="preset-swatch" style="background:#6b84a0; width: 10px; height: 10px; border-radius: 2px;"></span>DENIM</button>
+      <button class="preset-btn" data-preset="LINEN" style="border: 1px solid rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 4px; font-size: 12px; background: transparent; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px;"><span class="preset-swatch" style="background:#c8b99a; width: 10px; height: 10px; border-radius: 2px;"></span>LINEN</button>
+    </div>
+    <div id="presetReset" style="font-size: 10px; opacity: 0.5; cursor: pointer; margin-top: 8px;">↩&nbsp;&nbsp;default</div>
+  </div>
+
+  <div class="hud-modes" style="display:none">
+    <span id="modeWind"  class="mode-badge">WIND ON</span>
+    <span id="modeTear"  class="mode-badge">TEAR MODE</span>
+    <span id="modeMic"   class="mode-badge">MIC <span class="mic-meter" id="micMeter"></span></span>
+    <span id="modeGrain" class="mode-badge">GRAIN</span>
+    <span id="modeDirt"  class="mode-badge">DIRT MODE</span>
+    <span id="modeWater" class="mode-badge">WATER MODE</span>
+    <span id="modeCollider" class="mode-badge">BALL</span>
   </div>
 </div>
 
