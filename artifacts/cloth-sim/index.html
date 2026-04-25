@@ -3534,14 +3534,25 @@ class Cloth {
 
         cloth        = makeCloth();
         buildUVBuffer();
+        
+        if (hasTexture) {
+          hasTexture = false;
+          if (glTexture) { gl.deleteTexture(glTexture); glTexture = null; }
+          if (texObjURL) { URL.revokeObjectURL(texObjURL); texObjURL = null; }
+          texFile.value = '';
+          texClear.classList.remove('visible');
+          const lbl = texUploadBtn.querySelector('.btn-label');
+          if (lbl) lbl.textContent = 'Upload texture';
+        }
+
         windEnabled  = false;
         tearMode     = false;
         dirtMode     = false;
         waterMode    = false;
         dirtParticles.length  = 0;
-      waterFadeTriggeredAt = now;
+        waterFadeTriggeredAt = now;
         pointWetness.clear();
-        syncScenarioUI(null);
+        applyPreset('SILK');
         updateHUD();
         break;
       case 'W':
@@ -3743,14 +3754,25 @@ class Cloth {
 
       cloth          = makeCloth();
       buildUVBuffer();
+
+      if (hasTexture) {
+        hasTexture = false;
+        if (glTexture) { gl.deleteTexture(glTexture); glTexture = null; }
+        if (texObjURL) { URL.revokeObjectURL(texObjURL); texObjURL = null; }
+        texFile.value = '';
+        texClear.classList.remove('visible');
+        const lbl = texUploadBtn.querySelector('.btn-label');
+        if (lbl) lbl.textContent = 'Upload texture';
+      }
+
       windEnabled = false;
       tearMode    = false;
       dirtMode    = false;
       waterMode   = false;
       dirtParticles.length  = 0;
-    waterFadeTriggeredAt = now;
+      waterFadeTriggeredAt = now;
       pointWetness.clear();
-      syncScenarioUI(null);
+      applyPreset('SILK');
       updateHUD();
     });
     fxSaveBtn  .addEventListener('click', () => { closeFxSheet(); saveImage(); });
