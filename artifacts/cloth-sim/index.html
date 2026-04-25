@@ -2264,9 +2264,6 @@
         <div class="hud-row hud-act" data-hud-key="L" id="hudRowLight" role="button" tabindex="0" aria-pressed="false">
           <span class="row-icon"><i class="ph ph-sun" aria-hidden="true"></i></span><span class="key">L</span><span
             id="hudLabelLight" data-i18n="lightLabel">Light source</span></div>
-        <div class="hud-row hud-act" data-hud-key="K" id="hudRowHeatmap" role="button" tabindex="0" aria-pressed="false">
-          <span class="row-icon"><i class="ph ph-thermometer" aria-hidden="true"></i></span><span class="key">K</span><span
-            id="hudLabelHeatmap" data-i18n="heatmapLabel">Stress Heatmap</span></div>
       </div>
       <!-- Utility group -->
       <div class="hud-group">
@@ -2428,11 +2425,6 @@
         <span class="fx-label" data-i18n="lightToggle">Light Source</span>
         <span class="fx-indicator"></span>
       </button>
-      <button class="fx-row" id="fxHeatmap">
-        <i class="ph ph-thermometer"></i>
-        <span class="fx-label" data-i18n="heatmapLabel">Stress Heatmap</span>
-        <span class="fx-indicator"></span>
-      </button>
     </div>
 
     <!-- SECTION 3: STYLE -->
@@ -2546,11 +2538,10 @@
         const drag = 1.0 - (speedSq * 0.00001);
         const finalDamping = Math.max(0.9, damping * drag);
 
-        this.x += vx * finalDamping + ax;
         this.y += vy * finalDamping + ay;
 
         /* Floor collision */
-        const floorY = (typeof canvas !== 'undefined') ? canvas.height - 20 : 2000;
+        const floorY = (typeof canvas !== 'undefined') ? canvas.height - 60 : 2000;
         if (this.y > floorY) {
           this.y = floorY;
           this.prevX = this.x - (this.x - this.prevX) * 0.5; // friction
@@ -2954,9 +2945,9 @@
     varying vec3  vPosition;
     varying float vDirt;
     varying float vWetness;
-    uniform int   uHasTexture;
-    uniform int   uIsLine;
-    uniform int   uHeatmapMode;
+    uniform sampler2D uTexture;
+    uniform int       uHasTexture;
+    uniform int       uIsLine;
     uniform sampler2D uTexture;
     uniform vec3  uClothColor;
     uniform float uLineAlpha;
@@ -3018,19 +3009,6 @@
         float stress    = clamp((1.0 - vShade) * 2.5, 0.0, 1.0);
         vec3  lineColor = mix(vec3(0.58, 0.58, 0.60), vec3(0.72, 0.30, 0.22), stress);
         gl_FragColor = vec4(lineColor * clamp(diffuse, 0.5, 1.0), uLineAlpha);
-      } else if (uHeatmapMode == 1) {
-        /* Recalibrated Heatmap: Blue (comp) -> Grey (rest) -> Red (stretch) */
-        vec3 hCol;
-        if (vShade < 1.0) {
-          // Compressed: Blue -> Grey
-          float t = clamp((vShade - 0.55) / (1.0 - 0.55), 0.0, 1.0);
-          hCol = mix(vec3(0.1, 0.3, 0.9), vec3(0.4, 0.4, 0.42), t);
-        } else {
-          // Stretched: Grey -> Red
-          float t = clamp((vShade - 1.0) / (1.08 - 1.0), 0.0, 1.0);
-          hCol = mix(vec3(0.4, 0.4, 0.42), vec3(0.9, 0.1, 0.1), t);
-        }
-        gl_FragColor = vec4(hCol * clamp(finalShade, 0.7, 1.3), 1.0);
       } else {
         gl_FragColor = vec4(baseColor * clamp(finalShade, 0.0, 1.5) * backFactor, 1.0);
       }
@@ -3217,7 +3195,6 @@
       const uLineAlphaLoc = gl.getUniformLocation(prog, 'uLineAlpha');
       const uLightPosLoc = gl.getUniformLocation(prog, 'uLightPos');
       const uLightEnabledLoc = gl.getUniformLocation(prog, 'uLightEnabled');
-      const uHeatmapModeLoc = gl.getUniformLocation(prog, 'uHeatmapMode');
 
       console.info('WebGL Initialized:', { aPositionLoc, aDirtLoc, aWetnessLoc, uMVPLoc });
 
@@ -3731,7 +3708,6 @@
       let mouse = { x: 0, y: 0, down: false };
       let draggedPoint = null;
       let grainOn = false;
-      let heatmapOn = false;
       let isKorean = false; // set true in i18n block; used for dynamic badge text
 
       let draggedCollider = null; // 'ball' | 'rod-body' | 'rod-e1' | 'rod-e2'
@@ -3982,10 +3958,6 @@
               hud.classList.toggle('hud-hidden', hudHidden);
             }
             break;
-          case 'K':
-            heatmapOn = !heatmapOn;
-            updateHUD();
-            break;
         }
       });
 
@@ -4049,13 +4021,12 @@
           mobWater.setAttribute('aria-pressed', String(waterMode));
           mobWind.setAttribute('aria-pressed', String(windEnabled));
           /* More button dot — on when Grain, Collider or Mic is active */
-          mobMore.classList.toggle('mode-on', grainOn || colliderType !== COLLIDER_NONE || micAnalyser !== null || lightSourceEnabled || heatmapOn || isRecording);
+          mobMore.classList.toggle('mode-on', grainOn || colliderType !== COLLIDER_NONE || micAnalyser !== null || lightSourceEnabled || isRecording);
           /* More sheet toggles */
           fxGrain.classList.toggle('active', grainOn);
           fxCollider.classList.toggle('active', colliderType !== COLLIDER_NONE);
           fxMicBtn.classList.toggle('active', micAnalyser !== null);
           fxLight.classList.toggle('active', lightSourceEnabled);
-          if (fxHeatmap) fxHeatmap.classList.toggle('active', heatmapOn);
           fxRecord.classList.toggle('active', isRecording);
           fxGrain.setAttribute('aria-pressed', String(grainOn));
           fxCollider.setAttribute('aria-pressed', String(colliderType !== COLLIDER_NONE));
@@ -4087,7 +4058,7 @@
           rowWind.setAttribute('aria-pressed', String(windEnabled));
           rowGrain.setAttribute('aria-pressed', String(grainOn));
           rowLight.setAttribute('aria-pressed', String(lightSourceEnabled));
-          rowHeatmap.setAttribute('aria-pressed', String(heatmapOn));
+          rowLight.setAttribute('aria-pressed', String(lightSourceEnabled));
         }
         if (typeof SettingsManager !== 'undefined') SettingsManager.save();
       }
@@ -4159,10 +4130,6 @@
 
         fxLight.addEventListener('click', () => {
           lightSourceEnabled = !lightSourceEnabled;
-          updateHUD();
-        });
-        if (fxHeatmap) fxHeatmap.addEventListener('click', () => {
-          heatmapOn = !heatmapOn;
           updateHUD();
         });
 
@@ -4398,9 +4365,7 @@
           metaDirt: "Dirt",
           metaWater: "Water",
           metaLight: "Light",
-          metaCollider: "Collider",
-          heatmapLabel: "Stress Heatmap",
-          metaHeatmap: "Heatmap"
+          metaCollider: "Collider"
         },
         KOR: {
           title: "패브릭",
@@ -4454,9 +4419,7 @@
           metaDirt: "진흙",
           metaWater: "수분",
           metaLight: "조명",
-          metaCollider: "콜라이더",
-          heatmapLabel: "응력 히트맵",
-          metaHeatmap: "히트맵"
+          metaCollider: "콜라이더"
         }
       };
 
@@ -4937,7 +4900,6 @@
         gl.uniform1f(uLineAlphaLoc, lineAlpha);
         gl.uniform3f(uLightPosLoc, lightPos.x, lightPos.y, lightPos.z);
         gl.uniform1i(uLightEnabledLoc, lightSourceEnabled ? 1 : 0);
-        gl.uniform1i(uHeatmapModeLoc, heatmapOn ? 1 : 0);
 
         if (hasTexture && glTexture) {
           gl.activeTexture(gl.TEXTURE0);
@@ -5347,7 +5309,6 @@
           { active: typeof dirtMode !== 'undefined' && dirtMode,       label: t.metaDirt },
           { active: typeof waterMode !== 'undefined' && waterMode,     label: t.metaWater },
           { active: typeof lightSourceEnabled !== 'undefined' && lightSourceEnabled, label: t.metaLight },
-          { active: typeof heatmapOn !== 'undefined' && heatmapOn,       label: t.metaHeatmap },
           { active: typeof colliderType !== 'undefined' && colliderType !== 0, label: t.metaCollider }
         ];
 
