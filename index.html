@@ -2494,7 +2494,7 @@ class Cloth {
   };
 
 
-  const DEFAULT_COLOR         = PREFERS_DARK ? [0.22, 0.24, 0.30] : [0.70, 0.72, 0.76];
+  const DEFAULT_COLOR         = PREFERS_DARK ? [0.15, 0.16, 0.18] : [0.60, 0.62, 0.65];
   const DEFAULT_LINE_ALPHA    = PREFERS_DARK ? 0.40 : 0.50;
   const DEFAULT_GRAVITY       = gravity;
   const DEFAULT_ITERATIONS    = iterations;
@@ -3365,7 +3365,9 @@ class Cloth {
     damping      = preset.damping;
     windResponse = preset.windResponse;
     stickiness   = preset.stickiness;
-    dryRate      = preset.dryRate;
+    shearStiff   = (preset.shearStiff != null) ? preset.shearStiff : 0.15;
+    bendStiff    = (preset.bendStiff  != null) ? preset.bendStiff  : 0.12;
+
     dirtParticles.length  = 0;
     waterParticles.length = 0;
     pointWetness.clear();
@@ -3375,20 +3377,25 @@ class Cloth {
     lineAlpha  = (PREFERS_DARK && preset.lineAlphaDark != null)
       ? preset.lineAlphaDark
       : preset.lineAlpha;
-    cloth.reset();
+    
+    // FULL RESET on material change: fix tears
+    cloth = makeCloth();
+    
     activePreset = key;
     syncPresetUI(key);
   }
 
   function applyDefaultCloth() {
-    // Force basic cloth parameters
+    // Force basic cloth parameters (Distinct from Silk)
     gravity      = 0.5;
-    iterations   = 8;
+    iterations   = 10; // Slightly firmer to distinguish from Silk
     tearDist     = 60;
     damping      = 0.99;
     windResponse = 1.0;
     stickiness   = 0.22;
     dryRate      = 0.012;
+    shearStiff   = 0.15;
+    bendStiff    = 0.12;
     
     // Clear custom textures
     hasTexture = false;
