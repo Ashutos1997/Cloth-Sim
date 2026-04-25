@@ -2890,17 +2890,17 @@ class Cloth {
   };
 
 
-  const DEFAULT_COLOR         = PREFERS_DARK ? [0.20, 0.25, 0.40] : [0.45, 0.55, 0.80];
+  const DEFAULT_COLOR         = PREFERS_DARK ? [0.22, 0.24, 0.28] : [0.70, 0.72, 0.76];
   const DEFAULT_LINE_ALPHA    = PREFERS_DARK ? 0.40 : 0.50;
   const DEFAULT_GRAVITY       = 0.5;
-  const DEFAULT_ITERATIONS    = 12;
+  const DEFAULT_ITERATIONS    = 8;
   const DEFAULT_DAMPING       = 0.99;
   const DEFAULT_TEAR_DIST     = 60;
   const DEFAULT_WIND_RESPONSE = 1.0;
   const DEFAULT_STICKINESS    = 0.22;
   const DEFAULT_DRY_RATE      = 0.012;
-  const DEFAULT_SHEAR_STIFF   = 0.25;
-  const DEFAULT_BEND_STIFF    = 0.15;
+  const DEFAULT_SHEAR_STIFF   = 0.15;
+  const DEFAULT_BEND_STIFF    = 0.12;
   let clothColor   = DEFAULT_COLOR.slice();
   let lineAlpha    = DEFAULT_LINE_ALPHA;
   let activePreset = null;
