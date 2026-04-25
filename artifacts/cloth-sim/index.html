@@ -2538,6 +2538,7 @@
         const drag = 1.0 - (speedSq * 0.00001);
         const finalDamping = Math.max(0.9, damping * drag);
 
+        this.x += vx * finalDamping + ax;
         this.y += vy * finalDamping + ay;
 
         /* Floor collision */
