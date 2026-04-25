@@ -5211,7 +5211,7 @@
             for (let i = 1; i < tearTrail.length; i++) {
               ctx2d.lineTo(tearTrail[i].x, tearTrail[i].y);
             }
-            ctx2d.strokeStyle = 'rgba(255, 60, 40, 0.25)';
+            ctx2d.strokeStyle = 'rgba(255, 255, 255, 0.15)';
             ctx2d.lineWidth = MOUSE_RADIUS * 2;
             ctx2d.lineCap = 'round';
             ctx2d.lineJoin = 'round';
@@ -5220,10 +5220,8 @@
 
           ctx2d.beginPath();
           ctx2d.arc(mouse.x, mouse.y, MOUSE_RADIUS, 0, Math.PI * 2);
-          ctx2d.strokeStyle = 'rgba(255, 80, 60, 0.50)';
+          ctx2d.strokeStyle = 'rgba(255, 255, 255, 0.35)';
           ctx2d.lineWidth = 1.5;
-          ctx2d.shadowColor = 'rgba(255, 60, 40, 0.40)';
-          ctx2d.shadowBlur = 8;
           ctx2d.stroke();
           ctx2d.restore();
         }
