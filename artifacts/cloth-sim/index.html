@@ -1905,7 +1905,7 @@
     <!-- Cloth group -->
     <div class="hud-group">
       <div class="hud-group-label" data-i18n="cloth">Cloth</div>
-      <div class="hud-row"><span class="row-icon"><i class="ph ph-hand"></i></span><span class="key">Drag</span><span id="hudLabelDrag" data-i18n="dragLabel">Pull the cloth</span></div>
+      <div class="hud-row"><span class="row-icon"><i class="ph ph-hand"></i></span><span class="key" data-i18n="dragKey">Drag</span><span id="hudLabelDrag" data-i18n="dragLabel">Pull the cloth</span></div>
       <div class="hud-row hud-act" data-hud-key="T" id="hudRowTear" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-scissors" aria-hidden="true"></i></span><span class="key">T</span><span id="hudLabelTear" data-i18n="tearLabel">Tear mode</span></div>
       <div class="hud-row hud-act" data-hud-key="O" id="hudRowCollider" role="button" tabindex="0" aria-pressed="false"><span class="row-icon"><i class="ph ph-sphere" aria-hidden="true"></i></span><span class="key">O</span><span id="hudLabelCollider" data-i18n="colliderLabel">Add collider</span></div>
     </div>
@@ -1998,22 +1998,18 @@
 
 <!-- Mobile bottom nav (≤768px only) -->
 <nav id="mob-nav">
-  <!-- Touch Tab -->
-  <button class="mob-btn" id="mobTouchTab">
+  <button class="mob-btn mode-on" id="mobTouchTab">
     <i class="ph ph-hand"></i>
     <span class="mob-label" data-i18n="touchTab">Touch</span>
   </button>
-  <!-- Effects Tab -->
   <button class="mob-btn" id="mobEffectsTab">
     <i class="ph ph-sparkle"></i>
     <span class="mob-label" data-i18n="effectsTab">Effects</span>
   </button>
-  <!-- Style Tab -->
   <button class="mob-btn" id="mobStyleTab">
     <i class="ph ph-palette"></i>
     <span class="mob-label" data-i18n="styleTab">Style</span>
   </button>
-  <!-- Manage Tab (Repurposing mobMore ID to trigger the sheet) -->
   <button class="mob-btn" id="mobMore" aria-haspopup="dialog" aria-expanded="false">
     <i class="ph ph-sliders-horizontal"></i>
     <span class="mob-label" data-i18n="manageTab">Manage</span>
@@ -2081,15 +2077,15 @@
     <div class="fx-pill-row">
       <button class="fx-pill-btn" id="fxSilk" data-fx-preset="SILK">
         <span class="fx-swatch" style="background:#d8d4d0"></span>
-        <span class="fx-pill-label">Silk</span>
+        <span class="fx-pill-label" data-i18n="silk">Silk</span>
       </button>
       <button class="fx-pill-btn" id="fxDenim" data-fx-preset="DENIM">
         <span class="fx-swatch" style="background:#4a5f85"></span>
-        <span class="fx-pill-label">Denim</span>
+        <span class="fx-pill-label" data-i18n="denim">Denim</span>
       </button>
       <button class="fx-pill-btn" id="fxLinen" data-fx-preset="LINEN">
         <span class="fx-swatch" style="background:#ccc8bc"></span>
-        <span class="fx-pill-label">Linen</span>
+        <span class="fx-pill-label" data-i18n="linen">Linen</span>
       </button>
     </div>
     <button class="fx-row fx-reset-row" id="fxDefault">
@@ -3964,7 +3960,7 @@ class Cloth {
       tearMode: "Tear Mode",
       envTitle: "Environment & FX",
       windToggle: "Wind Toggle",
-      grainLabel: "Grain Overlay",
+      grainOverlay: "Grain Overlay",
       colliderBall: "Collider Ball",
       matTitle: "Material & Texture",
       defaultText: "Default texture",
@@ -3977,7 +3973,8 @@ class Cloth {
       lightToggle: "Light source",
       silk: "Silk",
       denim: "Denim",
-      linen: "Linen"
+      linen: "Linen",
+      dragKey: "Drag"
     },
     KOR: {
       title: "패브릭",
@@ -3994,12 +3991,38 @@ class Cloth {
       waterLabel: "수분 모드",
       reset: "초기화",
       save: "이미지 저장",
+      recordLabel: "녹화",
+      hide: "HUD 숨기기",
+      modeWind: "바람 켬",
+      modeTear: "찢기 모드",
+      material: "소재",
+      upload: "텍스처 업로드",
+      clear: "텍스처 삭제",
+      default: "기본설정",
+      touchTab: "터치",
+      effectsTab: "효과",
+      styleTab: "스타일",
+      manageTab: "관리",
+      touchTitle: "터치 컨트롤",
+      dragMode: "드래그 모드",
+      tearMode: "찢기 모드",
+      envTitle: "환경 및 효과",
+      windToggle: "바람 토글",
+      grainOverlay: "그레인 오버레이",
+      colliderBall: "볼 콜라이더",
+      matTitle: "소재 및 텍스처",
+      defaultText: "기본 텍스처",
+      sessTitle: "세션 관리",
+      mobReset: "초기화",
+      mobSave: "저장",
+      mobMic: "마이크",
+      language: "언어 설정",
       lightLabel: "동적 조명",
       lightToggle: "조명 소스",
       silk: "실크",
       denim: "데님",
       linen: "린넨",
-      recordLabel: "녹화"
+      dragKey: "드래그"
     }
   };
 
