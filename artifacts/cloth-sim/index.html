@@ -3071,6 +3071,9 @@
       let recordedChunks = [];
       let isRecording = false;
       let micStream = null;
+      let recordingCanvas = null;
+      let recordingCtx = null;
+      let recordingLoopId = null;
 
       function downloadRecording() {
         if (recordedChunks.length === 0) return;
@@ -3092,6 +3095,10 @@
         if (mediaRecorder && isRecording) {
           mediaRecorder.stop();
           isRecording = false;
+          if (recordingLoopId) {
+            cancelAnimationFrame(recordingLoopId);
+            recordingLoopId = null;
+          }
           updateHUD();
         }
       }
@@ -3099,23 +3106,54 @@
       function startRecording() {
         if (isRecording) return;
         recordedChunks = [];
-        const canvasStream = canvas.captureStream(60);
-        const tracks = [...canvasStream.getTracks()];
+
+        const dpr = window.devicePixelRatio || 1;
+        recordingCanvas = document.createElement('canvas');
+        recordingCanvas.width = canvas.width * dpr;
+        recordingCanvas.height = canvas.height * dpr;
+        recordingCtx = recordingCanvas.getContext('2d');
+
+        const stream = recordingCanvas.captureStream(60);
+        const tracks = [...stream.getTracks()];
         if (micStream) {
           const audioTracks = micStream.getAudioTracks();
           if (audioTracks.length > 0) tracks.push(audioTracks[0]);
         }
         const combinedStream = new MediaStream(tracks);
+
+        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+          ? 'video/webm;codecs=vp9'
+          : 'video/webm';
+
+        const options = {
+          mimeType,
+          videoBitsPerSecond: 8000000
+        };
+
         try {
-          mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm; codecs=vp9' });
+          mediaRecorder = new MediaRecorder(combinedStream, options);
         } catch (e) {
+          console.warn('VP9 or options not supported, falling back', e);
           mediaRecorder = new MediaRecorder(combinedStream);
         }
+
         mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
         mediaRecorder.onstop = () => {
           if (window.stopIndicator) window.stopIndicator();
           downloadRecording();
         };
+
+        const recordLoop = () => {
+          if (!isRecording) return;
+          recordingCtx.clearRect(0, 0, recordingCanvas.width, recordingCanvas.height);
+          recordingCtx.save();
+          recordingCtx.scale(dpr, dpr);
+          recordingCtx.drawImage(canvas, 0, 0);
+          recordingCtx.drawImage(overlay, 0, 0);
+          recordingCtx.restore();
+          recordingLoopId = requestAnimationFrame(recordLoop);
+        };
+        recordingLoopId = requestAnimationFrame(recordLoop);
 
         if (window.startIndicator) window.startIndicator();
         mediaRecorder.start();
@@ -3952,13 +3990,15 @@
 
       /* ── Save image — shared by keyboard shortcut + mobile button ── */
       function saveImage() {
+        const dpr = window.devicePixelRatio || 1;
         const off = document.createElement('canvas');
-        off.width = canvas.width;
-        off.height = canvas.height;
+        off.width = canvas.width * dpr;
+        off.height = canvas.height * dpr;
         const offCtx = off.getContext('2d');
+        offCtx.scale(dpr, dpr);
         offCtx.drawImage(canvas, 0, 0);
         offCtx.drawImage(overlay, 0, 0);
-        const dataURL = off.toDataURL('image/png');
+        const dataURL = off.toDataURL('image/png', 1.0);
         const link = document.createElement('a');
         link.href = dataURL;
         link.download = `fabric-${Date.now()}.png`;
