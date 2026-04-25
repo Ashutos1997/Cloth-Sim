@@ -6,7 +6,7 @@
   <title>Cloth Simulation</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@200;300;400&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.css" />
   <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
   <style>
@@ -55,7 +55,7 @@
       width: 100%; height: 100%;
       overflow: hidden;
       background: var(--color-surface);
-      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
     }
     #canvas {
       display: block;
@@ -117,7 +117,7 @@
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-right: 1px solid var(--color-border-subtle);
-      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
       color: var(--color-text-tertiary);
       pointer-events: none;
       user-select: none;
@@ -225,7 +225,7 @@
 
     /* Control label text */
     #hud .hud-row > span:not(.key) {
-      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 12px;
       font-weight: 400;
       color: var(--color-text-primary);
@@ -252,7 +252,7 @@
       background: transparent;
       border: 1px solid rgba(255, 255, 255, 0.20);
       border-radius: 3px;
-      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 10px;
       font-weight: 400;
       text-transform: uppercase;
@@ -324,7 +324,7 @@
       background: transparent;
       border: 1px solid var(--border-strong);
       color: rgba(255, 255, 255, 0.90);
-      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 12px;
       font-weight: 400;
       letter-spacing: 1px;
@@ -377,7 +377,7 @@
       border-radius: var(--radius-ui);
       cursor: pointer;
       transition: opacity 150ms ease-out, border-color 150ms ease-out;
-      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
     }
     .lang-pill.active {
       background: rgba(255,255,255,0.1);
@@ -391,7 +391,7 @@
       bottom: 28px;
       left: calc(280px + (100vw - 280px) / 2);
       transform: translateX(-50%);
-      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 12px;
       font-weight: 300;
       letter-spacing: 6px;
@@ -425,7 +425,7 @@
       background: transparent;
       border: 1px solid var(--border-strong);
       border-radius: var(--radius-ui);
-      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 12px;
       font-weight: 300;
       text-transform: uppercase;
@@ -443,7 +443,7 @@
     #texClear {
       display: none;
       margin-top: 10px;
-      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 12px;
       font-weight: 300;
       letter-spacing: 0.5px;
@@ -516,7 +516,7 @@
         user-select: none;
       }
       #mob-header .mob-title {
-        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+        font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-weight: 200;
         font-size: 18px;
         letter-spacing: 0.30em;
@@ -525,7 +525,7 @@
         line-height: 1;
       }
       #mob-header .mob-subtitle {
-        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+        font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-weight: 300;
         font-size: 10px;
         letter-spacing: 0.18em;
@@ -566,7 +566,7 @@
       }
       .mob-btn i { font-size: 20px; line-height: 1; }
       .mob-label {
-        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+        font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 10px;
         font-weight: 400;
         letter-spacing: 0.14em;
@@ -629,7 +629,7 @@
       }
       /* Section title */
       .fx-title {
-        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+        font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 9px;
         font-weight: 500;
         letter-spacing: 2.5px;
@@ -732,7 +732,7 @@
         border: 1px solid rgba(255, 255, 255, 0.12);
         cursor: pointer;
         color: var(--color-text-secondary);
-        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+        font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 11px;
         font-weight: 300;
         letter-spacing: 0.04em;
@@ -777,7 +777,7 @@
         border: 1px solid rgba(255, 255, 255, 0.15);
       }
       .fx-scene-name {
-        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+        font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
         font-size: 9.5px;
         font-weight: 300;
         color: var(--color-text-secondary);
@@ -808,7 +808,7 @@
         border: 1px solid rgba(255, 255, 255, 0.12);
         cursor: pointer;
         color: var(--color-text-secondary);
-        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+        font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
         transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
         -webkit-tap-highlight-color: transparent;
       }
@@ -858,7 +858,7 @@
       background: transparent;
       border: 1px solid var(--border-strong);
       border-radius: 6px;
-      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 9px;
       font-weight: 300;
       text-transform: uppercase;
@@ -886,7 +886,7 @@
     #scenarioReset {
       display: none;
       margin-top: 5px;
-      font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+      font-family: 'SUIT Variable', 'Pretendard Variable', 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 9px;
       font-weight: 300;
       letter-spacing: 1px;
