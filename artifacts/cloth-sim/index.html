@@ -4669,49 +4669,67 @@ class Cloth {
       ctx2d.shadowColor = PREFERS_DARK ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.35)';
       ctx2d.shadowBlur  = 14;
       if (colliderType === COLLIDER_BALL) {
+        const b = ballCollider;
+        const grd = ctx2d.createRadialGradient(b.x - b.r*0.2, b.y - b.r*0.2, 0, b.x, b.y, b.r);
+        grd.addColorStop(0, 'rgba(80,85,95,0.95)');
+        grd.addColorStop(1, 'rgba(18,20,24,0.98)');
+        ctx2d.fillStyle = grd;
         ctx2d.beginPath();
-        ctx2d.arc(ballCollider.x, ballCollider.y, ballCollider.r, 0, Math.PI * 2);
-        ctx2d.fillStyle = cFill;
+        ctx2d.arc(b.x, b.y, b.r, 0, Math.PI * 2);
         ctx2d.fill();
-        ctx2d.strokeStyle = cStroke;
-        ctx2d.lineWidth   = 1.5;
-        ctx2d.stroke();
-        /* Specular highlight */
-        ctx2d.shadowBlur = 0;
-        const hlGrd = ctx2d.createRadialGradient(
-          ballCollider.x - ballCollider.r * 0.3, ballCollider.y - ballCollider.r * 0.3, 0,
-          ballCollider.x, ballCollider.y, ballCollider.r
-        );
-        hlGrd.addColorStop(0, 'rgba(255,255,255,0.18)');
-        hlGrd.addColorStop(0.5, 'rgba(255,255,255,0)');
-        ctx2d.fillStyle = hlGrd;
+        
+        // Specular highlight
+        ctx2d.save();
+        ctx2d.filter = 'blur(3px)';
+        ctx2d.fillStyle = 'rgba(255,255,255,0.12)';
         ctx2d.beginPath();
-        ctx2d.arc(ballCollider.x, ballCollider.y, ballCollider.r, 0, Math.PI * 2);
+        ctx2d.ellipse(b.x - b.r*0.4, b.y - b.r*0.4, b.r*0.3, b.r*0.2, -Math.PI/4, 0, Math.PI*2);
         ctx2d.fill();
-      } else { /* ROD */
-        const cos = Math.cos(rodCollider.angle), sin = Math.sin(rodCollider.angle);
-        const hlen = rodCollider.len * 0.5, r = rodCollider.r;
-        ctx2d.translate(rodCollider.x, rodCollider.y);
-        ctx2d.rotate(rodCollider.angle);
-        ctx2d.beginPath();
-        ctx2d.arc(-hlen, 0, r, Math.PI / 2, -Math.PI / 2);
-        ctx2d.lineTo(hlen, -r);
-        ctx2d.arc(hlen, 0, r, -Math.PI / 2, Math.PI / 2);
-        ctx2d.closePath();
-        ctx2d.fillStyle = cFill;
-        ctx2d.fill();
-        ctx2d.strokeStyle = cStroke;
-        ctx2d.lineWidth   = 1.5;
-        ctx2d.stroke();
-        /* Endpoint grip rings */
-        ctx2d.shadowBlur = 0;
-        ctx2d.strokeStyle = PREFERS_DARK ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.25)';
+        ctx2d.restore();
+        
+        // Rim light (bottom-right)
+        ctx2d.strokeStyle = 'rgba(255,255,255,0.06)';
         ctx2d.lineWidth = 1;
-        [-hlen, hlen].forEach(ex => {
-          ctx2d.beginPath();
-          ctx2d.arc(ex, 0, r - 4, 0, Math.PI * 2);
-          ctx2d.stroke();
-        });
+        ctx2d.beginPath();
+        ctx2d.arc(b.x, b.y, b.r - 0.5, 0, Math.PI*0.5);
+        ctx2d.stroke();
+        
+        // Outer border
+        ctx2d.strokeStyle = 'rgba(255,255,255,0.10)';
+        ctx2d.lineWidth = 1;
+        ctx2d.beginPath();
+        ctx2d.arc(b.x, b.y, b.r, 0, Math.PI*2);
+        ctx2d.stroke();
+      } else { /* ROD */
+        const r = rodCollider;
+        const hlen = r.len * 0.5, rad = r.r;
+        ctx2d.translate(r.x, r.y);
+        ctx2d.rotate(r.angle);
+        
+        const grd = ctx2d.createLinearGradient(0, -rad, 0, rad);
+        grd.addColorStop(0, 'rgba(70,75,85,0.92)');
+        grd.addColorStop(1, 'rgba(22,24,28,0.95)');
+        ctx2d.fillStyle = grd;
+        
+        ctx2d.beginPath();
+        ctx2d.arc(-hlen, 0, rad, Math.PI/2, -Math.PI/2);
+        ctx2d.lineTo(hlen, -rad);
+        ctx2d.arc(hlen, 0, rad, -Math.PI/2, Math.PI/2);
+        ctx2d.closePath();
+        ctx2d.fill();
+        
+        // Specular line
+        ctx2d.strokeStyle = 'rgba(255,255,255,0.10)';
+        ctx2d.lineWidth = 1;
+        ctx2d.beginPath();
+        ctx2d.moveTo(-hlen * 0.6, -rad * 0.3);
+        ctx2d.lineTo(hlen * 0.6, -rad * 0.3);
+        ctx2d.stroke();
+        
+        // Minimal border
+        ctx2d.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx2d.lineWidth = 1;
+        ctx2d.stroke();
       }
       ctx2d.restore();
     }
