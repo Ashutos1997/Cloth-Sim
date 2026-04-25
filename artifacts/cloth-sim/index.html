@@ -75,18 +75,6 @@
       top: 0;
       width: calc(100vw - 280px);
       height: 100vh;
-      z-index: 10;
-    }
-
-    #grid-canvas {
-      position: fixed;
-      left: 280px;
-      top: 0;
-      width: calc(100vw - 280px);
-      height: 100vh;
-      pointer-events: none;
-      z-index: 5;
-      display: block;
     }
 
     /* ── Overlay canvas — 2D decorations (pinned dots, drag, tear cursor) ── */
@@ -2218,7 +2206,6 @@
     </filter>
   </svg>
   <div id="canvas-backdrop"></div>
-  <canvas id="grid-canvas"></canvas>
   <canvas id="canvas"></canvas>
   <canvas id="overlay"></canvas>
   <div id="grain-overlay"></div>
@@ -2554,14 +2541,6 @@
         this.x += vx * finalDamping + ax;
         this.y += vy * finalDamping + ay;
 
-        /* Floor collision */
-        const floorY = (typeof canvas !== 'undefined') ? canvas.height - 60 : 2000;
-        if (this.y > floorY) {
-          this.y = floorY;
-          this.prevX = this.x - (this.x - this.prevX) * 0.5; // friction
-          this.prevZ = this.z - (this.z - this.prevZ) * 0.5;
-        }
-
         this.z += vz * finalDamping + az - (this.z - this.initZ) * 0.0002;
       }
 
@@ -2771,9 +2750,7 @@
     (function main() {
       /* ── Canvas setup ── */
       const canvas = document.getElementById('canvas');
-      const gridCanvas = document.getElementById('grid-canvas');
       const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true });
-      const ctxGrid = gridCanvas.getContext('2d');
       const overlay = document.getElementById('overlay');
       const ctx2d = overlay.getContext('2d');
 
@@ -3686,23 +3663,19 @@
           const navH = mobNav.offsetHeight;
           cw = window.innerWidth;
           ch = window.innerHeight - headerH - navH;
-          canvas.style.cssText = `position:fixed;top:${headerH}px;left:0;width:${cw}px;height:${ch}px;z-index:10`;
-          gridCanvas.style.cssText = `position:fixed;top:${headerH}px;left:0;width:${cw}px;height:${ch}px;z-index:5;pointer-events:none`;
-          overlay.style.cssText = `position:fixed;top:${headerH}px;left:0;width:${cw}px;height:${ch}px;z-index:20;pointer-events:none`;
+          canvas.style.cssText = `position:fixed;top:${headerH}px;left:0;width:${cw}px;height:${ch}px;z-index:1`;
+          overlay.style.cssText = `position:fixed;top:${headerH}px;left:0;width:${cw}px;height:${ch}px;z-index:2;pointer-events:none`;
           document.body.style.overflow = 'hidden';
         } else {
           const panelW = 280;
           cw = window.innerWidth - panelW;
           ch = window.innerHeight;
-          canvas.style.cssText = `position:fixed;top:0;left:${panelW}px;width:${cw}px;height:${ch}px;z-index:10`;
-          gridCanvas.style.cssText = `position:fixed;top:0;left:${panelW}px;width:${cw}px;height:${ch}px;z-index:5;pointer-events:none`;
-          overlay.style.cssText = `position:fixed;top:0;left:${panelW}px;width:${cw}px;height:${ch}px;z-index:20;pointer-events:none;display:block`;
+          canvas.style.cssText = `position:fixed;top:0;left:${panelW}px;width:${cw}px;height:${ch}px;`;
+          overlay.style.cssText = `position:fixed;top:0;left:${panelW}px;width:${cw}px;height:${ch}px;pointer-events:none;display:block`;
           document.body.style.overflow = '';
         }
         canvas.width = cw;
         canvas.height = ch;
-        gridCanvas.width = cw;
-        gridCanvas.height = ch;
         overlay.width = cw;
         overlay.height = ch;
         gl.viewport(0, 0, cw, ch);
@@ -4675,46 +4648,6 @@
       let waterLayerAlpha = 1.0;
       let waterFadeTriggeredAt = 0;
 
-      function drawFloorGrid() {
-        ctxGrid.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
-        ctxGrid.save();
-        const floorY = gridCanvas.height - 60;
-        const horizonY = floorY - 140;
-        const width = gridCanvas.width;
-        
-        ctxGrid.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        ctxGrid.lineWidth = 1;
-        
-        // Horizontal lines (perspective)
-        for (let i = 0; i <= 6; i++) {
-          const t = i / 6;
-          const y = floorY - Math.pow(t, 1.5) * (floorY - horizonY);
-          const alpha = 0.12 * (1.0 - t);
-          ctxGrid.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-          ctxGrid.beginPath();
-          ctxGrid.moveTo(0, y);
-          ctxGrid.lineTo(width, y);
-          ctxGrid.stroke();
-        }
-        
-        // Vertical perspective lines
-        const numLines = 16;
-        const centerX = width / 2;
-        for (let i = 0; i <= numLines; i++) {
-          const ratio = (i / numLines - 0.5);
-          const xBottom = centerX + ratio * width * 2.2;
-          const xTop = centerX + ratio * width * 0.4;
-          
-          ctxGrid.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-          ctxGrid.beginPath();
-          ctxGrid.moveTo(xTop, horizonY);
-          ctxGrid.lineTo(xBottom, floorY);
-          ctxGrid.stroke();
-        }
-        
-        ctxGrid.restore();
-      }
-
       /* ── Main loop ── */
       function loop(now) {
         requestAnimationFrame(loop);
@@ -5043,7 +4976,6 @@
 
         /* 2D Overlay decorations */
         ctx2d.clearRect(0, 0, overlay.width, overlay.height);
-        drawFloorGrid();
 
         /* ── Ambient Background Particles ── */
         drawAmbientParticles(cloth);
