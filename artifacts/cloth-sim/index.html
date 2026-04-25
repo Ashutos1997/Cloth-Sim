@@ -2141,7 +2141,7 @@ const ROWS          = IS_MOBILE ? 28 : 30;
 const SPACING       = 18;      // px between adjacent points at rest
 let   gravity       = 0.5;
 let   damping       = 0.99;    // velocity retention per frame (per-preset)
-let   iterations    = 8;       // constraint relaxation passes / frame
+let   iterations    = 12;      // constraint relaxation passes / frame
 let   tearDist      = 60;      // auto-tear threshold (× rest length, per-preset)
 let   windResponse  = 1.0;     // wind sensitivity multiplier (per-preset)
 let   stickiness    = 0.22;   // dirt particle adhesion 0–1 (per-preset)
@@ -2332,14 +2332,18 @@ class Cloth {
 
   update(windX, windZ) {
     for (const pt of this.points) {
-      let windMult = 1.0;
+      let wx = windX, wz = windZ;
       
       if (colliderType !== COLLIDER_NONE) {
         if (colliderType === COLLIDER_BALL) {
           const dx = pt.x - ballCollider.x, dy = pt.y - ballCollider.y;
-          const d2 = dx * dx + dy * dy;
+          const d2 = dx * dx + dy * dy + pt.z * pt.z;
           const r2 = ballCollider.r * ballCollider.r;
-          if (d2 < r2 * 1.2) windMult = 0.1; // Shielding effect
+          if (d2 < r2 * 2.0) {
+            // Directional shielding: only block if point is "downwind" of ball center
+            const dot = dx * windX + pt.z * windZ;
+            if (dot > 0) { wx *= 0.1; wz *= 0.1; }
+          }
         } else if (colliderType === COLLIDER_ROD) {
           const cos = Math.cos(rodCollider.angle), sin = Math.sin(rodCollider.angle);
           const hlen = rodCollider.len * 0.5;
@@ -2347,11 +2351,13 @@ class Cloth {
           const t  = Math.max(-hlen, Math.min(hlen, dx * cos + dy * sin));
           const cx = rodCollider.x + t * cos, cy = rodCollider.y + t * sin;
           const ex = pt.x - cx, ey = pt.y - cy;
-          if (ex * ex + ey * ey < rodCollider.r * rodCollider.r * 1.2) windMult = 0.1;
+          if (ex * ex + ey * ey < rodCollider.r * rodCollider.r * 1.5) {
+            wx *= 0.1; wz *= 0.1;
+          }
         }
       }
       
-      pt.update(windX * windMult, gravity, windZ * windMult);
+      pt.update(wx, gravity, wz);
     }
     for (let i = 0; i < iterations; i++)
       for (const c of this.constraints) c.satisfy();
@@ -4303,8 +4309,8 @@ class Cloth {
       }
     }
 
-    /* Physics: Implement Sub-stepping (2 steps per frame) for high-speed stability */
-    const subSteps = 2;
+    /* Physics: Implement Sub-stepping (4 steps per frame) for high-speed stability */
+    const subSteps = 4;
     for (let s = 0; s < subSteps; s++) {
       cloth.update(windX * windResponse / subSteps, windZ * windResponse / subSteps);
 
