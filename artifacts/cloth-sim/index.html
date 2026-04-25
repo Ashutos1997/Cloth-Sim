@@ -2815,7 +2815,7 @@
 
       /* ── Enhanced Tear Logic State ── */
       let tearTrail = [];
-      const MAX_TRAIL = 12;
+      const MAX_TRAIL = 64;
 
       /* ── More bottom sheet refs ── */
       const fxBackdrop = document.getElementById('fx-backdrop');
@@ -5202,6 +5202,12 @@
 
         /* Tear cursor ring & trail highlight */
         if (tearMode) {
+          // Cleanup old trail points (older than 500ms)
+          const now = performance.now();
+          while (tearTrail.length > 0 && now - tearTrail[0].t > 500) {
+            tearTrail.shift();
+          }
+
           ctx2d.save();
 
           // Draw trail if dragging
