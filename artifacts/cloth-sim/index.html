@@ -2786,6 +2786,7 @@
       const texFile = document.getElementById('texFile');
       const texUploadBtn = document.getElementById('texUploadBtn');
       const texClear = document.getElementById('texClear');
+      const fxHeatmap = document.getElementById('fxHeatmap');
 
       /* ── Mobile nav button refs ── */
       const mobHeader = document.getElementById('mob-header');
@@ -4048,12 +4049,13 @@
           mobWater.setAttribute('aria-pressed', String(waterMode));
           mobWind.setAttribute('aria-pressed', String(windEnabled));
           /* More button dot — on when Grain, Collider or Mic is active */
-          mobMore.classList.toggle('mode-on', grainOn || colliderType !== COLLIDER_NONE || micAnalyser !== null || lightSourceEnabled || isRecording);
+          mobMore.classList.toggle('mode-on', grainOn || colliderType !== COLLIDER_NONE || micAnalyser !== null || lightSourceEnabled || heatmapOn || isRecording);
           /* More sheet toggles */
           fxGrain.classList.toggle('active', grainOn);
           fxCollider.classList.toggle('active', colliderType !== COLLIDER_NONE);
           fxMicBtn.classList.toggle('active', micAnalyser !== null);
           fxLight.classList.toggle('active', lightSourceEnabled);
+          if (fxHeatmap) fxHeatmap.classList.toggle('active', heatmapOn);
           fxRecord.classList.toggle('active', isRecording);
           fxGrain.setAttribute('aria-pressed', String(grainOn));
           fxCollider.setAttribute('aria-pressed', String(colliderType !== COLLIDER_NONE));
@@ -4157,6 +4159,10 @@
 
         fxLight.addEventListener('click', () => {
           lightSourceEnabled = !lightSourceEnabled;
+          updateHUD();
+        });
+        if (fxHeatmap) fxHeatmap.addEventListener('click', () => {
+          heatmapOn = !heatmapOn;
           updateHUD();
         });
 
