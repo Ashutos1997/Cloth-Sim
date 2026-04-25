@@ -3064,7 +3064,7 @@ class Cloth {
       dirtMode = false;
       waterMode = false;
       dirtParticles.length  = 0;
-      waterParticles.length = 0;
+    waterFadeTriggeredAt = now;
       pointWetness.clear();
       updateHUD();
       texClear.classList.add('visible');
@@ -3084,7 +3084,7 @@ class Cloth {
     dirtMode  = false;
     waterMode = false;
     dirtParticles.length  = 0;
-    waterParticles.length = 0;
+    waterFadeTriggeredAt = performance.now();
     pointWetness.clear();
     updateHUD();
   });
@@ -3423,7 +3423,7 @@ class Cloth {
         dirtMode     = false;
         waterMode    = false;
         dirtParticles.length  = 0;
-        waterParticles.length = 0;
+      waterFadeTriggeredAt = now;
         pointWetness.clear();
         syncScenarioUI(null);
         updateHUD();
@@ -3632,7 +3632,7 @@ class Cloth {
       dirtMode    = false;
       waterMode   = false;
       dirtParticles.length  = 0;
-      waterParticles.length = 0;
+    waterFadeTriggeredAt = now;
       pointWetness.clear();
       syncScenarioUI(null);
       updateHUD();
@@ -3704,7 +3704,7 @@ class Cloth {
     stickiness   = preset.stickiness;
     dryRate      = preset.dryRate;
     dirtParticles.length  = 0;
-    waterParticles.length = 0;
+    waterFadeTriggeredAt = performance.now();
     pointWetness.clear();
     clothColor = (PREFERS_DARK && preset.colorDark)
       ? preset.colorDark.slice()
@@ -3726,7 +3726,7 @@ class Cloth {
     stickiness   = DEFAULT_STICKINESS;
     dryRate      = DEFAULT_DRY_RATE;
     dirtParticles.length  = 0;
-    waterParticles.length = 0;
+    waterFadeTriggeredAt = performance.now();
     pointWetness.clear();
     clothColor   = DEFAULT_COLOR.slice();
     lineAlpha    = DEFAULT_LINE_ALPHA;
@@ -3986,6 +3986,63 @@ class Cloth {
     });
   }
 
+  /* ── Drip Particles ── */
+  const dripParticles = [];
+  const MAX_DRIPS = 7;
+
+  class DripParticle {
+    constructor(x, y, dx, now) {
+      this.x = x;
+      this.y = y;
+      this.vx = dx * 0.12; 
+      this.speed = (60 + Math.random() * 60); // px/sec
+      this.delay = Math.random() * 800; // ms
+      this.spawnTime = now;
+      this.opacity = 0.7;
+      this.fade = 1.0;
+      this.trail = []; 
+      this.isFadingOut = false;
+      this.fadeOutStart = 0;
+    }
+    update(now, clothBottomY) {
+      if (now < this.spawnTime + this.delay) return;
+      const dt = 0.016; // fixed step for 2D overlay
+      if (!this.isFadingOut) {
+        this.trail.unshift({ x: this.x, y: this.y, t: now });
+        if (this.trail.length > 15) this.trail.pop();
+        this.y += this.speed * dt;
+        this.x += this.vx;
+        if (this.y >= clothBottomY) {
+          this.isFadingOut = true;
+          this.fadeOutStart = now;
+        }
+      } else {
+        this.fade = Math.max(0, 1.0 - (now - this.fadeOutStart) / 300);
+      }
+    }
+    draw(ctx, now) {
+      if (now < this.spawnTime + this.delay || this.fade <= 0) return;
+      // Trail
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(180, 210, 255, ${0.15 * this.fade})`;
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < this.trail.length; i++) {
+        if (now - this.trail[i].t > 400) continue;
+        if (i === 0) ctx.moveTo(this.trail[i].x, this.trail[i].y);
+        else ctx.lineTo(this.trail[i].x, this.trail[i].y);
+      }
+      ctx.stroke();
+      // Ellipse
+      ctx.fillStyle = `rgba(180, 210, 255, ${this.opacity * this.fade})`;
+      ctx.beginPath();
+      ctx.ellipse(this.x, this.y, 1.5, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  let waterLayerAlpha = 1.0;
+  let waterFadeTriggeredAt = 0;
+
   /* ── Main loop ── */
   function loop(now) {
     requestAnimationFrame(loop);
@@ -4198,6 +4255,18 @@ class Cloth {
           const dx = p.x - pt.x, dy = p.y - pt.y;
           if (dx * dx + dy * dy < snapRadius * snapRadius) {
             p.absorbed = true;
+            
+            // Spawn 1-2 drips at impact if under cap
+            if (dripParticles.length < MAX_DRIPS) {
+              const dripCount = 1 + Math.floor(Math.random() * 2);
+              const col = j % COLS;
+              let dx = 0;
+              if (col > 0 && col < COLS - 1) dx = (pts[j+1].x - pts[j-1].x) * 0.1;
+              for (let d = 0; d < dripCount; d++) {
+                if (dripParticles.length >= MAX_DRIPS) dripParticles.shift();
+                dripParticles.push(new DripParticle(pt.x, pt.y, dx, now));
+              }
+            }
 
             /* Spread wetness to this point AND all cloth points within ~54px
                so the per-frame loosening also fires on nearby dirty points */
@@ -4311,13 +4380,42 @@ class Cloth {
     /* ── Ambient Background Particles ── */
     drawAmbientParticles();
 
+    /* ── Improvement 1: Water Layer Fade Logic ── */
+    if (waterFadeTriggeredAt > 0) {
+      const elapsed = now - waterFadeTriggeredAt;
+      waterLayerAlpha = Math.max(0, 1.0 - elapsed / 2500);
+      if (waterLayerAlpha <= 0) {
+        waterParticles.length = 0;
+        waterFadeTriggeredAt = 0;
+        waterLayerAlpha = 1.0;
+      }
+    } else {
+      waterLayerAlpha = 1.0;
+    }
+
+    /* ── Improvement 2: Drip Particle Render ── */
+    if (dripParticles.length > 0) {
+      let clothBottomY = 0;
+      for (let i = 0; i < cloth.points.length; i++) {
+        if (cloth.points[i].y > clothBottomY) clothBottomY = cloth.points[i].y;
+      }
+      ctx2d.save();
+      for (let i = dripParticles.length - 1; i >= 0; i--) {
+        const dp = dripParticles[i];
+        dp.update(now, clothBottomY);
+        dp.draw(ctx2d, now);
+        if (!dp.alive && dp.fade <= 0) dripParticles.splice(i, 1);
+      }
+      ctx2d.restore();
+    }
+
     /* ── Water particles (airborne droplets only) ── */
     if (waterParticles.length > 0) {
       ctx2d.save();
       for (let i = 0; i < waterParticles.length; i++) {
         const p = waterParticles[i];
         if (p.absorbed) continue; // Now handled by WebGL
-        ctx2d.globalAlpha = p.opacity * 0.80;
+        ctx2d.globalAlpha = p.opacity * 0.80 * waterLayerAlpha;
         ctx2d.fillStyle   = PREFERS_DARK ? 'rgba(180,225,255,1)' : 'rgba(100,180,255,1)';
         ctx2d.beginPath();
         const rx = p.r;
