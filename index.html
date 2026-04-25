@@ -3381,7 +3381,7 @@ class Cloth {
   }
 
   function applyDefaultCloth() {
-    // Force basic cloth parameters (Linen-like but cleaner)
+    // Force basic cloth parameters
     gravity      = 0.5;
     iterations   = 8;
     tearDist     = 60;
@@ -3390,6 +3390,13 @@ class Cloth {
     stickiness   = 0.22;
     dryRate      = 0.012;
     
+    // Clear custom textures
+    hasTexture = false;
+    if (glTexture) { gl.deleteTexture(glTexture); glTexture = null; }
+    if (texFile) texFile.value = '';
+    if (texClear) texClear.classList.remove('visible');
+    if (texObjURL) { URL.revokeObjectURL(texObjURL); texObjURL = null; }
+
     dirtParticles.length  = 0;
     waterParticles.length = 0;
     pointWetness.clear();
