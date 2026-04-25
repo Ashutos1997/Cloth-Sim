@@ -3974,7 +3974,13 @@ class Cloth {
       silk: "Silk",
       denim: "Denim",
       linen: "Linen",
-      dragKey: "Drag"
+      dragKey: "Drag",
+      metaWind: "Wind",
+      metaGrain: "Grain",
+      metaDirt: "Dirt",
+      metaWater: "Water",
+      metaLight: "Light",
+      metaCollider: "Collider"
     },
     KOR: {
       title: "패브릭",
@@ -4022,7 +4028,13 @@ class Cloth {
       silk: "실크",
       denim: "데님",
       linen: "린넨",
-      dragKey: "드래그"
+      dragKey: "드래그",
+      metaWind: "바람",
+      metaGrain: "그레인",
+      metaDirt: "진흙",
+      metaWater: "수분",
+      metaLight: "조명",
+      metaCollider: "콜라이더"
     }
   };
 
@@ -4886,19 +4898,24 @@ class Cloth {
     }
 
     // Material Update
-    if (typeof activePreset !== 'undefined') {
-      elMetaMaterial.textContent = activePreset.charAt(0).toUpperCase() + activePreset.slice(1).toLowerCase();
+    if (typeof activePreset !== 'undefined' && activePreset) {
+      const t = TRANSLATIONS[currentLang];
+      const key = activePreset.toLowerCase();
+      elMetaMaterial.textContent = t[key] || (activePreset.charAt(0).toUpperCase() + activePreset.slice(1).toLowerCase());
+    } else {
+      elMetaMaterial.textContent = (currentLang === 'KOR' ? '기본 설정' : 'Basic Cloth');
     }
 
     // Effects Update
     let effectsHtml = '';
+    const t = TRANSLATIONS[currentLang];
     const activeStates = [
-      { id: 'wind',   active: typeof windEnabled !== 'undefined' && windEnabled, label: 'Wind' },
-      { id: 'grain',  active: typeof grainOn !== 'undefined' && grainOn,         label: 'Grain' },
-      { id: 'dirt',   active: typeof dirtMode !== 'undefined' && dirtMode,       label: 'Dirt' },
-      { id: 'water',  active: typeof waterMode !== 'undefined' && waterMode,     label: 'Water' },
-      { id: 'light',  active: typeof lightSourceEnabled !== 'undefined' && lightSourceEnabled, label: 'Light' },
-      { id: 'collider', active: typeof colliderType !== 'undefined' && colliderType !== 0, label: 'Collider' }
+      { active: typeof windEnabled !== 'undefined' && windEnabled, label: t.metaWind },
+      { active: typeof grainOn !== 'undefined' && grainOn,         label: t.metaGrain },
+      { active: typeof dirtMode !== 'undefined' && dirtMode,       label: t.metaDirt },
+      { active: typeof waterMode !== 'undefined' && waterMode,     label: t.metaWater },
+      { active: typeof lightSourceEnabled !== 'undefined' && lightSourceEnabled, label: t.metaLight },
+      { active: typeof colliderType !== 'undefined' && colliderType !== 0, label: t.metaCollider }
     ];
 
     activeStates.forEach(s => {
