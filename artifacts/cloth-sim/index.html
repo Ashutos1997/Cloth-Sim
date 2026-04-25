@@ -3018,18 +3018,17 @@
         vec3  lineColor = mix(vec3(0.58, 0.58, 0.60), vec3(0.72, 0.30, 0.22), stress);
         gl_FragColor = vec4(lineColor * clamp(diffuse, 0.5, 1.0), uLineAlpha);
       } else if (uHeatmapMode == 1) {
-        /* Heatmap Ramp: Blue (comp) -> Grey (rest) -> Yellow -> Red (stretch) */
-        float s = (vShade - 0.55) / (1.08 - 0.55);
-        vec3 blue   = vec3(0.05, 0.15, 0.75);
-        vec3 grey   = vec3(0.45, 0.45, 0.48);
-        vec3 yellow = vec3(0.85, 0.75, 0.10);
-        vec3 red    = vec3(0.90, 0.10, 0.05);
-        
+        /* Recalibrated Heatmap: Blue (comp) -> Grey (rest) -> Red (stretch) */
         vec3 hCol;
-        if (s < 0.4) hCol = mix(blue, grey, s / 0.4);
-        else if (s < 0.8) hCol = mix(grey, yellow, (s - 0.4) / 0.4);
-        else hCol = mix(yellow, red, (s - 0.8) / 0.2);
-        
+        if (vShade < 1.0) {
+          // Compressed: Blue -> Grey
+          float t = clamp((vShade - 0.55) / (1.0 - 0.55), 0.0, 1.0);
+          hCol = mix(vec3(0.1, 0.3, 0.9), vec3(0.4, 0.4, 0.42), t);
+        } else {
+          // Stretched: Grey -> Red
+          float t = clamp((vShade - 1.0) / (1.08 - 1.0), 0.0, 1.0);
+          hCol = mix(vec3(0.4, 0.4, 0.42), vec3(0.9, 0.1, 0.1), t);
+        }
         gl_FragColor = vec4(hCol * clamp(finalShade, 0.7, 1.3), 1.0);
       } else {
         gl_FragColor = vec4(baseColor * clamp(finalShade, 0.0, 1.5) * backFactor, 1.0);
