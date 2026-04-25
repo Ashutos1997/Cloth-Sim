@@ -2815,7 +2815,7 @@
 
       /* ── Enhanced Tear Logic State ── */
       let tearTrail = [];
-      const MAX_TRAIL = 64;
+      const MAX_TRAIL = 38;
 
       /* ── More bottom sheet refs ── */
       const fxBackdrop = document.getElementById('fx-backdrop');
@@ -5200,7 +5200,6 @@
           ctx2d.restore();
         }
 
-        /* Tear cursor ring & trail highlight */
         if (tearMode) {
           // Cleanup old trail points (older than 500ms)
           const now = performance.now();
@@ -5209,25 +5208,31 @@
           }
 
           ctx2d.save();
+          ctx2d.shadowBlur = 0;
+          ctx2d.shadowColor = 'transparent';
 
           // Draw trail if dragging
           if (tearTrail.length > 1) {
-            ctx2d.beginPath();
-            ctx2d.moveTo(tearTrail[0].x, tearTrail[0].y);
-            for (let i = 1; i < tearTrail.length; i++) {
-              ctx2d.lineTo(tearTrail[i].x, tearTrail[i].y);
-            }
-            ctx2d.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-            ctx2d.lineWidth = MOUSE_RADIUS * 2;
+            ctx2d.lineWidth = 1;
             ctx2d.lineCap = 'round';
-            ctx2d.lineJoin = 'round';
-            ctx2d.stroke();
+            for (let i = 1; i < tearTrail.length; i++) {
+              const p1 = tearTrail[i - 1];
+              const p2 = tearTrail[i];
+              // Proportional opacity: oldest points (start of array) fade to near-zero
+              const opacity = (i / tearTrail.length) * 0.08;
+              ctx2d.strokeStyle = `rgba(255, 255, 255, ${opacity.toFixed(3)})`;
+              ctx2d.beginPath();
+              ctx2d.moveTo(p1.x, p1.y);
+              ctx2d.lineTo(p2.x, p2.y);
+              ctx2d.stroke();
+            }
           }
 
+          // Active tear point indicator (2px radius circle)
           ctx2d.beginPath();
-          ctx2d.arc(mouse.x, mouse.y, MOUSE_RADIUS, 0, Math.PI * 2);
-          ctx2d.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-          ctx2d.lineWidth = 1.5;
+          ctx2d.arc(mouse.x, mouse.y, 2, 0, Math.PI * 2);
+          ctx2d.strokeStyle = 'rgba(255, 255, 255, 0.20)';
+          ctx2d.lineWidth = 1;
           ctx2d.stroke();
           ctx2d.restore();
         }
