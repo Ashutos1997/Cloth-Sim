@@ -2325,7 +2325,28 @@ class Cloth {
   }
 
   update(windX, windZ) {
-    for (const pt of this.points) pt.update(windX, gravity, windZ);
+    for (const pt of this.points) {
+      let windMult = 1.0;
+      
+      if (colliderType !== COLLIDER_NONE) {
+        if (colliderType === COLLIDER_BALL) {
+          const dx = pt.x - ballCollider.x, dy = pt.y - ballCollider.y;
+          const d2 = dx * dx + dy * dy;
+          const r2 = ballCollider.r * ballCollider.r;
+          if (d2 < r2 * 1.2) windMult = 0.1; // Shielding effect
+        } else if (colliderType === COLLIDER_ROD) {
+          const cos = Math.cos(rodCollider.angle), sin = Math.sin(rodCollider.angle);
+          const hlen = rodCollider.len * 0.5;
+          const dx = pt.x - rodCollider.x, dy = pt.y - rodCollider.y;
+          const t  = Math.max(-hlen, Math.min(hlen, dx * cos + dy * sin));
+          const cx = rodCollider.x + t * cos, cy = rodCollider.y + t * sin;
+          const ex = pt.x - cx, ey = pt.y - cy;
+          if (ex * ex + ey * ey < rodCollider.r * rodCollider.r * 1.2) windMult = 0.1;
+        }
+      }
+      
+      pt.update(windX * windMult, gravity, windZ * windMult);
+    }
     for (let i = 0; i < iterations; i++)
       for (const c of this.constraints) c.satisfy();
   }
