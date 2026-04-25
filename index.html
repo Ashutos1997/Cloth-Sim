@@ -1863,6 +1863,7 @@ class Point {
     this.prevX = x;  this.prevY = y;  this.prevZ = 0;
     this.pinned = pinned;
     this.initX = x;  this.initY = y;  this.initZ = 0;
+    this.tearStress = 0; // Stress level that lowers tear threshold of neighbors
   }
 
   update(ax, ay, az) {
@@ -1885,6 +1886,8 @@ class Point {
     this.x += vx * finalDamping + ax;
     this.y += vy * finalDamping + ay;
     this.z += vz * finalDamping + az - (this.z - this.initZ) * 0.0002;
+    
+    this.tearStress *= 0.85; // Rapid decay of tear stress
   }
 
   reset() {
@@ -1897,9 +1900,10 @@ class Point {
    Constraint
    ============================================================ */
 class Constraint {
-  constructor(p1, p2, restLength = null, stiffness = 1.0) {
+  constructor(p1, p2, type = 'h', restLength = null, stiffness = 1.0) {
     this.p1 = p1;
     this.p2 = p2;
+    this.type = type; // 'h'=horizontal, 'v'=vertical, 'd'=diagonal/shear, 'b'=bend
     if (restLength !== null) {
       this.restLength = restLength;
     } else {
@@ -1916,7 +1920,23 @@ class Constraint {
     const dy   = this.p2.y - this.p1.y;
     const dz   = this.p2.z - this.p1.z;
     const dist = Math.sqrt(dx * dx + dy * dy + dz * dz) || 0.0001;
-    if (dist > this.restLength * tearDist) { this.active = false; return; }
+    
+    // Asymmetric tear resistance: Vertical constraints are slightly weaker (grain logic)
+    let threshold = tearDist;
+    if (this.type === 'v') threshold *= 0.8;  // Vertical grain is easier to tear
+    if (this.type === 'd') threshold *= 1.5;  // Diagonals are reinforced
+    if (this.type === 'b') threshold *= 2.0;  // Bend constraints are hardest to break
+
+    // Propagation: Lower threshold if neighboring points are under tear stress
+    const propFactor = (this.p1.tearStress + this.p2.tearStress) * 0.35;
+    threshold *= (1.0 - propFactor);
+    
+    if (dist > this.restLength * threshold) { 
+      this.active = false; 
+      this.p1.tearStress = 1.0; // Trigger propagation
+      this.p2.tearStress = 1.0;
+      return; 
+    }
     const stiffness = this.stiffness || 1.0;
     const diff = (dist - this.restLength) / dist * stiffness;
 
@@ -1930,40 +1950,6 @@ class Constraint {
     } else if (!this.p2.pinned) {
       this.p2.x -= ox;  this.p2.y -= oy;  this.p2.z -= oz;
     }
-  }
-}
-
-/* ============================================================
-   Lint Debris (Tear particles)
-   ============================================================ */
-class Lint {
-  constructor(x, y, vx, vy, color = 'rgba(255,255,255,0.85)') {
-    this.x = x;  this.y = y;
-    this.vx = vx; this.vy = vy;
-    this.life = 1.0;
-    this.decay = 0.012 + Math.random() * 0.015;
-    this.color = color;
-    this.rot = Math.random() * Math.PI * 2;
-    this.vrot = (Math.random() - 0.5) * 0.4;
-  }
-  update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.vy += 0.22; // gravity
-    this.vx *= 0.96;
-    this.vy *= 0.96;
-    this.rot += this.vrot;
-    this.life -= this.decay;
-  }
-  draw(ctx) {
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, this.life);
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.rot);
-    ctx.fillStyle = this.color;
-    // Larger, more visible debris
-    ctx.fillRect(-3, -1, 6, 2);
-    ctx.restore();
   }
 }
 
@@ -2028,7 +2014,7 @@ class Cloth {
         const idx = row * COLS + col;
 
         if (col < COLS - 1) {
-          const c = new Constraint(this.points[idx], this.points[idx + 1]);
+          const c = new Constraint(this.points[idx], this.points[idx + 1], 'h');
           this.constraints.push(c);
           this.hLinks[row].push(c);
         } else {
@@ -2036,7 +2022,7 @@ class Cloth {
         }
 
         if (row < ROWS - 1) {
-          const c = new Constraint(this.points[idx], this.points[idx + COLS]);
+          const c = new Constraint(this.points[idx], this.points[idx + COLS], 'v');
           this.constraints.push(c);
           this.vLinks[row].push(c);
         } else {
@@ -2045,16 +2031,16 @@ class Cloth {
 
         /* Physics Overhaul: Add Shear Constraints (Diagonals) */
         if (row < ROWS - 1 && col < COLS - 1) {
-          this.constraints.push(new Constraint(this.points[idx], this.points[idx + COLS + 1], Math.sqrt(2) * SPACING, shearStiff));
-          this.constraints.push(new Constraint(this.points[idx + 1], this.points[idx + COLS], Math.sqrt(2) * SPACING, shearStiff));
+          this.constraints.push(new Constraint(this.points[idx], this.points[idx + COLS + 1], 'd', Math.sqrt(2) * SPACING, shearStiff));
+          this.constraints.push(new Constraint(this.points[idx + 1], this.points[idx + COLS], 'd', Math.sqrt(2) * SPACING, shearStiff));
         }
 
         /* Physics Overhaul: Add Bend Constraints (Skip links) */
         if (col < COLS - 2) {
-          this.constraints.push(new Constraint(this.points[idx], this.points[idx + 2], 2 * SPACING, bendStiff));
+          this.constraints.push(new Constraint(this.points[idx], this.points[idx + 2], 'b', 2 * SPACING, bendStiff));
         }
         if (row < ROWS - 2) {
-          this.constraints.push(new Constraint(this.points[idx], this.points[idx + 2 * COLS], 2 * SPACING, bendStiff));
+          this.constraints.push(new Constraint(this.points[idx], this.points[idx + 2 * COLS], 'b', 2 * SPACING, bendStiff));
         }
       }
     }
@@ -2872,7 +2858,6 @@ class Cloth {
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let windEnabled   = false; // stays off by default — satisfies prefers-reduced-motion
-  const lints       = [];
   let tearMode      = false;
   let dirtMode      = false;
   let waterMode     = false;
@@ -3026,15 +3011,7 @@ class Cloth {
     const prevMX = mouse.x, prevMY = mouse.y;
     mouse.x = pos.x;
     mouse.y = pos.y;
-    if (tearMode) cloth.tearNear(mouse.x, mouse.y, prevMX, prevMY, (tx, ty) => {
-      // Spawn more prominent lint debris
-      const count = 4 + Math.floor(Math.random() * 4);
-      for (let i = 0; i < count; i++) {
-        const vx = (mouse.x - prevMX) * 0.35 + (Math.random() - 0.5) * 5;
-        const vy = (mouse.y - prevMY) * 0.35 + (Math.random() - 0.5) * 5;
-        lints.push(new Lint(tx, ty, vx, vy));
-      }
-    });
+    if (tearMode) cloth.tearNear(mouse.x, mouse.y, prevMX, prevMY);
     if (mouse.down && waterMode) emitWater(mouse.x, mouse.y);
     if (mouse.down && dirtMode)  emitDirt(mouse.x, mouse.y);
     if (mouse.down && draggedLight) {
@@ -4104,19 +4081,6 @@ class Cloth {
       ctx2d.shadowBlur  = 15;
       ctx2d.fill();
       ctx2d.restore();
-    }
-
-    /* ── Render Lints ── */
-    if (lints.length > 0) {
-      for (let i = lints.length - 1; i >= 0; i--) {
-        const l = lints[i];
-        l.update();
-        if (l.life <= 0) {
-          lints.splice(i, 1);
-        } else {
-          l.draw(ctx2d);
-        }
-      }
     }
 
     /* Tear cursor ring */
