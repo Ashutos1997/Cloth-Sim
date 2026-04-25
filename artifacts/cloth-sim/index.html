@@ -2555,27 +2555,30 @@ class Cloth {
         baseColor *= (1.0 - wetMask * 0.45);
       }
 
-      /* Apply rich dirt logic */
-      if (vDirt > 0.01) {
-        // High frequency noise for "grain" and irregular edges
+      /* Apply rich dirt/dust logic */
+      if (abs(vDirt) > 0.01) {
         float grain = hash(vUV * 1200.0);
-        // Multi-frequency noise for the "spot" shapes
         float shape = hash(vUV * 600.0) * 0.7 + hash(vUV * 250.0) * 0.3;
-        
-        // Threshold the noise based on vDirt. Higher vDirt = larger/more spots.
-        // This breaks the vertex-circular look by using UV-space noise as a threshold.
-        float threshold = clamp(1.0 - vDirt * 1.4, 0.0, 1.0);
+        float amount = abs(vDirt);
+        float threshold = clamp(1.0 - amount * 1.4, 0.0, 1.0);
         float splat = smoothstep(threshold - 0.08, threshold + 0.08, shape + grain * 0.15);
         
-        // Darken the center of the splat for a "stain" look
-        float core = smoothstep(threshold + 0.1, threshold + 0.3, shape + vDirt * 0.5);
-        
-        // Deep earth tones with variation
-        vec3 col1 = vec3(0.24, 0.16, 0.08); // dark mud
-        vec3 col2 = vec3(0.35, 0.28, 0.18); // dried dirt
-        vec3 dirtColor = mix(col1, col2, grain) * (1.0 - core * 0.2) * 1.3;
-        
-        baseColor = mix(baseColor, dirtColor * light, splat * 0.9);
+        vec3 dirtColor;
+        if (vDirt < 0.0) {
+          /* LINT / DUST: Light grey-white debris */
+          vec3 col1 = vec3(0.70, 0.70, 0.72); 
+          vec3 col2 = vec3(0.85, 0.85, 0.88);
+          dirtColor = mix(col1, col2, grain) * 1.1;
+          /* Dust lightens or sits on top; mix without darkening */
+          baseColor = mix(baseColor, dirtColor * light, splat * 0.75);
+        } else {
+          /* MUD / DIRT: Dark earthy tones */
+          float core = smoothstep(threshold + 0.1, threshold + 0.3, shape + amount * 0.5);
+          vec3 col1 = vec3(0.24, 0.16, 0.08); // dark mud
+          vec3 col2 = vec3(0.35, 0.28, 0.18); // dried dirt
+          dirtColor = mix(col1, col2, grain) * (1.0 - core * 0.2) * 1.3;
+          baseColor = mix(baseColor, dirtColor * light, splat * 0.9);
+        }
       }
 
       if (uIsLine == 1) {
@@ -2995,10 +2998,13 @@ class Cloth {
       if (p.attached) {
         const idx = pts.indexOf(p.attached);
         if (idx !== -1) {
-          // Increase primary vertex intensity
-          dirt[idx] = Math.min(1.0, dirt[idx] + 0.85);
+          /* Differentiate intensity: mud is positive, dust/lint is negative */
+          const isLint = (p.hue === 0 && p.lightness > 70);
+          const intensity = isLint ? -0.85 : 0.85;
+          const spreadIntensity = isLint ? -0.42 : 0.42;
+
+          dirt[idx] = Math.max(-1.0, Math.min(1.0, dirt[idx] + intensity));
           
-          // Spread to neighbors to break the "single dot" vertex look
           const r = Math.floor(idx / COLS);
           const c = idx % COLS;
           for (let dr = -1; dr <= 1; dr++) {
@@ -3007,7 +3013,7 @@ class Cloth {
               const nr = r + dr, nc = c + dc;
               if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
                 const nIdx = nr * COLS + nc;
-                dirt[nIdx] = Math.min(1.0, dirt[nIdx] + 0.42);
+                dirt[nIdx] = Math.max(-1.0, Math.min(1.0, dirt[nIdx] + spreadIntensity));
               }
             }
           }
