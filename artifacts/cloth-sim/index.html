@@ -3988,7 +3988,7 @@ class Cloth {
 
   /* ── Drip Particles (Mesh-Space Adhesion) ── */
   const dripParticles = [];
-  const MAX_DRIPS = 7;
+  const MAX_DRIPS = 24;
 
   class DripParticle {
     constructor(startIndex, now) {
@@ -4281,13 +4281,11 @@ class Cloth {
           if (dx * dx + dy * dy < snapRadius * snapRadius) {
             p.absorbed = true;
             
-            // Spawn 1-2 drips at impact point in mesh-space
-            if (dripParticles.length < MAX_DRIPS) {
-              const dripCount = 1 + Math.floor(Math.random() * 2);
-              for (let d = 0; d < dripCount; d++) {
-                if (dripParticles.length >= MAX_DRIPS) dripParticles.shift();
-                dripParticles.push(new DripParticle(j, now));
-              }
+            // Sparse spawning: 15% chance per absorbed particle to start a drip
+            // This ensures drips are distributed across the cloth even during heavy spray
+            if (Math.random() < 0.15) {
+              if (dripParticles.length >= MAX_DRIPS) dripParticles.shift();
+              dripParticles.push(new DripParticle(j, now));
             }
 
             /* Spread wetness to this point AND all cloth points within ~54px
