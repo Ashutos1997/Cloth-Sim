@@ -2890,15 +2890,17 @@ class Cloth {
   };
 
 
-  const DEFAULT_COLOR         = PREFERS_DARK ? [0.18, 0.18, 0.20] : [0.76, 0.76, 0.78];
+  const DEFAULT_COLOR         = PREFERS_DARK ? [0.20, 0.25, 0.40] : [0.45, 0.55, 0.80];
   const DEFAULT_LINE_ALPHA    = PREFERS_DARK ? 0.40 : 0.50;
-  const DEFAULT_GRAVITY       = gravity;
-  const DEFAULT_ITERATIONS    = iterations;
-  const DEFAULT_DAMPING       = damping;
-  const DEFAULT_TEAR_DIST     = tearDist;
-  const DEFAULT_WIND_RESPONSE = windResponse;
-  const DEFAULT_STICKINESS    = stickiness;
-  const DEFAULT_DRY_RATE      = dryRate;
+  const DEFAULT_GRAVITY       = 0.5;
+  const DEFAULT_ITERATIONS    = 12;
+  const DEFAULT_DAMPING       = 0.99;
+  const DEFAULT_TEAR_DIST     = 60;
+  const DEFAULT_WIND_RESPONSE = 1.0;
+  const DEFAULT_STICKINESS    = 0.22;
+  const DEFAULT_DRY_RATE      = 0.012;
+  const DEFAULT_SHEAR_STIFF   = 0.25;
+  const DEFAULT_BEND_STIFF    = 0.15;
   let clothColor   = DEFAULT_COLOR.slice();
   let lineAlpha    = DEFAULT_LINE_ALPHA;
   let activePreset = null;
@@ -3557,31 +3559,7 @@ class Cloth {
         updateHUD();
         break;
       case 'R':
-        pinConfig    = 'top-row';
-        windMult     = 1.0;
-
-        cloth        = makeCloth();
-        buildUVBuffer();
-        
-        if (hasTexture) {
-          hasTexture = false;
-          if (glTexture) { gl.deleteTexture(glTexture); glTexture = null; }
-          if (texObjURL) { URL.revokeObjectURL(texObjURL); texObjURL = null; }
-          texFile.value = '';
-          texClear.classList.remove('visible');
-          const lbl = texUploadBtn.querySelector('.btn-label');
-          if (lbl) lbl.textContent = 'Upload texture';
-        }
-
-        windEnabled  = false;
-        tearMode     = false;
-        dirtMode     = false;
-        waterMode    = false;
-        dirtParticles.length  = 0;
-        waterFadeTriggeredAt = performance.now();
-        pointWetness.clear();
-        applyPreset('SILK');
-        updateHUD();
+        applyDefaultCloth();
         break;
       case 'W':
         windEnabled = !windEnabled;
@@ -3777,31 +3755,7 @@ class Cloth {
     /* Sheet: utility actions */
     fxReset.addEventListener('click', () => {
       closeFxSheet();
-      pinConfig      = 'top-row';
-      windMult       = 1.0;
-
-      cloth          = makeCloth();
-      buildUVBuffer();
-
-      if (hasTexture) {
-        hasTexture = false;
-        if (glTexture) { gl.deleteTexture(glTexture); glTexture = null; }
-        if (texObjURL) { URL.revokeObjectURL(texObjURL); texObjURL = null; }
-        texFile.value = '';
-        texClear.classList.remove('visible');
-        const lbl = texUploadBtn.querySelector('.btn-label');
-        if (lbl) lbl.textContent = 'Upload texture';
-      }
-
-      windEnabled = false;
-      tearMode    = false;
-      dirtMode    = false;
-      waterMode   = false;
-      dirtParticles.length  = 0;
-      waterFadeTriggeredAt = performance.now();
-      pointWetness.clear();
-      applyPreset('SILK');
-      updateHUD();
+      applyDefaultCloth();
     });
     fxSaveBtn  .addEventListener('click', () => { closeFxSheet(); saveImage(); });
     fxUploadBtn2.addEventListener('click', () => { closeFxSheet(); texFile.click(); });
@@ -3869,6 +3823,8 @@ class Cloth {
     windResponse = preset.windResponse;
     stickiness   = preset.stickiness;
     dryRate      = preset.dryRate;
+    shearStiff   = (preset.shearStiff != null) ? preset.shearStiff : 0.15;
+    bendStiff    = (preset.bendStiff  != null) ? preset.bendStiff  : 0.12;
     dirtParticles.length  = 0;
     waterFadeTriggeredAt = performance.now();
     pointWetness.clear();
@@ -3878,7 +3834,8 @@ class Cloth {
     lineAlpha  = (PREFERS_DARK && preset.lineAlphaDark != null)
       ? preset.lineAlphaDark
       : preset.lineAlpha;
-    cloth.reset();
+    
+    cloth = makeCloth();
     activePreset = key;
     syncPresetUI(key);
   }
@@ -3891,14 +3848,32 @@ class Cloth {
     windResponse = DEFAULT_WIND_RESPONSE;
     stickiness   = DEFAULT_STICKINESS;
     dryRate      = DEFAULT_DRY_RATE;
+    shearStiff   = DEFAULT_SHEAR_STIFF;
+    bendStiff    = DEFAULT_BEND_STIFF;
+
+    // Reset background
+    setBgPalette('DEFAULT');
+
+    // Clear custom textures
+    hasTexture = false;
+    if (glTexture) { gl.deleteTexture(glTexture); glTexture = null; }
+    if (texObjURL) { URL.revokeObjectURL(texObjURL); texObjURL = null; }
+    if (texFile) texFile.value = '';
+    if (texClear) texClear.classList.remove('visible');
+    const lbl = texUploadBtn.querySelector('.btn-label');
+    if (lbl) lbl.textContent = 'Upload texture';
+
     dirtParticles.length  = 0;
-    waterFadeTriggeredAt = performance.now();
     pointWetness.clear();
     clothColor   = DEFAULT_COLOR.slice();
     lineAlpha    = DEFAULT_LINE_ALPHA;
-    cloth.reset();
+    
+    // FULL RECREATION
+    cloth = makeCloth();
+    
     activePreset = null;
     syncPresetUI(null);
+    updateHUD();
   }
 
   presetBtns.forEach(btn => {
