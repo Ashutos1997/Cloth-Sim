@@ -3951,7 +3951,7 @@ class Cloth {
       this.alpha = Math.random() * 0.14 + 0.08;
       this.pulse = Math.random() * Math.PI;
     }
-    update() {
+    update(cloth) {
       // Wind influence: acceleration towards the wind direction
       const windTargetX = windEnabled ? 1.8 : (Math.random() - 0.5) * 0.4;
       this.vx += (windTargetX - this.vx) * 0.015;
@@ -3959,6 +3959,32 @@ class Cloth {
       this.x += this.vx;
       this.y += this.vy;
       this.pulse += 0.015;
+
+      /* Passive Adhesion: tiny chance to snag on the cloth if passing through */
+      if (cloth && Math.random() < 0.00012 * (stickiness + 0.1)) {
+        const snapRadius = 15;
+        let nearest = null, nearestDist = snapRadius;
+        const pts = cloth.points;
+        for (let j = 0; j < pts.length; j++) {
+          const pt = pts[j];
+          const dx = this.x - pt.x, dy = this.y - pt.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < nearestDist) { nearestDist = d; nearest = pt; }
+        }
+        if (nearest) {
+          // Snag! Convert to a piece of lint
+          dirtParticles.push({
+            x: nearest.x, y: nearest.y, vx: 0, vy: 0,
+            r: this.size * 0.8,
+            hue: 0, lightness: 85 + Math.random() * 10, // greyish white
+            attached: nearest,
+            opacity: 1.0,
+            noAttach: 0
+          });
+          this.init(); // Respawn ambient
+          return;
+        }
+      }
 
       // Wrap around edges
       if (this.x > overlay.width + 20) this.x = -20;
@@ -3979,9 +4005,9 @@ class Cloth {
     ambientParticles.push(new AmbientParticle());
   }
 
-  function drawAmbientParticles() {
+  function drawAmbientParticles(cloth) {
     ambientParticles.forEach(p => {
-      p.update();
+      p.update(cloth);
       p.draw(ctx2d);
     });
   }
@@ -4398,7 +4424,7 @@ class Cloth {
     ctx2d.clearRect(0, 0, overlay.width, overlay.height);
 
     /* ── Ambient Background Particles ── */
-    drawAmbientParticles();
+    drawAmbientParticles(cloth);
 
     /* ── Improvement 1: Water Layer Fade Logic ── */
     if (waterFadeTriggeredAt > 0) {
