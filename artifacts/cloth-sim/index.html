@@ -3986,53 +3986,78 @@ class Cloth {
     });
   }
 
-  /* ── Drip Particles ── */
+  /* ── Drip Particles (Mesh-Space Adhesion) ── */
   const dripParticles = [];
   const MAX_DRIPS = 7;
 
   class DripParticle {
-    constructor(x, y, dx, now) {
-      this.x = x;
-      this.y = y;
-      this.vx = dx * 0.12; 
-      this.speed = (60 + Math.random() * 60); // px/sec
-      this.delay = Math.random() * 800; // ms
+    constructor(startIndex, now) {
+      this.rIdx = Math.floor(startIndex / COLS);
+      this.cIdx = startIndex % COLS;
+      this.row  = this.rIdx;
+      this.col  = this.cIdx;
+      this.speed = 3.5 + Math.random() * 4.5; // mesh rows per second
+      this.delay = Math.random() * 800;
       this.spawnTime = now;
-      this.opacity = 0.7;
+      this.opacity = 0.75;
       this.fade = 1.0;
       this.trail = []; 
       this.isFadingOut = false;
       this.fadeOutStart = 0;
+      this.x = 0;
+      this.y = 0;
+      this.alive = true;
     }
-    update(now, clothBottomY) {
+    update(now, cloth) {
       if (now < this.spawnTime + this.delay) return;
-      const dt = 0.016; // fixed step for 2D overlay
+      const dt = 0.016; 
+
       if (!this.isFadingOut) {
+        this.row += this.speed * dt;
+        
+        /* Cloth mesh interpolation (Bilinear) */
+        const r0 = Math.floor(this.row), r1 = Math.min(ROWS - 1, r0 + 1);
+        const c0 = Math.floor(this.col), c1 = Math.min(COLS - 1, c0 + 1);
+        const rf = this.row - r0, cf = this.col - c0;
+
+        const p00 = cloth.points[r0 * COLS + c0];
+        const p01 = cloth.points[r0 * COLS + c1];
+        const p10 = cloth.points[r1 * COLS + c0];
+        const p11 = cloth.points[r1 * COLS + c1];
+
+        const xt = p00.x + (p01.x - p00.x) * cf;
+        const xb = p10.x + (p11.x - p10.x) * cf;
+        this.x = xt + (xb - xt) * rf;
+
+        const yt = p00.y + (p01.y - p00.y) * cf;
+        const yb = p10.y + (p11.y - p10.y) * cf;
+        this.y = yt + (yb - yt) * rf;
+
         this.trail.unshift({ x: this.x, y: this.y, t: now });
-        if (this.trail.length > 15) this.trail.pop();
-        this.y += this.speed * dt;
-        this.x += this.vx;
-        if (this.y >= clothBottomY) {
+        if (this.trail.length > 18) this.trail.pop();
+
+        if (this.row >= ROWS - 1) {
           this.isFadingOut = true;
           this.fadeOutStart = now;
         }
       } else {
         this.fade = Math.max(0, 1.0 - (now - this.fadeOutStart) / 300);
+        if (this.fade <= 0) this.alive = false;
       }
     }
     draw(ctx, now) {
       if (now < this.spawnTime + this.delay || this.fade <= 0) return;
-      // Trail
+      // High-quality trail
       ctx.beginPath();
       ctx.strokeStyle = `rgba(180, 210, 255, ${0.15 * this.fade})`;
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1.8;
       for (let i = 0; i < this.trail.length; i++) {
         if (now - this.trail[i].t > 400) continue;
         if (i === 0) ctx.moveTo(this.trail[i].x, this.trail[i].y);
         else ctx.lineTo(this.trail[i].x, this.trail[i].y);
       }
       ctx.stroke();
-      // Ellipse
+      // Droplet (3x6)
       ctx.fillStyle = `rgba(180, 210, 255, ${this.opacity * this.fade})`;
       ctx.beginPath();
       ctx.ellipse(this.x, this.y, 1.5, 3, 0, 0, Math.PI * 2);
@@ -4256,15 +4281,12 @@ class Cloth {
           if (dx * dx + dy * dy < snapRadius * snapRadius) {
             p.absorbed = true;
             
-            // Spawn 1-2 drips at impact if under cap
+            // Spawn 1-2 drips at impact point in mesh-space
             if (dripParticles.length < MAX_DRIPS) {
               const dripCount = 1 + Math.floor(Math.random() * 2);
-              const col = j % COLS;
-              let dx = 0;
-              if (col > 0 && col < COLS - 1) dx = (pts[j+1].x - pts[j-1].x) * 0.1;
               for (let d = 0; d < dripCount; d++) {
                 if (dripParticles.length >= MAX_DRIPS) dripParticles.shift();
-                dripParticles.push(new DripParticle(pt.x, pt.y, dx, now));
+                dripParticles.push(new DripParticle(j, now));
               }
             }
 
@@ -4395,16 +4417,12 @@ class Cloth {
 
     /* ── Improvement 2: Drip Particle Render ── */
     if (dripParticles.length > 0) {
-      let clothBottomY = 0;
-      for (let i = 0; i < cloth.points.length; i++) {
-        if (cloth.points[i].y > clothBottomY) clothBottomY = cloth.points[i].y;
-      }
       ctx2d.save();
       for (let i = dripParticles.length - 1; i >= 0; i--) {
         const dp = dripParticles[i];
-        dp.update(now, clothBottomY);
+        dp.update(now, cloth);
         dp.draw(ctx2d, now);
-        if (!dp.alive && dp.fade <= 0) dripParticles.splice(i, 1);
+        if (!dp.alive) dripParticles.splice(i, 1);
       }
       ctx2d.restore();
     }
