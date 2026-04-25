@@ -1816,9 +1816,36 @@
       }
       #fx-sheet { z-index: 250 !important; }
     }
+
+    /* Toast Notification */
+    #tex-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--color-surface-card);
+      color: var(--color-text-primary);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      border: 1px solid var(--color-border);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    #tex-toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    @media (max-width: 767px) {
+      #tex-toast { bottom: 84px; }
+    }
   </style>
 </head>
 <body>
+<div id="tex-toast"></div>
 <!-- SVG grain filter — referenced by body::after via url(#grain) -->
 <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute">
   <filter id="grain" x="0%" y="0%" width="100%" height="100%">
@@ -2834,13 +2861,13 @@ class Cloth {
 
   /* Build and upload the UV buffer (normalized 0→1, static per cloth instance).
      UNPACK_FLIP_Y_WEBGL is set on texture upload so that UV (0,0) = top-left. */
-  function buildUVBuffer() {
+  function buildUVBuffer(tileFactor = 1.0) {
     const uvs = new Float32Array(ROWS * COLS * 2);
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
         const i = (row * COLS + col) * 2;
-        uvs[i]     = col / (COLS - 1);   // u: 0→1 left→right
-        uvs[i + 1] = row / (ROWS - 1);   // v: 0→1 top→bottom
+        uvs[i]     = (col / (COLS - 1)) * tileFactor;
+        uvs[i + 1] = (row / (ROWS - 1)) * tileFactor;
       }
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
@@ -3041,17 +3068,26 @@ class Cloth {
   let hasTexture = false;
   let texObjURL  = null;
 
-  function loadGLTexture(img) {
+  function loadGLTexture(source, isTile = false) {
     if (!glTexture) glTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, glTexture);
-    /* Flip image so UV (0,0) = top-left matches our row=0 origin */
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+    
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    
+    const wrap = isTile ? gl.REPEAT : gl.CLAMP_TO_EDGE;
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
     hasTexture = true;
+  }
+
+  function showTexToast(msg) {
+    const toast = document.getElementById('tex-toast');
+    toast.textContent = msg;
+    toast.classList.add('visible');
+    setTimeout(() => toast.classList.remove('visible'), 2000);
   }
 
   texUploadBtn.addEventListener('click', () => texFile.click());
@@ -3059,19 +3095,67 @@ class Cloth {
   texFile.addEventListener('change', () => {
     const file = texFile.files[0];
     if (!file) return;
+
+    // Improvement 3: File validation
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) return showTexToast('Unsupported format');
+    if (file.size > 8 * 1024 * 1024) return showTexToast('File too large');
+
+    // Improvement 4: Button feedback
+    const originalLabel = texUploadBtn.querySelector('.btn-label')?.textContent || 'Upload texture';
+    const truncated = file.name.length > 16 ? file.name.substring(0, 13) + '...' : file.name;
+    const labelEl = texUploadBtn.querySelector('.btn-label');
+    if (labelEl) labelEl.textContent = truncated;
+    setTimeout(() => { if (labelEl) labelEl.textContent = originalLabel; }, 3000);
+
     if (texObjURL) { URL.revokeObjectURL(texObjURL); texObjURL = null; }
     const url = URL.createObjectURL(file);
     texObjURL = url;
     const img = new Image();
     img.onload = () => {
-      loadGLTexture(img);
-      cloth    = makeCloth();
-      buildUVBuffer();
+      let finalSource = img;
+      let tileFactor = 1.0;
+      let isTile = false;
+
+      if (img.width < 512 && img.height < 512) {
+        // Improvement 2: Tile mode for small images
+        isTile = true;
+        tileFactor = 4.0; // Fixed tile density for small patterns
+      } else {
+        // Improvement 1: Preserve aspect ratio (Contain)
+        const clothAspect = (COLS - 1) / (ROWS - 1);
+        const offCanvas = document.createElement('canvas');
+        const dim = 1024; // Standardize texture res
+        offCanvas.width = dim;
+        offCanvas.height = dim / clothAspect;
+        const ctx = offCanvas.getContext('2d');
+        ctx.clearRect(0, 0, offCanvas.width, offCanvas.height);
+
+        const imgAspect = img.width / img.height;
+        let dw, dh, dx, dy;
+        if (imgAspect > clothAspect) {
+          dw = offCanvas.width;
+          dh = offCanvas.width / imgAspect;
+          dx = 0;
+          dy = (offCanvas.height - dh) / 2;
+        } else {
+          dh = offCanvas.height;
+          dw = offCanvas.height * imgAspect;
+          dx = (offCanvas.width - dw) / 2;
+          dy = 0;
+        }
+        ctx.drawImage(img, dx, dy, dw, dh);
+        finalSource = offCanvas;
+      }
+
+      loadGLTexture(finalSource, isTile);
+      cloth = makeCloth();
+      buildUVBuffer(tileFactor);
       tearMode = false;
       dirtMode = false;
       waterMode = false;
-      dirtParticles.length  = 0;
-    waterFadeTriggeredAt = now;
+      dirtParticles.length = 0;
+      waterFadeTriggeredAt = performance.now();
       pointWetness.clear();
       updateHUD();
       texClear.classList.add('visible');
