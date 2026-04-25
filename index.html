@@ -3093,6 +3093,7 @@ class Cloth {
         updateHUD();
         break;
       case 'R':
+        applyDefaultCloth();
         pinConfig    = 'top-row';
         windMult     = 1.0;
 
@@ -3105,7 +3106,7 @@ class Cloth {
         dirtParticles.length  = 0;
         waterParticles.length = 0;
         pointWetness.clear();
-        syncScenarioUI(null);
+        syncPresetUI(null);
         updateHUD();
         break;
       case 'W':
@@ -3296,6 +3297,7 @@ class Cloth {
     /* Sheet: utility actions */
     fxReset.addEventListener('click', () => {
       closeFxSheet();
+      applyDefaultCloth();
       pinConfig      = 'top-row';
       windMult       = 1.0;
 
@@ -3308,7 +3310,7 @@ class Cloth {
       dirtParticles.length  = 0;
       waterParticles.length = 0;
       pointWetness.clear();
-      syncScenarioUI(null);
+      syncPresetUI(null);
       updateHUD();
     });
     fxSaveBtn  .addEventListener('click', () => { closeFxSheet(); saveImage(); });
