@@ -2778,7 +2778,6 @@
       const texFile = document.getElementById('texFile');
       const texUploadBtn = document.getElementById('texUploadBtn');
       const texClear = document.getElementById('texClear');
-      const fxHeatmap = document.getElementById('fxHeatmap');
 
       /* ── Mobile nav button refs ── */
       const mobHeader = document.getElementById('mob-header');
@@ -2922,20 +2921,19 @@
     uniform mat4    uMVP;
     varying vec2    vUV;
     varying float   vShade;
-    varying vec3    vNormal;
-    varying float   vDirt;
-    varying float   vWetness;
-    varying vec3    vPosition;
-
-    void main() {
-      gl_Position = uMVP * vec4(aPosition, 1.0);
-      vUV      = aUV;
-      vShade   = aShade;
-      vNormal  = aNormal;
-      vPosition = aPosition;
-      vDirt    = aDirt;
-      vWetness = aWetness;
-    }
+      varying vec3    vNormal;
+      varying vec3    vWorldPos;
+      varying float   vDirt;
+      varying float   vWetness;
+      void main() {
+        gl_Position = uMVP * vec4(aPosition, 1.0);
+        vUV      = aUV;
+        vShade   = aShade;
+        vNormal  = aNormal;
+        vWorldPos = aPosition;
+        vDirt    = aDirt;
+        vWetness = aWetness;
+      }
   `;
 
       const FS_SRC = `
@@ -2943,12 +2941,11 @@
     varying vec2  vUV;
     varying float vShade;
     varying vec3  vNormal;
-    varying vec3  vPosition;
+    varying vec3  vWorldPos;
     varying float vDirt;
     varying float vWetness;
-    uniform sampler2D uTexture;
-    uniform int       uHasTexture;
-    uniform int       uIsLine;
+    uniform int   uHasTexture;
+    uniform int   uIsLine;
     uniform sampler2D uTexture;
     uniform vec3  uClothColor;
     uniform float uLineAlpha;
@@ -2961,25 +2958,47 @@
     }
 
     void main() {
+      vec3 lightDir;
+      vec3 halfVec;
+      
+      if (uLightEnabled == 1) {
+        lightDir = normalize(uLightPos - vWorldPos);
+        halfVec  = normalize(lightDir + vec3(0.0, 0.0, 0.8)); // slightly forward
+      } else {
+        lightDir = vec3(0.196, -0.784, 0.588);
+        halfVec  = vec3(0.110, -0.440, 0.891);
+      }
+
+      vec3 N = normalize(gl_FrontFacing ? vNormal : -vNormal);
+      float diffuse  = max(0.0, dot(N, lightDir));
+      float specPow  = gl_FrontFacing ? 48.0 : 12.0;
+      float specAmt  = gl_FrontFacing ? 0.35 : 0.10;
+      
+      float glisten = 0.0;
+      float wetMask = 0.0;
+
+      /* Apply wetness logic to lighting parameters */
+      if (vWetness > 0.01) {
+        float h1 = hash(vUV * 900.0);
+        float h2 = hash(vUV * 400.0);
+        wetMask = smoothstep(0.1, 0.5, vWetness * (0.75 + h2 * 0.5));
+        glisten = pow(h1, 15.0) * vWetness * 1.8;
+        specAmt += vWetness * 0.48 * (0.8 + h2 * 0.4);
+        specPow -= vWetness * 18.0;
+      }
+
+      float specular = pow(max(0.0, dot(N, halfVec)), max(1.0, specPow)) * specAmt + glisten;
+      float light    = (uLightEnabled == 1 ? 0.2 : 0.35) + diffuse * 0.6 + specular;
+      float finalShade = light * clamp(vShade, 0.5, 1.1);
+      float backFactor = gl_FrontFacing ? 1.0 : 0.85;
+
       vec3 baseColor = uClothColor;
       if (uHasTexture == 1) {
         baseColor = texture2D(uTexture, vUV).rgb;
       }
-      
-      vec3 normal = normalize(vNormal);
-      vec3 lightDir = normalize(uLightPos - vPosition);
-      float diffuse = uLightEnabled == 1 ? max(dot(normal, lightDir), 0.0) : 1.0;
-      float backFactor = gl_FrontFacing ? 1.0 : 0.65;
-      
-      /* Self-shadowing / Depth occlusion (Fake AO) */
-      float depthFactor = clamp(1.0 - (vPosition.z + 15.0) * 0.012, 0.6, 1.0);
-      float normalZFactor = clamp(abs(normal.z) * 1.2, 0.75, 1.0);
-      float finalShade = diffuse * depthFactor * normalZFactor;
 
       /* Apply wetness darkening to baseColor */
       if (vWetness > 0.01) {
-        float h2 = hash(vUV * 400.0);
-        float wetMask = smoothstep(0.1, 0.5, vWetness * (0.75 + h2 * 0.5));
         baseColor *= (1.0 - wetMask * 0.45);
       }
 
@@ -2993,23 +3012,26 @@
         
         vec3 dirtColor;
         if (vDirt < 0.0) {
+          /* LINT / DUST: Light grey-white debris */
           vec3 col1 = vec3(0.70, 0.70, 0.72); 
           vec3 col2 = vec3(0.85, 0.85, 0.88);
           dirtColor = mix(col1, col2, grain) * 1.1;
-          baseColor = mix(baseColor, dirtColor * finalShade, splat * 0.75);
+          /* Dust lightens or sits on top; mix without darkening */
+          baseColor = mix(baseColor, dirtColor * light, splat * 0.75);
         } else {
+          /* MUD / DIRT: Dark earthy tones */
           float core = smoothstep(threshold + 0.1, threshold + 0.3, shape + amount * 0.5);
-          vec3 col1 = vec3(0.24, 0.16, 0.08);
-          vec3 col2 = vec3(0.35, 0.28, 0.18);
+          vec3 col1 = vec3(0.24, 0.16, 0.08); // dark mud
+          vec3 col2 = vec3(0.35, 0.28, 0.18); // dried dirt
           dirtColor = mix(col1, col2, grain) * (1.0 - core * 0.2) * 1.3;
-          baseColor = mix(baseColor, dirtColor * finalShade, splat * 0.9);
+          baseColor = mix(baseColor, dirtColor * light, splat * 0.9);
         }
       }
 
       if (uIsLine == 1) {
         float stress    = clamp((1.0 - vShade) * 2.5, 0.0, 1.0);
         vec3  lineColor = mix(vec3(0.58, 0.58, 0.60), vec3(0.72, 0.30, 0.22), stress);
-        gl_FragColor = vec4(lineColor * clamp(diffuse, 0.5, 1.0), uLineAlpha);
+        gl_FragColor = vec4(lineColor * clamp(light, 0.5, 1.0), uLineAlpha);
       } else {
         gl_FragColor = vec4(baseColor * clamp(finalShade, 0.0, 1.5) * backFactor, 1.0);
       }
@@ -4041,7 +4063,6 @@
           const rowWind = document.getElementById('hudRowWind');
           const rowGrain = document.getElementById('hudRowGrain');
           const rowLight = document.getElementById('hudRowLight');
-          const rowHeatmap = document.getElementById('hudRowHeatmap');
           const rowRecord = document.getElementById('hudRowRecord');
           rowTear.classList.toggle('row-on', tearMode);
           rowDirt.classList.toggle('row-on', dirtMode);
@@ -4050,7 +4071,6 @@
           rowWind.classList.toggle('row-on', windEnabled);
           rowGrain.classList.toggle('row-on', grainOn);
           rowLight.classList.toggle('row-on', lightSourceEnabled);
-          rowHeatmap.classList.toggle('row-on', heatmapOn);
           rowRecord.classList.toggle('row-on', isRecording);
           rowTear.setAttribute('aria-pressed', String(tearMode));
           rowDirt.setAttribute('aria-pressed', String(dirtMode));
@@ -4058,7 +4078,6 @@
           rowCollider.setAttribute('aria-pressed', String(colliderType !== COLLIDER_NONE));
           rowWind.setAttribute('aria-pressed', String(windEnabled));
           rowGrain.setAttribute('aria-pressed', String(grainOn));
-          rowLight.setAttribute('aria-pressed', String(lightSourceEnabled));
           rowLight.setAttribute('aria-pressed', String(lightSourceEnabled));
         }
         if (typeof SettingsManager !== 'undefined') SettingsManager.save();
