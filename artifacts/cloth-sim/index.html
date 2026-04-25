@@ -1922,26 +1922,6 @@
           rgba(255, 255, 255, 0.03) 0%,
           rgba(255, 255, 255, 0.015) 30%,
           rgba(0, 0, 0, 0) 70%) !important;
-      overflow: hidden;
-    }
-
-    #canvas-backdrop::after {
-      content: '';
-      position: absolute;
-      bottom: -100px;
-      left: 0;
-      width: 100%;
-      height: 400px;
-      background-image: 
-        linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px);
-      background-size: 100% 40px, 80px 100%;
-      transform: perspective(300px) rotateX(60deg);
-      transform-origin: center bottom;
-      mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
-      -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
-      opacity: 0.22;
-      pointer-events: none;
     }
 
     body {
@@ -4676,6 +4656,46 @@
       let waterLayerAlpha = 1.0;
       let waterFadeTriggeredAt = 0;
 
+      function drawFloorGrid() {
+        ctx2d.save();
+        const floorY = overlay.height - 60;
+        const horizonY = floorY - 140;
+        const width = overlay.width;
+        
+        ctx2d.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx2d.lineWidth = 1;
+        
+        // Horizontal lines (perspective)
+        for (let i = 0; i <= 6; i++) {
+          const t = i / 6;
+          // Perspective spacing: more dense near horizon
+          const y = floorY - Math.pow(t, 1.5) * (floorY - horizonY);
+          const alpha = 0.12 * (1.0 - t);
+          ctx2d.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+          ctx2d.beginPath();
+          ctx2d.moveTo(0, y);
+          ctx2d.lineTo(width, y);
+          ctx2d.stroke();
+        }
+        
+        // Vertical perspective lines
+        const numLines = 16;
+        const centerX = width / 2;
+        for (let i = 0; i <= numLines; i++) {
+          const ratio = (i / numLines - 0.5);
+          const xBottom = centerX + ratio * width * 2.2;
+          const xTop = centerX + ratio * width * 0.4;
+          
+          ctx2d.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+          ctx2d.beginPath();
+          ctx2d.moveTo(xTop, horizonY);
+          ctx2d.lineTo(xBottom, floorY);
+          ctx2d.stroke();
+        }
+        
+        ctx2d.restore();
+      }
+
       /* ── Main loop ── */
       function loop(now) {
         requestAnimationFrame(loop);
@@ -5002,8 +5022,9 @@
           gl.uniform1i(uIsLineLoc, 0);
         }
 
-        /* ── Overlay: 2D decorations ── */
+        /* 2D Overlay decorations */
         ctx2d.clearRect(0, 0, overlay.width, overlay.height);
+        drawFloorGrid();
 
         /* ── Ambient Background Particles ── */
         drawAmbientParticles(cloth);
