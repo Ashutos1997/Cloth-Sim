@@ -3387,21 +3387,26 @@ class Cloth {
   }
 
   function applyDefaultCloth() {
-    gravity      = DEFAULT_GRAVITY;
-    iterations   = DEFAULT_ITERATIONS;
-    tearDist     = DEFAULT_TEAR_DIST;
-    damping      = DEFAULT_DAMPING;
-    windResponse = DEFAULT_WIND_RESPONSE;
-    stickiness   = DEFAULT_STICKINESS;
-    dryRate      = DEFAULT_DRY_RATE;
+    // Force basic cloth parameters (Linen-like but cleaner)
+    gravity      = 0.5;
+    iterations   = 8;
+    tearDist     = 60;
+    damping      = 0.99;
+    windResponse = 1.0;
+    stickiness   = 0.22;
+    dryRate      = 0.012;
+    
     dirtParticles.length  = 0;
     waterParticles.length = 0;
     pointWetness.clear();
+    
     clothColor   = DEFAULT_COLOR.slice();
     lineAlpha    = DEFAULT_LINE_ALPHA;
-    cloth.reset();
+    
+    if (cloth) cloth.reset();
     activePreset = null;
     syncPresetUI(null);
+    updateHUD();
   }
 
   presetBtns.forEach(btn => {
