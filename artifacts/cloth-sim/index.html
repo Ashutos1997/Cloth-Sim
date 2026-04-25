@@ -1814,6 +1814,10 @@
         backdrop-filter: blur(8px) !important;
         z-index: var(--z-indicator) !important;
       }
+    /* Layering fix for mobile: ensure REC indicator stays behind bottom sheet */
+    @media (max-width: 767px) {
+      #rec-indicator { z-index: 150 !important; }
+      #fx-sheet      { z-index: 250 !important; }
     }
   </style>
 </head>
