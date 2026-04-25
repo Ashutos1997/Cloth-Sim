@@ -2152,6 +2152,12 @@ const MOUSE_RADIUS  = 36;
 const WIND_STRENGTH = 1.2;
 const WIND_SPEED    = 0.03;
 
+/* ── Collider State (Global for physics access) ── */
+const COLLIDER_NONE = 0, COLLIDER_BALL = 1, COLLIDER_ROD = 2;
+let colliderType    = COLLIDER_NONE;
+let ballCollider    = { x: 0, y: 0, r: 55 };
+let rodCollider     = { x: 0, y: 0, angle: 0, len: 150, r: 16 };
+
 /* ============================================================
    Point
    ============================================================ */
@@ -3320,11 +3326,6 @@ class Cloth {
   let grainOn       = false;
   let isKorean      = false; // set true in i18n block; used for dynamic badge text
 
-  /* ── Collider state ── */
-  const COLLIDER_NONE = 0, COLLIDER_BALL = 1, COLLIDER_ROD = 2;
-  let colliderType    = COLLIDER_NONE;
-  let ballCollider    = { x: 0, y: 0, r: 55 };
-  let rodCollider     = { x: 0, y: 0, angle: 0, len: 150, r: 16 };
   let draggedCollider = null; // 'ball' | 'rod-body' | 'rod-e1' | 'rod-e2'
 
   /* Emit a burst of dirt particles from canvas-local position (px, py) */
@@ -3571,7 +3572,7 @@ class Cloth {
         dirtMode     = false;
         waterMode    = false;
         dirtParticles.length  = 0;
-        waterFadeTriggeredAt = now;
+        waterFadeTriggeredAt = performance.now();
         pointWetness.clear();
         applyPreset('SILK');
         updateHUD();
@@ -3791,7 +3792,7 @@ class Cloth {
       dirtMode    = false;
       waterMode   = false;
       dirtParticles.length  = 0;
-      waterFadeTriggeredAt = now;
+      waterFadeTriggeredAt = performance.now();
       pointWetness.clear();
       applyPreset('SILK');
       updateHUD();
