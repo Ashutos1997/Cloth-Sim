@@ -2494,7 +2494,7 @@ class Cloth {
   };
 
 
-  const DEFAULT_COLOR         = PREFERS_DARK ? [0.18, 0.18, 0.20] : [0.76, 0.76, 0.78];
+  const DEFAULT_COLOR         = PREFERS_DARK ? [0.22, 0.24, 0.30] : [0.70, 0.72, 0.76];
   const DEFAULT_LINE_ALPHA    = PREFERS_DARK ? 0.40 : 0.50;
   const DEFAULT_GRAVITY       = gravity;
   const DEFAULT_ITERATIONS    = iterations;
@@ -3093,11 +3093,9 @@ class Cloth {
         updateHUD();
         break;
       case 'R':
-        applyDefaultCloth();
         pinConfig    = 'top-row';
         windMult     = 1.0;
-
-        cloth        = makeCloth();
+        applyDefaultCloth();
         buildUVBuffer();
         windEnabled  = false;
         tearMode     = false;
@@ -3106,7 +3104,6 @@ class Cloth {
         dirtParticles.length  = 0;
         waterParticles.length = 0;
         pointWetness.clear();
-        syncPresetUI(null);
         updateHUD();
         break;
       case 'W':
@@ -3297,11 +3294,9 @@ class Cloth {
     /* Sheet: utility actions */
     fxReset.addEventListener('click', () => {
       closeFxSheet();
-      applyDefaultCloth();
       pinConfig      = 'top-row';
       windMult       = 1.0;
-
-      cloth          = makeCloth();
+      applyDefaultCloth();
       buildUVBuffer();
       windEnabled = false;
       tearMode    = false;
@@ -3310,7 +3305,6 @@ class Cloth {
       dirtParticles.length  = 0;
       waterParticles.length = 0;
       pointWetness.clear();
-      syncPresetUI(null);
       updateHUD();
     });
     fxSaveBtn  .addEventListener('click', () => { closeFxSheet(); saveImage(); });
@@ -3403,7 +3397,9 @@ class Cloth {
     clothColor   = DEFAULT_COLOR.slice();
     lineAlpha    = DEFAULT_LINE_ALPHA;
     
-    if (cloth) cloth.reset();
+    // FULL RESET: Recreate cloth to fix tears
+    cloth = makeCloth();
+    
     activePreset = null;
     syncPresetUI(null);
     updateHUD();
