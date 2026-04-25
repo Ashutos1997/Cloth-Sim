@@ -2494,7 +2494,7 @@ class Cloth {
   };
 
 
-  const DEFAULT_COLOR         = PREFERS_DARK ? [0.15, 0.16, 0.18] : [0.60, 0.62, 0.65];
+  const DEFAULT_COLOR         = PREFERS_DARK ? [0.20, 0.25, 0.40] : [0.45, 0.55, 0.80];
   const DEFAULT_LINE_ALPHA    = PREFERS_DARK ? 0.40 : 0.50;
   const DEFAULT_GRAVITY       = gravity;
   const DEFAULT_ITERATIONS    = iterations;
@@ -3386,16 +3386,19 @@ class Cloth {
   }
 
   function applyDefaultCloth() {
-    // Force basic cloth parameters (Distinct from Silk)
+    // Force basic cloth parameters (Strong and distinct from Silk)
     gravity      = 0.5;
-    iterations   = 10; // Slightly firmer to distinguish from Silk
+    iterations   = 12; // Increased to 12 for very stable "Heavy" feel
     tearDist     = 60;
     damping      = 0.99;
     windResponse = 1.0;
     stickiness   = 0.22;
     dryRate      = 0.012;
-    shearStiff   = 0.15;
-    bendStiff    = 0.12;
+    shearStiff   = 0.25; // Much stiffer than silk
+    bendStiff    = 0.15; // Much stiffer than silk
+    
+    // Reset background
+    setBgPalette('DEFAULT');
     
     // Clear custom textures
     hasTexture = false;
@@ -3411,7 +3414,7 @@ class Cloth {
     clothColor   = DEFAULT_COLOR.slice();
     lineAlpha    = DEFAULT_LINE_ALPHA;
     
-    // FULL RESET: Recreate cloth to fix tears
+    // FULL RECREATION
     cloth = makeCloth();
     
     activePreset = null;
